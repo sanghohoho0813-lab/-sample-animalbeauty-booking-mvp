@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-cream-50 text-ink antialiased;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  ::selection {
+    @apply bg-mint-200 text-ink;
+  }
+}
+
+@layer components {
+  .input-base {
+    @apply w-full rounded-2xl border border-cream-300 bg-cream-50 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-400;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tap {
+    @apply transition-transform duration-200 active:scale-[0.98];
+  }
+}
+
+/* 예약 완료 체크 애니메이션 */
+.check-draw {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: check-draw 0.45s ease-out 0.5s forwards;
+}
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.skeleton {
+  @apply relative overflow-hidden rounded-xl bg-cream-200;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.7),
+    transparent
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.4s linear infinite;
+}
