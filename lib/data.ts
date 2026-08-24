@@ -24,7 +24,7 @@ export const SEED_PETS: Pet[] = [
     age: 3,
     weight: 4.2,
     emoji: "🐩",
-    image: "/images/pets/pet-01-kongi.png",
+    image: "/images/pets/pet-01-kongi-v2.png",
     note: "겁이 많아요. 드라이어 소리에 예민해요.",
   },
   {
@@ -35,7 +35,7 @@ export const SEED_PETS: Pet[] = [
     age: 2,
     weight: 2.8,
     emoji: "🐶",
-    image: "/images/pets/pet-02-mongi.png",
+    image: "/images/pets/pet-02-mongi-v2.png",
     note: "발 만지는 걸 싫어해요.",
   },
   {
@@ -46,7 +46,7 @@ export const SEED_PETS: Pet[] = [
     age: 1,
     weight: 4.1,
     emoji: "🐱",
-    image: "/images/pets/pet-03-bori.png",
+    image: "/images/pets/pet-03-bori-v2.png",
     note: "낯가림이 있지만 금방 적응해요.",
   },
 ];

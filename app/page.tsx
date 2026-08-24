@@ -102,7 +102,7 @@ export default function HomePage() {
           <div className="relative h-56 w-56 shrink-0 md:h-[22rem] md:w-[22rem]">
             <div className="absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br from-white/90 to-mint-100 shadow-card-hover">
               <Image
-                src="/images/pets/pet-01-kongi.png"
+                src="/images/pets/pet-01-kongi-v2.png"
                 alt="미용을 마친 푸들"
                 fill
                 priority
