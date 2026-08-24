@@ -8,8 +8,10 @@ import {
   Tag,
   UsersRound,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/layout/Footer";
+import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import SalonCard from "@/components/ui/SalonCard";
 import { RatingBadge, StarRow } from "@/components/ui/Stars";
 import { GROOMERS, REVIEWS, SALONS, SERVICES } from "@/lib/data";
@@ -55,7 +57,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-mint-100 via-cream-50 to-cream-100">
         <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-mint-200/50 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 left-1/4 h-56 w-56 rounded-full bg-coral-100/60 blur-3xl" />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-8 px-4 pb-12 pt-10 md:flex-row md:justify-between md:px-6 md:pb-20 md:pt-16">
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pb-12 pt-8 md:flex-row md:justify-between md:gap-8 md:px-6 md:pb-20 md:pt-16">
           <div className="w-full max-w-xl text-center md:text-left">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-bold text-mint-700 shadow-card">
               <Sparkles className="h-3.5 w-3.5" />
@@ -97,15 +99,20 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative flex h-52 w-52 shrink-0 items-center justify-center md:h-80 md:w-80">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/90 to-mint-100 shadow-card-hover" />
-            <span className="relative text-[6.5rem] md:text-[10rem]" role="img" aria-label="강아지">
-              🐩
-            </span>
-            <span className="absolute -left-2 top-6 rotate-[-12deg] text-3xl md:text-4xl">🧼</span>
-            <span className="absolute -right-1 top-14 text-2xl text-coral-400 md:text-3xl">🩷</span>
-            <span className="absolute bottom-4 left-2 text-2xl md:bottom-8 md:text-3xl">✂️</span>
-            <span className="absolute -bottom-1 right-6 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-mint-700 shadow-card md:text-sm">
+          <div className="relative h-56 w-56 shrink-0 md:h-[22rem] md:w-[22rem]">
+            <div className="absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br from-white/90 to-mint-100 shadow-card-hover">
+              <Image
+                src="/images/pets/pet-01-kongi.png"
+                alt="미용을 마친 푸들"
+                fill
+                priority
+                sizes="(min-width: 768px) 22rem, 14rem"
+                className="object-cover"
+              />
+            </div>
+            <span className="absolute -left-1 top-4 rotate-[-12deg] text-3xl md:text-4xl">🧼</span>
+            <span className="absolute -right-2 top-12 text-2xl md:text-3xl">🩷</span>
+            <span className="absolute -bottom-2 right-2 rounded-full bg-white px-3.5 py-2 text-xs font-bold text-mint-700 shadow-card-hover md:text-sm">
               오늘도 뽀송하게 🫧
             </span>
           </div>
@@ -168,9 +175,7 @@ export default function HomePage() {
                 className="w-60 shrink-0 snap-start rounded-3xl border border-cream-200 bg-white p-5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover md:w-auto"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cream-100 to-cream-200 text-3xl">
-                    {groomer.emoji}
-                  </span>
+                  <GroomerAvatar groomer={groomer} size="lg" />
                   <div>
                     <p className="flex items-center gap-1.5 text-base font-bold text-ink">
                       {groomer.name}

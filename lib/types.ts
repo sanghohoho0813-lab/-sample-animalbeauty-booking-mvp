@@ -8,6 +8,8 @@ export interface Pet {
   age: number; // 살
   weight: number; // kg
   emoji: string;
+  /** public/ 기준 이미지 경로. 사용자가 새로 등록한 아이는 이모지로 표시한다. */
+  image?: string;
   note?: string;
 }
 
@@ -34,7 +36,8 @@ export interface Salon {
   address: string;
   openHours: string;
   emoji: string;
-  gradient: string; // tailwind gradient classes for thumbnail
+  gradient: string; // 이미지 로딩 전 배경으로 사용하는 tailwind gradient
+  image: string;
 }
 
 export interface Groomer {
@@ -48,6 +51,7 @@ export interface Groomer {
   intro: string;
   premium?: boolean;
   emoji: string;
+  image?: string;
 }
 
 export interface Review {

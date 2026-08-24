@@ -9,10 +9,12 @@ import {
   Plus,
   Sparkles,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Calendar from "@/components/booking/Calendar";
 import SummaryCard from "@/components/booking/SummaryCard";
+import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import PetAvatar from "@/components/ui/PetAvatar";
 import { RatingBadge } from "@/components/ui/Stars";
 import type { BookingDraft } from "@/lib/booking-context";
@@ -171,9 +173,15 @@ export function SalonStep({ draft, setDraft }: StepProps) {
             aria-pressed={selected}
           >
             <div
-              className={`relative flex h-24 items-center justify-center bg-gradient-to-br ${salon.gradient}`}
+              className={`relative aspect-[16/9] overflow-hidden bg-gradient-to-br ${salon.gradient}`}
             >
-              <span className="text-5xl">{salon.emoji}</span>
+              <Image
+                src={salon.image}
+                alt={`${salon.name} 미용실`}
+                fill
+                sizes="(min-width: 640px) 24rem, 92vw"
+                className="object-cover"
+              />
               {salon.availableToday && (
                 <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-[11px] font-bold text-white">
                   오늘 예약 가능
@@ -255,9 +263,7 @@ export function GroomerStep({ draft, setDraft }: StepProps) {
             }`}
             aria-pressed={selected}
           >
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cream-100 to-cream-200 text-3xl">
-              {groomer.emoji}
-            </span>
+            <GroomerAvatar groomer={groomer} size="lg" />
             <div className="min-w-0 flex-1">
               <p className="flex flex-wrap items-center gap-1.5 text-base font-bold text-ink">
                 {groomer.name}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart, MapPin } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { toggleFavorite, useDb } from "@/lib/db";
 import { formatWon } from "@/lib/format";
@@ -21,11 +22,15 @@ export default function SalonCard({ salon }: { salon: Salon }) {
         aria-label={`${salon.name} 예약하기`}
       >
         <div
-          className={`relative flex h-36 items-center justify-center bg-gradient-to-br ${salon.gradient}`}
+          className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${salon.gradient}`}
         >
-          <span className="text-6xl transition-transform duration-300 group-hover:scale-110">
-            {salon.emoji}
-          </span>
+          <Image
+            src={salon.image}
+            alt={`${salon.name} 미용실`}
+            fill
+            sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 92vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          />
           {salon.availableToday && (
             <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-[11px] font-bold text-white">
               오늘 예약 가능

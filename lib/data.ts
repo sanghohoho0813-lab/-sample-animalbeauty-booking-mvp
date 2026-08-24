@@ -24,6 +24,7 @@ export const SEED_PETS: Pet[] = [
     age: 3,
     weight: 4.2,
     emoji: "🐩",
+    image: "/images/pets/pet-01-kongi.png",
     note: "겁이 많아요. 드라이어 소리에 예민해요.",
   },
   {
@@ -34,6 +35,7 @@ export const SEED_PETS: Pet[] = [
     age: 2,
     weight: 2.8,
     emoji: "🐶",
+    image: "/images/pets/pet-02-mongi.png",
     note: "발 만지는 걸 싫어해요.",
   },
   {
@@ -44,6 +46,7 @@ export const SEED_PETS: Pet[] = [
     age: 1,
     weight: 4.1,
     emoji: "🐱",
+    image: "/images/pets/pet-03-bori.png",
     note: "낯가림이 있지만 금방 적응해요.",
   },
 ];
@@ -121,6 +124,7 @@ export const SALONS: Salon[] = [
     openHours: "09:00 - 19:00",
     emoji: "🐩",
     gradient: "from-mint-100 to-mint-200",
+    image: "/images/salons/salon-01-salon-de-paw.png",
   },
   {
     id: "salon-2",
@@ -135,6 +139,7 @@ export const SALONS: Salon[] = [
     openHours: "10:00 - 20:00",
     emoji: "🐕",
     gradient: "from-cream-200 to-cream-300",
+    image: "/images/salons/salon-02-meongmong-salon.png",
   },
   {
     id: "salon-3",
@@ -149,6 +154,7 @@ export const SALONS: Salon[] = [
     openHours: "09:30 - 18:30",
     emoji: "🧸",
     gradient: "from-coral-100 to-coral-200",
+    image: "/images/salons/salon-03-pogeunpogeun-pet-salon.png",
   },
   {
     id: "salon-4",
@@ -163,6 +169,7 @@ export const SALONS: Salon[] = [
     openHours: "10:00 - 19:00",
     emoji: "💆",
     gradient: "from-mint-100 to-cream-200",
+    image: "/images/salons/salon-04-coco-pet-beauty.png",
   },
   {
     id: "salon-5",
@@ -177,6 +184,7 @@ export const SALONS: Salon[] = [
     openHours: "09:00 - 18:00",
     emoji: "🐾",
     gradient: "from-cream-100 to-mint-100",
+    image: "/images/salons/salon-05-happy-tail.png",
   },
   {
     id: "salon-6",
@@ -191,6 +199,7 @@ export const SALONS: Salon[] = [
     openHours: "11:00 - 20:00",
     emoji: "🐱",
     gradient: "from-coral-50 to-cream-200",
+    image: "/images/salons/salon-06-cat-salon-momo.png",
   },
 ];
 
@@ -206,6 +215,7 @@ export const GROOMERS: Groomer[] = [
     intro: "겁 많은 아이도 편안하게, 차분한 케어를 약속해요.",
     premium: true,
     emoji: "👩🏻‍🦰",
+    image: "/images/groomers/groomer-03-lee-sujin.png",
   },
   {
     id: "grm-2",
@@ -240,6 +250,7 @@ export const GROOMERS: Groomer[] = [
     intro: "대형견 미용 경력 8년, 힘들어하지 않게 케어해요.",
     premium: true,
     emoji: "👩🏻‍🦱",
+    image: "/images/groomers/groomer-01-choi-eunyoung.png",
   },
   {
     id: "grm-5",
@@ -263,6 +274,7 @@ export const GROOMERS: Groomer[] = [
     intro: "나이 든 아이의 컨디션에 맞춰 천천히 진행해요.",
     premium: true,
     emoji: "👩🏻‍🦳",
+    image: "/images/groomers/groomer-04-han-jiwon.png",
   },
   {
     id: "grm-7",
@@ -286,6 +298,7 @@ export const GROOMERS: Groomer[] = [
     intro: "스파 전문가의 손길로 피부 속부터 건강하게.",
     premium: true,
     emoji: "👩🏻‍⚕️",
+    image: "/images/groomers/groomer-02-kang-dahyun.png",
   },
   {
     id: "grm-9",

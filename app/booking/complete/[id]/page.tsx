@@ -139,10 +139,6 @@ export default function BookingCompletePage({
           <CalendarDays className="h-3.5 w-3.5" />
           방문 하루 전에 알림으로 다시 알려드릴게요.
         </p>
-
-        <div className="mt-6 text-center text-5xl" aria-hidden>
-          🛁🐶🫧
-        </div>
       </div>
     </div>
   );

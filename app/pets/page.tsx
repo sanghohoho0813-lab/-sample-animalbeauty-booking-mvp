@@ -51,7 +51,7 @@ export default function PetsPage() {
               className="rounded-3xl border border-cream-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover animate-fade-in-up"
             >
               <div className="flex items-center gap-4">
-                <PetAvatar pet={pet} size="lg" />
+                <PetAvatar pet={pet} size="xl" />
                 <div className="min-w-0">
                   <p className="text-lg font-extrabold text-ink">{pet.name}</p>
                   <p className="mt-0.5 text-sm text-ink-muted">
