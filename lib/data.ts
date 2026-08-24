@@ -124,7 +124,7 @@ export const SALONS: Salon[] = [
     openHours: "09:00 - 19:00",
     emoji: "🐩",
     gradient: "from-mint-100 to-mint-200",
-    image: "/images/salons/salon-01-salon-de-paw.png",
+    image: "/images/salons/salon-01-salon-de-paw-interior.png",
   },
   {
     id: "salon-2",
@@ -139,7 +139,7 @@ export const SALONS: Salon[] = [
     openHours: "10:00 - 20:00",
     emoji: "🐕",
     gradient: "from-cream-200 to-cream-300",
-    image: "/images/salons/salon-02-meongmong-salon.png",
+    image: "/images/salons/salon-02-meongmong-salon-interior.png",
   },
   {
     id: "salon-3",
@@ -154,7 +154,7 @@ export const SALONS: Salon[] = [
     openHours: "09:30 - 18:30",
     emoji: "🧸",
     gradient: "from-coral-100 to-coral-200",
-    image: "/images/salons/salon-03-pogeunpogeun-pet-salon.png",
+    image: "/images/salons/salon-03-pogeunpogeun-pet-salon-interior.png",
   },
   {
     id: "salon-4",
@@ -169,7 +169,7 @@ export const SALONS: Salon[] = [
     openHours: "10:00 - 19:00",
     emoji: "💆",
     gradient: "from-mint-100 to-cream-200",
-    image: "/images/salons/salon-04-coco-pet-beauty.png",
+    image: "/images/salons/salon-04-coco-pet-beauty-interior.png",
   },
   {
     id: "salon-5",
@@ -184,7 +184,7 @@ export const SALONS: Salon[] = [
     openHours: "09:00 - 18:00",
     emoji: "🐾",
     gradient: "from-cream-100 to-mint-100",
-    image: "/images/salons/salon-05-happy-tail.png",
+    image: "/images/salons/salon-05-happy-tail-interior.png",
   },
   {
     id: "salon-6",
@@ -199,7 +199,7 @@ export const SALONS: Salon[] = [
     openHours: "11:00 - 20:00",
     emoji: "🐱",
     gradient: "from-coral-50 to-cream-200",
-    image: "/images/salons/salon-06-cat-salon-momo.png",
+    image: "/images/salons/salon-06-cat-salon-momo-interior.png",
   },
 ];
 

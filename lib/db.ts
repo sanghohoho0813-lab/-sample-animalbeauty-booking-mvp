@@ -97,6 +97,17 @@ function seedBookings(): Booking[] {
   ];
 }
 
+/**
+ * 저장된 반려동물 목록에 최신 샘플 데이터를 반영한다.
+ * 데모 3마리는 항상 SEED_PETS의 최신 정의(사진 등)를 따르고,
+ * 사용자가 직접 등록한 아이는 저장된 그대로 유지한다.
+ */
+function mergeSeedPets(storedPets: Pet[]): Pet[] {
+  const seedIds = new Set(SEED_PETS.map((p) => p.id));
+  const custom = storedPets.filter((p) => !seedIds.has(p.id));
+  return [...SEED_PETS, ...custom];
+}
+
 function initDb() {
   if (state.hydrated) return;
   let loaded: Omit<DbState, "hydrated"> | null = null;
@@ -112,7 +123,8 @@ function initDb() {
     Array.isArray(loaded.bookings) &&
     Array.isArray(loaded.favorites)
   ) {
-    state = { hydrated: true, ...loaded };
+    state = { hydrated: true, ...loaded, pets: mergeSeedPets(loaded.pets) };
+    persist();
   } else {
     state = {
       hydrated: true,
