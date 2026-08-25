@@ -148,11 +148,11 @@ function BookingFlow() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-32 pt-5 md:px-6 md:pb-16 md:pt-8">
+    <div className="mx-auto max-w-6xl px-4 pb-32 pt-5 md:px-6 md:pt-8 lg:pb-16">
       <StepIndicator current={step} onJump={goTo} />
 
-      <div className="mt-6 grid gap-6 md:mt-8 md:grid-cols-[1fr_21rem] md:items-start">
-        <section key={step} className="animate-fade-in-up">
+      <div className="mt-6 grid gap-6 md:mt-8 lg:grid-cols-[1fr_21rem] lg:items-start">
+        <section key={step} className="min-w-0 animate-fade-in-up">
           <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
             {STEP_TITLES[step][0]}
           </h1>
@@ -183,7 +183,7 @@ function BookingFlow() {
           </div>
 
           {/* 데스크톱 네비게이션 */}
-          <div className="mt-8 hidden items-center justify-between md:flex">
+          <div className="mt-8 hidden items-center justify-between lg:flex">
             <button
               type="button"
               onClick={() => (step === 0 ? router.push("/") : goTo(step - 1))}
@@ -202,13 +202,13 @@ function BookingFlow() {
         </section>
 
         {/* 데스크톱 예약 요약 */}
-        <aside className="hidden md:sticky md:top-24 md:block">
+        <aside className="hidden lg:sticky lg:top-24 lg:block">
           <SummaryCard draft={draft} pets={db.pets} />
         </aside>
       </div>
 
       {/* 모바일 하단 고정 CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200 bg-white/95 shadow-float backdrop-blur-md safe-bottom md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200 bg-white/95 shadow-float backdrop-blur-md safe-bottom lg:hidden">
         <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
           <button
             type="button"
@@ -220,7 +220,7 @@ function BookingFlow() {
           </button>
           {draft.serviceId && (
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-ink-faint">
+              <p className="text-xs font-semibold text-ink-faint">
                 예상 결제 금액
               </p>
               <p className="truncate text-lg font-extrabold text-ink">

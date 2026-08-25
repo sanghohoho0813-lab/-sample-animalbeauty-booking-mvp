@@ -9,8 +9,9 @@ import type {
 } from "./types";
 
 export const DEMO_USER: DemoUser = {
-  name: "김하늘",
-  email: "haneul@pawbeauty.demo",
+  name: "김팀장",
+  org: "미래에이아이랩",
+  email: "kim@mirae-ailab.kr",
   membership: "PawBeauty 멤버",
   emoji: "🙂",
 };
@@ -362,7 +363,7 @@ export const REVIEWS: Review[] = [
   {
     id: "rev-1",
     salonId: "salon-1",
-    author: "김하늘",
+    author: "김팀장",
     petName: "콩이",
     rating: 5,
     content:
@@ -435,7 +436,7 @@ export const REVIEWS: Review[] = [
   {
     id: "rev-8",
     salonId: "salon-4",
-    author: "김하늘",
+    author: "김팀장",
     petName: "몽이",
     rating: 5,
     content:
@@ -486,7 +487,7 @@ export const REVIEWS: Review[] = [
   {
     id: "rev-13",
     salonId: "salon-6",
-    author: "김하늘",
+    author: "김팀장",
     petName: "보리",
     rating: 5,
     content:

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import MiraeLogo from "@/components/brand/MiraeLogo";
 import PetAvatar from "@/components/ui/PetAvatar";
 import { COUPONS, DEMO_USER } from "@/lib/data";
 import { useDb } from "@/lib/db";
@@ -39,7 +40,13 @@ export default function MyPage() {
             {DEMO_USER.emoji}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-extrabold text-ink">{DEMO_USER.name}</p>
+            <MiraeLogo className="h-5 w-auto md:h-6" />
+            <p className="mt-1.5 text-lg font-extrabold leading-tight text-ink">
+              <span className="block text-sm font-bold text-ink-muted">
+                {DEMO_USER.org}
+              </span>
+              {DEMO_USER.name}님
+            </p>
             <p className="truncate text-sm text-ink-muted">{DEMO_USER.email}</p>
           </div>
           <span className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-700">
@@ -151,8 +158,9 @@ export default function MyPage() {
         </div>
       </SectionCard>
 
-      <p className="mt-8 text-center text-xs text-ink-faint">
-        PawBeauty MVP · 데모 계정으로 이용 중이에요
+      <p className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-ink-faint">
+        <MiraeLogo className="h-5 w-auto" />
+        <span>PawBeauty MVP · 데모 계정으로 이용 중이에요</span>
       </p>
     </div>
   );

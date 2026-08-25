@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import MiraeCredit from "@/components/brand/MiraeCredit";
+import MiraeLogo from "@/components/brand/MiraeLogo";
 import Footer from "@/components/layout/Footer";
 import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import SalonCard from "@/components/ui/SalonCard";
@@ -59,11 +61,19 @@ export default function HomePage() {
         <div className="pointer-events-none absolute -bottom-20 left-1/4 h-56 w-56 rounded-full bg-coral-100/60 blur-3xl" />
         <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pb-12 pt-8 md:flex-row md:justify-between md:gap-8 md:px-6 md:pb-20 md:pt-16">
           <div className="w-full max-w-xl text-center md:text-left">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-bold text-mint-700 shadow-card">
-              <Sparkles className="h-3.5 w-3.5" />
-              반려동물 미용 예약 서비스
-            </span>
-            <h1 className="mt-4 text-3xl font-extrabold leading-snug tracking-tight text-ink md:text-[2.75rem] md:leading-[1.25]">
+            <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-bold text-mint-700 shadow-card">
+                <Sparkles className="h-4 w-4" />
+                반려동물 미용 예약 서비스
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-card">
+                <MiraeLogo className="h-6 w-auto md:h-7" />
+                <span className="border-l border-cream-300 pl-2 text-xs font-bold text-ink-soft">
+                  제작
+                </span>
+              </span>
+            </div>
+            <h1 className="mt-4 text-3xl font-extrabold leading-snug tracking-tight text-ink md:text-[4.125rem] md:leading-[1.25]">
               우리 아이의
               <br />
               특별한 하루를 위한 미용
@@ -176,11 +186,11 @@ export default function HomePage() {
               >
                 <div className="flex items-center gap-3">
                   <GroomerAvatar groomer={groomer} size="lg" />
-                  <div>
-                    <p className="flex items-center gap-1.5 text-base font-bold text-ink">
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-1.5 text-base font-bold text-ink">
                       {groomer.name}
                       {groomer.premium && (
-                        <span className="rounded-full bg-coral-100 px-2 py-0.5 text-[10px] font-bold text-coral-600">
+                        <span className="rounded-full bg-coral-100 px-2 py-0.5 text-2xs font-bold text-coral-600">
                           프리미엄
                         </span>
                       )}
@@ -200,7 +210,7 @@ export default function HomePage() {
                   {groomer.specialties.map((s) => (
                     <span
                       key={s}
-                      className="rounded-full bg-mint-50 px-2.5 py-1 text-[11px] font-semibold text-mint-700"
+                      className="rounded-full bg-mint-50 px-2.5 py-1 text-xs font-semibold text-mint-700"
                     >
                       {s}
                     </span>
@@ -276,6 +286,7 @@ export default function HomePage() {
             </Link>
           </div>
         </section>
+        <MiraeCredit />
       </div>
 
       <Footer />

@@ -8,6 +8,24 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      /**
+       * 기본 Tailwind 타이포 스케일을 1.5배로 재정의한다.
+       * (text-sm 14px → 21px 등) 모든 화면의 글자 크기가 한 번에 커진다.
+       */
+      fontSize: {
+        "2xs": ["0.9375rem", { lineHeight: "1.35rem" }], // 10px → 15px
+        xs: ["1.125rem", { lineHeight: "1.6rem" }], // 12px → 18px
+        sm: ["1.3125rem", { lineHeight: "1.9rem" }], // 14px → 21px
+        base: ["1.5rem", { lineHeight: "2.2rem" }], // 16px → 24px
+        lg: ["1.6875rem", { lineHeight: "2.4rem" }], // 18px → 27px
+        xl: ["1.875rem", { lineHeight: "2.5rem" }], // 20px → 30px
+        "2xl": ["2.25rem", { lineHeight: "2.9rem" }], // 24px → 36px
+        "3xl": ["2.8125rem", { lineHeight: "3.4rem" }], // 30px → 45px
+        "4xl": ["3.375rem", { lineHeight: "3.9rem" }], // 36px → 54px
+        "5xl": ["4.5rem", { lineHeight: "1.1" }], // 48px → 72px
+        "6xl": ["5.625rem", { lineHeight: "1.1" }],
+        "7xl": ["6.75rem", { lineHeight: "1.05" }],
+      },
       colors: {
         mint: {
           50: "#F0F7F4",
@@ -36,6 +54,15 @@ const config: Config = {
           100: "#F8F4EE",
           200: "#F1EAE0",
           300: "#E5DAC9",
+        },
+        // 미래에이아이랩 브랜드 컬러 (로고 기준)
+        mirae: {
+          dark: "#09242d",
+          deep: "#003846",
+          teal: "#006b78",
+          cyan: "#16bfd6",
+          sky: "#1fb8ff",
+          blue: "#1478ff",
         },
         ink: {
           DEFAULT: "#22332E",

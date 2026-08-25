@@ -28,7 +28,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200 bg-white/95 backdrop-blur-md safe-bottom md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200 bg-white/95 backdrop-blur-md safe-bottom lg:hidden"
       aria-label="하단 메뉴"
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around">
@@ -39,7 +39,7 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex min-w-[56px] flex-col items-center gap-0.5 px-3 pb-2 pt-2.5 text-[11px] font-semibold transition-colors ${
+              className={`flex min-w-[56px] flex-col items-center gap-0.5 px-3 pb-2 pt-2.5 text-xs font-semibold transition-colors ${
                 active ? "text-mint-600" : "text-ink-faint hover:text-ink-muted"
               }`}
             >

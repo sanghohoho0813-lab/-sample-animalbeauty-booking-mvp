@@ -66,7 +66,7 @@ export default function PetsPage() {
                     sizes="(min-width: 768px) 22rem, 92vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
-                  <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-ink/45 px-3 py-1.5 text-[11px] font-bold text-white opacity-0 backdrop-blur transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100">
+                  <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-ink/45 px-3 py-1.5 text-xs font-bold text-white opacity-0 backdrop-blur transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100">
                     <Expand className="h-3.5 w-3.5" />
                     원본 보기
                   </span>
@@ -93,7 +93,7 @@ export default function PetsPage() {
                       {pet.breed} · {pet.age}살 · {pet.weight}kg
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-cream-100 px-3 py-1 text-[11px] font-bold text-ink-soft">
+                  <span className="shrink-0 rounded-full bg-cream-100 px-3 py-1 text-xs font-bold text-ink-soft">
                     {pet.species === "dog" ? "🐕 강아지" : "🐈 고양이"}
                   </span>
                 </div>

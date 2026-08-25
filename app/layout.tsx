@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import MiraeBrandBar from "@/components/brand/MiraeBrandBar";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import { BookingProvider } from "@/lib/booking-context";
@@ -20,7 +21,11 @@ export const metadata: Metadata = {
     template: "%s | PawBeauty",
   },
   description:
-    "우리 아이의 특별한 하루를 위한 반려동물 미용 예약 서비스. 검증된 미용사와 함께 건강하고 예쁜 스타일을 완성하세요.",
+    "우리 아이의 특별한 하루를 위한 반려동물 미용 예약 서비스. 미래에이아이랩(MIRAE AI LAB)이 기획·개발한 MVP 레퍼런스입니다.",
+  applicationName: "PawBeauty",
+  authors: [{ name: "미래에이아이랩 (MIRAE AI LAB)" }],
+  creator: "미래에이아이랩 (MIRAE AI LAB)",
+  publisher: "미래에이아이랩 (MIRAE AI LAB)",
 };
 
 export const viewport: Viewport = {
@@ -41,8 +46,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-dvh">
         <ToastProvider>
           <BookingProvider>
+            <MiraeBrandBar />
             <Header />
-            <main className="pb-24 md:pb-0">{children}</main>
+            <main className="pb-24 lg:pb-0">{children}</main>
             <BottomNav />
           </BookingProvider>
         </ToastProvider>

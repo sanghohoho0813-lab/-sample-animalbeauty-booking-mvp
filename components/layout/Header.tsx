@@ -29,7 +29,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {NAV_ITEMS.map((item) => {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);

@@ -1,4 +1,5 @@
 import { PawPrint } from "lucide-react";
+import MiraeLogo from "@/components/brand/MiraeLogo";
 
 export default function Footer() {
   return (
@@ -46,9 +47,21 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <p className="mt-10 border-t border-cream-200 pt-6 text-xs text-ink-faint">
-          © 2026 PawBeauty. 본 서비스는 포트폴리오 시연용 MVP입니다.
-        </p>
+        <div className="mt-10 flex flex-col gap-4 border-t border-cream-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <MiraeLogo className="h-10 w-auto md:h-12" />
+            <span className="border-l border-cream-300 pl-3 text-xs leading-relaxed text-ink-muted">
+              기획 · 디자인 · 개발
+              <br />
+              <b className="text-ink-soft">미래에이아이랩</b>
+            </span>
+          </div>
+          <p className="text-xs leading-relaxed text-ink-faint">
+            © 2026 미래에이아이랩 (MIRAE AI LAB).
+            <br className="hidden sm:block" /> 본 서비스는 포트폴리오 시연용 MVP
+            레퍼런스입니다.
+          </p>
+        </div>
       </div>
     </footer>
   );

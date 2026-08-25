@@ -32,7 +32,7 @@ export default function SalonCard({ salon }: { salon: Salon }) {
             className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           />
           {salon.availableToday && (
-            <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-[11px] font-bold text-white">
+            <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-xs font-bold text-white">
               오늘 예약 가능
             </span>
           )}
@@ -50,7 +50,7 @@ export default function SalonCard({ salon }: { salon: Salon }) {
             {salon.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-cream-100 px-2.5 py-1 text-[11px] font-semibold text-ink-soft"
+                className="rounded-full bg-cream-100 px-2.5 py-1 text-xs font-semibold text-ink-soft"
               >
                 {tag}
               </span>

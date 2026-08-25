@@ -47,7 +47,7 @@ export default function StepIndicator({
                   }`}
                 >
                   <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] md:h-6 md:w-6 md:text-xs ${
+                    className={`flex h-5 w-5 items-center justify-center rounded-full text-2xs md:h-6 md:w-6 md:text-xs ${
                       active
                         ? "bg-white/25 text-white"
                         : done

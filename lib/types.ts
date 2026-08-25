@@ -94,6 +94,8 @@ export interface Coupon {
 
 export interface DemoUser {
   name: string;
+  /** 소속 (데모 계정이 미래에이아이랩 소속임을 표시) */
+  org: string;
   email: string;
   membership: string;
   emoji: string;

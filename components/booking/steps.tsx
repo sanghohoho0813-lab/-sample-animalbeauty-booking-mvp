@@ -106,7 +106,7 @@ export function ServiceStep({ draft, setDraft }: StepProps) {
             aria-pressed={selected}
           >
             {service.popular && (
-              <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-coral-100 px-2.5 py-1 text-[11px] font-bold text-coral-600">
+              <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-coral-100 px-2.5 py-1 text-xs font-bold text-coral-600">
                 <Sparkles className="h-3 w-3" />
                 인기
               </span>
@@ -183,7 +183,7 @@ export function SalonStep({ draft, setDraft }: StepProps) {
                 className="object-cover"
               />
               {salon.availableToday && (
-                <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-[11px] font-bold text-white">
+                <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-xs font-bold text-white">
                   오늘 예약 가능
                 </span>
               )}
@@ -206,7 +206,7 @@ export function SalonStep({ draft, setDraft }: StepProps) {
                 {salon.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-cream-100 px-2.5 py-1 text-[11px] font-semibold text-ink-soft"
+                    className="rounded-full bg-cream-100 px-2.5 py-1 text-xs font-semibold text-ink-soft"
                   >
                     {tag}
                   </span>
@@ -268,7 +268,7 @@ export function GroomerStep({ draft, setDraft }: StepProps) {
               <p className="flex flex-wrap items-center gap-1.5 text-base font-bold text-ink">
                 {groomer.name}
                 {groomer.premium && (
-                  <span className="rounded-full bg-coral-100 px-2 py-0.5 text-[10px] font-bold text-coral-600">
+                  <span className="rounded-full bg-coral-100 px-2 py-0.5 text-2xs font-bold text-coral-600">
                     프리미엄
                   </span>
                 )}
@@ -281,7 +281,7 @@ export function GroomerStep({ draft, setDraft }: StepProps) {
                 {groomer.specialties.map((s) => (
                   <span
                     key={s}
-                    className="rounded-full bg-mint-50 px-2.5 py-0.5 text-[11px] font-semibold text-mint-700"
+                    className="rounded-full bg-mint-50 px-2.5 py-0.5 text-xs font-semibold text-mint-700"
                   >
                     {s}
                   </span>
