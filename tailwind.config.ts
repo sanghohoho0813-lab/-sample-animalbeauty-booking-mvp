@@ -9,22 +9,22 @@ const config: Config = {
   theme: {
     extend: {
       /**
-       * 기본 Tailwind 타이포 스케일을 1.5배로 재정의한다.
-       * (text-sm 14px → 21px 등) 모든 화면의 글자 크기가 한 번에 커진다.
+       * 기본 Tailwind 타이포 스케일을 1.275배로 재정의한다.
+       * (text-sm 14px → 17.9px 등) 모든 화면의 글자 크기가 한 번에 조정된다.
        */
       fontSize: {
-        "2xs": ["0.9375rem", { lineHeight: "1.35rem" }], // 10px → 15px
-        xs: ["1.125rem", { lineHeight: "1.6rem" }], // 12px → 18px
-        sm: ["1.3125rem", { lineHeight: "1.9rem" }], // 14px → 21px
-        base: ["1.5rem", { lineHeight: "2.2rem" }], // 16px → 24px
-        lg: ["1.6875rem", { lineHeight: "2.4rem" }], // 18px → 27px
-        xl: ["1.875rem", { lineHeight: "2.5rem" }], // 20px → 30px
-        "2xl": ["2.25rem", { lineHeight: "2.9rem" }], // 24px → 36px
-        "3xl": ["2.8125rem", { lineHeight: "3.4rem" }], // 30px → 45px
-        "4xl": ["3.375rem", { lineHeight: "3.9rem" }], // 36px → 54px
-        "5xl": ["4.5rem", { lineHeight: "1.1" }], // 48px → 72px
-        "6xl": ["5.625rem", { lineHeight: "1.1" }],
-        "7xl": ["6.75rem", { lineHeight: "1.05" }],
+        "2xs": ["0.797rem", { lineHeight: "1.15rem" }], // 10px → 12.8px
+        xs: ["0.956rem", { lineHeight: "1.36rem" }], // 12px → 15.3px
+        sm: ["1.116rem", { lineHeight: "1.62rem" }], // 14px → 17.9px
+        base: ["1.275rem", { lineHeight: "1.87rem" }], // 16px → 20.4px
+        lg: ["1.434rem", { lineHeight: "2.04rem" }], // 18px → 23px
+        xl: ["1.594rem", { lineHeight: "2.13rem" }], // 20px → 25.5px
+        "2xl": ["1.913rem", { lineHeight: "2.47rem" }], // 24px → 30.6px
+        "3xl": ["2.391rem", { lineHeight: "2.89rem" }], // 30px → 38.3px
+        "4xl": ["2.869rem", { lineHeight: "3.32rem" }], // 36px → 45.9px
+        "5xl": ["3.825rem", { lineHeight: "1.1" }], // 48px → 61.2px
+        "6xl": ["4.781rem", { lineHeight: "1.1" }],
+        "7xl": ["5.738rem", { lineHeight: "1.05" }],
       },
       colors: {
         mint: {

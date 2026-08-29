@@ -73,7 +73,7 @@ export default function HomePage() {
                 </span>
               </span>
             </div>
-            <h1 className="mt-4 text-3xl font-extrabold leading-snug tracking-tight text-ink md:text-[4.125rem] md:leading-[1.25]">
+            <h1 className="mt-4 text-3xl font-extrabold leading-snug tracking-tight text-ink md:text-[3.506rem] md:leading-[1.25]">
               우리 아이의
               <br />
               특별한 하루를 위한 미용
