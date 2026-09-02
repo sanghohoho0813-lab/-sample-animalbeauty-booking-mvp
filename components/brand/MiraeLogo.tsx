@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-const LOGO_SRC = "/brand/mirae-ai-lab-logo-v2.png";
+const LOGO_SRC = "/brand/mirae-ai-lab-logo-v3.png";
 const LOGO_ALT = "미래에이아이랩 (MIRAE AI LAB)";
 
 /**
