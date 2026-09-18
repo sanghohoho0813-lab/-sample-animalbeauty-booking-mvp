@@ -124,6 +124,16 @@ const config: Config = {
           "0%": { backgroundPosition: "-400px 0" },
           "100%": { backgroundPosition: "400px 0" },
         },
+        // CTA 버튼 위를 천천히 지나가는 빛 (대부분의 시간은 화면 밖에서 대기)
+        "cta-sweep": {
+          "0%, 64%": { transform: "translateX(-140%)" },
+          "100%": { transform: "translateX(240%)" },
+        },
+        // 배지 점의 아주 약한 숨쉬기
+        "badge-pulse": {
+          "0%, 100%": { opacity: "0.3", transform: "scale(1)" },
+          "50%": { opacity: "0.7", transform: "scale(1.8)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 0.3s ease-out both",
@@ -132,6 +142,8 @@ const config: Config = {
         "slide-up": "slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both",
         "pop-check": "pop-check 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both",
         shimmer: "shimmer 1.4s linear infinite",
+        "cta-sweep": "cta-sweep 6s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+        "badge-pulse": "badge-pulse 4s ease-in-out infinite",
       },
     },
   },

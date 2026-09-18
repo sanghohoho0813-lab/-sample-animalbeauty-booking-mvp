@@ -10,9 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import MiraeCredit from "@/components/brand/MiraeCredit";
 import MiraeLogo from "@/components/brand/MiraeLogo";
-import Footer from "@/components/layout/Footer";
 import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import SalonCard from "@/components/ui/SalonCard";
 import { RatingBadge, StarRow } from "@/components/ui/Stars";
@@ -286,10 +284,7 @@ export default function HomePage() {
             </Link>
           </div>
         </section>
-        <MiraeCredit />
       </div>
-
-      <Footer />
     </div>
   );
 }

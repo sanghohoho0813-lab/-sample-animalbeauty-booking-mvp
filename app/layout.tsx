@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import MiraeBrandBar from "@/components/brand/MiraeBrandBar";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
+import PageBottom from "@/components/layout/PageBottom";
 import { BookingProvider } from "@/lib/booking-context";
 import { ToastProvider } from "@/lib/toast";
 import "./globals.css";
@@ -48,7 +49,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <BookingProvider>
             <MiraeBrandBar />
             <Header />
-            <main className="pb-24 lg:pb-0">{children}</main>
+            <main>{children}</main>
+            <PageBottom />
             <BottomNav />
           </BookingProvider>
         </ToastProvider>
