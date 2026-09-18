@@ -7,14 +7,13 @@
  * <SampleBridgeCTA consultHref="..." /> 처럼 props로 덮어쓸 수 있습니다.
  */
 
-/** TODO: 실제 운영 URL로 교체하세요. */
 export const MIRAE_LINKS = {
-  /** 메인 CTA — 상담 요청 페이지 */
-  consult: "https://mirae-ailab.kr/contact",
-  /** 다른 샘플 목록 */
-  samples: "https://mirae-ailab.kr/samples",
+  /** 메인 CTA — "우리 회사도 만들어보기" (비즈니스 진단) */
+  consult: "https://miraeailab.com/business-diagnosis",
+  /** 다른 샘플 보기 */
+  samples: "https://miraeailab.com/business-services",
   /** 미래AI랩 홈페이지 */
-  home: "https://mirae-ailab.kr",
+  home: "https://miraeailab.com/",
 } as const;
 
 export const MIRAE_CTA_COPY = {
