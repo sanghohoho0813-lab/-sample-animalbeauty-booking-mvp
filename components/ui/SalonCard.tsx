@@ -3,14 +3,14 @@
 import { Heart, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { toggleFavorite, useDb } from "@/lib/db";
+import { countReviews, toggleFavorite, useDb } from "@/lib/db";
 import { formatWon } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 import type { Salon } from "@/lib/types";
 import { RatingBadge } from "./Stars";
 
 export default function SalonCard({ salon }: { salon: Salon }) {
-  const { favorites, hydrated } = useDb();
+  const { favorites, reviews, hydrated } = useDb();
   const { toast } = useToast();
   const liked = hydrated && favorites.includes(salon.id);
 
@@ -40,7 +40,10 @@ export default function SalonCard({ salon }: { salon: Salon }) {
         <div className="p-4">
           <div className="flex items-start justify-between gap-2">
             <p className="text-base font-bold text-ink">{salon.name}</p>
-            <RatingBadge rating={salon.rating} reviewCount={salon.reviewCount} />
+            <RatingBadge
+              rating={salon.rating}
+              reviewCount={salon.reviewCount + countReviews(reviews, "salonId", salon.id)}
+            />
           </div>
           <p className="mt-1 flex items-center gap-1 text-sm text-ink-muted">
             <MapPin className="h-3.5 w-3.5" />

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { SEED_PETS } from "./data";
+import { DEMO_USER, getServiceById, SEED_PETS } from "./data";
 import { addDays, hashString, toDateKey } from "./format";
-import type { Booking, BookingStatus, Pet } from "./types";
+import type { Booking, BookingStatus, Pet, Review } from "./types";
 
 /**
  * PawBeauty demo data layer.
@@ -20,6 +20,7 @@ export interface DbState {
   pets: Pet[];
   bookings: Booking[];
   favorites: string[]; // salon ids
+  reviews: Review[]; // 사용자가 작성한 후기
 }
 
 const EMPTY_STATE: DbState = {
@@ -27,6 +28,7 @@ const EMPTY_STATE: DbState = {
   pets: [],
   bookings: [],
   favorites: [],
+  reviews: [],
 };
 
 let state: DbState = EMPTY_STATE;
@@ -38,8 +40,11 @@ function emit() {
 
 function persist() {
   try {
-    const { hydrated: _hydrated, ...data } = state;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const { pets, bookings, favorites, reviews } = state;
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ pets, bookings, favorites, reviews })
+    );
   } catch {
     // storage unavailable (private mode 등) — 메모리 상태로만 동작
   }
@@ -108,32 +113,57 @@ function mergeSeedPets(storedPets: Pet[]): Pet[] {
   return [...SEED_PETS, ...custom];
 }
 
+/**
+ * 방문 시각이 이미 지난 '예정' 예약은 이용 완료로 넘긴다.
+ * 데모를 며칠 뒤 다시 열어도 지난 날짜가 '예정된 예약'에 남지 않고,
+ * 완료된 예약에서 후기를 쓸 수 있게 된다. (시간이 흘러야 바뀌는 실시간 로직이 아니라
+ * 데이터를 불러오는 순간 한 번만 판정한다)
+ */
+function settlePastBookings(bookings: Booking[], now: Date): Booking[] {
+  return bookings.map((b) => {
+    if (b.status !== "confirmed" && b.status !== "pending") return b;
+    const [y, m, d] = b.date.split("-").map(Number);
+    const [hh, mm] = b.time.split(":").map(Number);
+    return new Date(y, m - 1, d, hh, mm) < now
+      ? { ...b, status: "completed" }
+      : b;
+  });
+}
+
 function initDb() {
   if (state.hydrated) return;
-  let loaded: Omit<DbState, "hydrated"> | null = null;
+  let loaded: Partial<Omit<DbState, "hydrated">> | null = null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) loaded = JSON.parse(raw) as Omit<DbState, "hydrated">;
+    if (raw) loaded = JSON.parse(raw) as Partial<Omit<DbState, "hydrated">>;
   } catch {
     loaded = null;
   }
+  const now = new Date();
   if (
     loaded &&
     Array.isArray(loaded.pets) &&
     Array.isArray(loaded.bookings) &&
     Array.isArray(loaded.favorites)
   ) {
-    state = { hydrated: true, ...loaded, pets: mergeSeedPets(loaded.pets) };
-    persist();
+    state = {
+      hydrated: true,
+      pets: mergeSeedPets(loaded.pets),
+      bookings: settlePastBookings(loaded.bookings, now),
+      favorites: loaded.favorites,
+      // 후기 저장 이전 버전에서 넘어온 데이터에는 reviews가 없다
+      reviews: Array.isArray(loaded.reviews) ? loaded.reviews : [],
+    };
   } else {
     state = {
       hydrated: true,
       pets: SEED_PETS,
       bookings: seedBookings(),
       favorites: ["salon-1", "salon-4"],
+      reviews: [],
     };
-    persist();
   }
+  persist();
   emit();
 }
 
@@ -190,12 +220,44 @@ export function setBookingStatus(id: string, status: BookingStatus) {
   });
 }
 
-export function markBookingReviewed(id: string) {
+/** 이용 완료된 예약에 후기를 남기고, 예약을 '후기 작성 완료'로 표시한다 */
+export function addReview(
+  booking: Booking,
+  input: { rating: number; content: string; petName: string }
+): Review | null {
+  // 화면이 들고 있던 예약 객체가 아니라 저장소의 최신 상태로 판단한다 (연속 클릭 중복 방지)
+  const current = state.bookings.find((b) => b.id === booking.id);
+  if (!current || current.status !== "completed" || current.reviewed) {
+    return null;
+  }
+  const review: Review = {
+    id: `rev-${Date.now()}`,
+    bookingId: booking.id,
+    salonId: booking.salonId,
+    groomerId: booking.groomerId,
+    author: DEMO_USER.name,
+    petName: input.petName,
+    rating: input.rating,
+    content: input.content,
+    date: toDateKey(new Date()),
+    serviceName: getServiceById(booking.serviceId)?.name ?? "",
+  };
   update({
+    reviews: [review, ...state.reviews],
     bookings: state.bookings.map((b) =>
-      b.id === id ? { ...b, reviewed: true } : b
+      b.id === booking.id ? { ...b, reviewed: true } : b
     ),
   });
+  return review;
+}
+
+/** 사용자 후기 중 특정 미용실/미용사에 달린 개수 */
+export function countReviews(
+  reviews: Review[],
+  key: "salonId" | "groomerId",
+  id: string
+): number {
+  return reviews.reduce((n, r) => (r[key] === id ? n + 1 : n), 0);
 }
 
 export function toggleFavorite(salonId: string) {

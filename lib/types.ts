@@ -22,6 +22,8 @@ export interface Service {
   durationMin: number;
   emoji: string;
   popular?: boolean;
+  /** 특정 종 전용 서비스 (없으면 모든 반려동물 가능) */
+  species?: Species;
 }
 
 export interface Salon {
@@ -56,7 +58,10 @@ export interface Groomer {
 
 export interface Review {
   id: string;
+  /** 이 후기를 남긴 예약 (사용자가 작성한 후기에만 존재) */
+  bookingId?: string;
   salonId: string;
+  groomerId?: string;
   author: string;
   petName: string;
   rating: number;

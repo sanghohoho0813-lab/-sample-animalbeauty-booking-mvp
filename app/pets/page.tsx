@@ -9,6 +9,7 @@ import { useBookingDraft } from "@/lib/booking-context";
 import { addPet, useDb } from "@/lib/db";
 import { useToast } from "@/lib/toast";
 import type { Pet, Species } from "@/lib/types";
+import { useModal } from "@/lib/use-modal";
 
 const DOG_EMOJIS = ["🐶", "🐩", "🦮", "🐕"];
 const CAT_EMOJIS = ["🐱", "🐈", "🐈‍⬛"];
@@ -132,6 +133,7 @@ export default function PetsPage() {
 }
 
 function AddPetDialog({ onClose }: { onClose: () => void }) {
+  useModal(onClose);
   const { toast } = useToast();
   const [species, setSpecies] = useState<Species>("dog");
   const [emoji, setEmoji] = useState("🐶");

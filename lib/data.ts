@@ -99,6 +99,7 @@ export const SERVICES: Service[] = [
     price: 60000,
     durationMin: 100,
     emoji: "🐈",
+    species: "cat",
   },
   {
     id: "svc-6",
@@ -486,7 +487,9 @@ export const REVIEWS: Review[] = [
   },
   {
     id: "rev-13",
+    bookingId: "bk-seed-3",
     salonId: "salon-6",
+    groomerId: "grm-12",
     author: "김팀장",
     petName: "보리",
     rating: 5,
@@ -525,6 +528,18 @@ export const REVIEWS: Review[] = [
     content: "매번 여기만 와요. 아이 컨디션까지 체크해주는 세심함이 좋아요.",
     date: "2026-08-02",
     serviceName: "스페셜 미용",
+  },
+  {
+    id: "rev-17",
+    bookingId: "bk-seed-5",
+    salonId: "salon-5",
+    groomerId: "grm-10",
+    author: "김팀장",
+    petName: "몽이",
+    rating: 4,
+    content: "발 만지는 걸 싫어하는 몽이인데 빠르게 끝내주셔서 힘들어하지 않았어요.",
+    date: "2026-08-01",
+    serviceName: "부분 관리",
   },
 ];
 

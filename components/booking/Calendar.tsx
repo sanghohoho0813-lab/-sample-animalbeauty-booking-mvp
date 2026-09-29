@@ -11,11 +11,14 @@ export default function Calendar({
   onSelect,
   today,
   maxDays = 60,
+  isFullyBooked,
 }: {
   selected: string | null;
   onSelect: (dateKey: string) => void;
   today: Date;
   maxDays?: number;
+  /** 예약 가능한 시간이 하나도 없는 날 — 선택할 수 없게 표시한다 */
+  isFullyBooked?: (dateKey: string) => boolean;
 }) {
   const [viewYear, setViewYear] = useState(
     selected ? Number(selected.slice(0, 4)) : today.getFullYear()
@@ -96,7 +99,9 @@ export default function Calendar({
             return <span key={`empty-${idx}`} />;
           }
           const key = `${viewYear}-${`${viewMonth + 1}`.padStart(2, "0")}-${`${day}`.padStart(2, "0")}`;
-          const disabled = key < todayKey || key > maxKey;
+          const outOfRange = key < todayKey || key > maxKey;
+          const soldOut = !outOfRange && Boolean(isFullyBooked?.(key));
+          const disabled = outOfRange || soldOut;
           const isSelected = key === selected;
           const isToday = key === todayKey;
           const weekday = (startWeekday + day - 1) % 7;
@@ -106,10 +111,13 @@ export default function Calendar({
               type="button"
               disabled={disabled}
               onClick={() => onSelect(key)}
+              aria-label={soldOut ? `${day}일 예약 마감` : undefined}
               className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 tap ${
                 isSelected
                   ? "bg-mint-500 text-white shadow-cta"
-                  : disabled
+                  : soldOut
+                    ? "text-ink-faint/60 line-through"
+                    : disabled
                     ? "text-ink-faint/50"
                     : `hover:bg-mint-50 ${
                         weekday === 0

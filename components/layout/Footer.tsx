@@ -1,5 +1,12 @@
 import { PawPrint } from "lucide-react";
+import Link from "next/link";
 import MiraeLogo from "@/components/brand/MiraeLogo";
+
+const SERVICE_LINKS = [
+  { href: "/booking", label: "미용 예약" },
+  { href: "/salons", label: "미용실 찾기" },
+  { href: "/my", label: "멤버십 & 쿠폰" },
+];
 
 export default function Footer() {
   return (
@@ -25,9 +32,16 @@ export default function Footer() {
             <div>
               <p className="font-bold text-ink">서비스</p>
               <ul className="mt-3 space-y-2 text-ink-muted">
-                <li>미용 예약</li>
-                <li>미용실 찾기</li>
-                <li>멤버십 &amp; 쿠폰</li>
+                {SERVICE_LINKS.map(({ href, label }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className="transition-colors hover:text-mint-700 hover:underline"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
             <div>

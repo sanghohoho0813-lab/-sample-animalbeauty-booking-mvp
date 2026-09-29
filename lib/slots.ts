@@ -51,6 +51,19 @@ export function getSlots(
   });
 }
 
+/** 지금 이 순간 해당 슬롯을 실제로 예약할 수 있는지 (확정 직전 재검증용) */
+export function isSlotBookable(
+  dateKey: string,
+  time: string,
+  groomerId: string,
+  bookings: Booking[],
+  now: Date
+): boolean {
+  return getSlots(dateKey, groomerId, bookings, now).some(
+    (s) => s.time === time && s.available
+  );
+}
+
 export function isDayFullyBooked(
   dateKey: string,
   groomerId: string,

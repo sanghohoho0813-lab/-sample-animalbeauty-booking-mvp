@@ -96,7 +96,18 @@ export default function SalonsPage() {
             emoji="🔍"
             title="조건에 맞는 미용실이 없어요"
             desc="검색어나 필터를 바꿔서 다시 찾아보세요."
-          />
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setTodayOnly(false);
+              }}
+              className="mt-5 rounded-full bg-mint-500 px-6 py-3 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+            >
+              검색 조건 초기화
+            </button>
+          </EmptyState>
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

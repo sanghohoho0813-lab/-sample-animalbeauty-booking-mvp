@@ -1,10 +1,13 @@
 "use client";
 
-import { CalendarDays, Home, ReceiptText } from "lucide-react";
+import { CalendarDays, ReceiptText, RotateCcw, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { use } from "react";
 import PetAvatar from "@/components/ui/PetAvatar";
 import EmptyState from "@/components/ui/EmptyState";
+import { useBookingDraft } from "@/lib/booking-context";
+import { REBOOK_STEP, rebookDraft } from "@/lib/booking-rules";
 import {
   getGroomerById,
   getSalonById,
@@ -12,6 +15,27 @@ import {
 } from "@/lib/data";
 import { useDb } from "@/lib/db";
 import { formatDateKo, formatWon } from "@/lib/format";
+import type { BookingStatus } from "@/lib/types";
+
+/** 예약 상태별 머리말 — 취소·이용완료된 예약을 열어도 "완료되었습니다"로 보이지 않게 */
+const HEADINGS: Record<BookingStatus, { title: string; desc: string }> = {
+  confirmed: {
+    title: "예약이 완료되었습니다!",
+    desc: "예약 내역에서 언제든 확인하거나 취소할 수 있어요.",
+  },
+  pending: {
+    title: "예약 요청이 접수되었어요",
+    desc: "미용실에서 확정하면 알려드릴게요.",
+  },
+  completed: {
+    title: "이용이 끝난 예약이에요",
+    desc: "예약 내역에서 후기를 남겨주세요.",
+  },
+  cancelled: {
+    title: "취소된 예약이에요",
+    desc: "같은 조건으로 다시 예약할 수 있어요.",
+  },
+};
 
 export default function BookingCompletePage({
   params,
@@ -20,6 +44,8 @@ export default function BookingCompletePage({
 }) {
   const { id } = use(params);
   const { bookings, pets, hydrated } = useDb();
+  const { setDraft } = useBookingDraft();
+  const router = useRouter();
 
   if (!hydrated) {
     return (
@@ -49,32 +75,50 @@ export default function BookingCompletePage({
   const service = getServiceById(booking.serviceId);
   const salon = getSalonById(booking.salonId);
   const groomer = getGroomerById(booking.groomerId);
+  const heading = HEADINGS[booking.status];
+  const isActive =
+    booking.status === "confirmed" || booking.status === "pending";
+
+  const rebook = () => {
+    setDraft(rebookDraft(booking));
+    router.push(`/booking?step=${REBOOK_STEP}`);
+  };
 
   return (
-    <div className="bg-gradient-to-b from-mint-50 to-cream-50">
+    <div
+      className={`bg-gradient-to-b ${isActive ? "from-mint-50" : "from-cream-100"} to-cream-50`}
+    >
       <div className="mx-auto max-w-lg px-4 pb-16 pt-10 md:pt-14">
-        {/* 성공 애니메이션 */}
         <div className="flex flex-col items-center text-center">
-          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-mint-500 shadow-cta animate-pop-check">
-            <svg
-              viewBox="0 0 40 40"
-              className="h-10 w-10"
-              fill="none"
-              stroke="white"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <path d="M10 21 L17 28 L30 13" className="check-draw" />
-            </svg>
-          </span>
+          {isActive ? (
+            // 성공 애니메이션은 유효한 예약에만
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-mint-500 shadow-cta animate-pop-check">
+              <svg
+                viewBox="0 0 40 40"
+                className="h-10 w-10"
+                fill="none"
+                stroke="white"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M10 21 L17 28 L30 13" className="check-draw" />
+              </svg>
+            </span>
+          ) : (
+            <span className="flex h-20 w-20 items-center justify-center rounded-full bg-cream-200 text-ink-muted">
+              {booking.status === "cancelled" ? (
+                <X className="h-9 w-9" strokeWidth={2.5} />
+              ) : (
+                <ReceiptText className="h-9 w-9" />
+              )}
+            </span>
+          )}
           <h1 className="mt-5 text-2xl font-extrabold text-ink animate-fade-in-up">
-            예약이 완료되었습니다!
+            {heading.title}
           </h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            예약 내역은 마이페이지에서 언제든 확인할 수 있어요.
-          </p>
+          <p className="mt-2 text-sm text-ink-muted">{heading.desc}</p>
         </div>
 
         {/* 예약 카드 */}
@@ -117,7 +161,7 @@ export default function BookingCompletePage({
           </div>
         </div>
 
-        {/* 액션 */}
+        {/* 액션 — 주 1개 + 보조 1개 + 텍스트 링크 */}
         <div className="mt-6 space-y-3">
           <Link
             href="/bookings"
@@ -126,19 +170,28 @@ export default function BookingCompletePage({
             <ReceiptText className="h-5 w-5" />
             예약 내역 보기
           </Link>
-          <Link
-            href="/"
+          <button
+            type="button"
+            onClick={rebook}
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cream-300 bg-white px-6 py-4 text-base font-bold text-ink-soft transition-colors hover:bg-cream-100 tap"
           >
-            <Home className="h-5 w-5" />
+            <RotateCcw className="h-5 w-5" />
+            같은 조건으로 다시 예약
+          </button>
+          <Link
+            href="/"
+            className="flex min-h-11 w-full items-center justify-center text-sm font-semibold text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+          >
             홈으로 이동
           </Link>
         </div>
 
-        <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-xs text-ink-faint">
-          <CalendarDays className="h-3.5 w-3.5" />
-          방문 하루 전에 알림으로 다시 알려드릴게요.
-        </p>
+        {isActive && (
+          <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-ink-faint">
+            <CalendarDays className="h-3.5 w-3.5" />
+            방문 하루 전에 알림으로 다시 알려드릴게요.
+          </p>
+        )}
       </div>
     </div>
   );

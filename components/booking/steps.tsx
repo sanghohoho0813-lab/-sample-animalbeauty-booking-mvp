@@ -18,9 +18,16 @@ import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import PetAvatar from "@/components/ui/PetAvatar";
 import { RatingBadge } from "@/components/ui/Stars";
 import type { BookingDraft } from "@/lib/booking-context";
-import { getGroomersBySalon, SALONS, SERVICES } from "@/lib/data";
-import { formatWon, formatDateShortKo } from "@/lib/format";
-import { getSlots } from "@/lib/slots";
+import { isServiceForPet } from "@/lib/booking-rules";
+import {
+  getGroomersBySalon,
+  getServiceById,
+  SALONS,
+  SERVICES,
+} from "@/lib/data";
+import { formatWon, formatDateShortKo, toDateKey } from "@/lib/format";
+import { countReviews, useDb } from "@/lib/db";
+import { getSlots, isDayFullyBooked, isSlotBookable } from "@/lib/slots";
 import type { Booking, Pet } from "@/lib/types";
 
 interface StepProps {
@@ -54,7 +61,16 @@ export function PetStep({
           <button
             key={pet.id}
             type="button"
-            onClick={() => setDraft({ petId: pet.id })}
+            onClick={() => {
+              // 새로 고른 아이가 받을 수 없는 서비스가 남아 있으면 비운다
+              const service = getServiceById(draft.serviceId);
+              setDraft({
+                petId: pet.id,
+                ...(service && !isServiceForPet(service, pet)
+                  ? { serviceId: null }
+                  : {}),
+              });
+            }}
             className={`flex w-full items-center gap-4 rounded-3xl border-2 bg-white p-4 text-left shadow-card transition-all duration-200 tap ${
               selected
                 ? "border-mint-500 bg-mint-50/60"
@@ -88,28 +104,44 @@ export function PetStep({
 
 /* -------------------------------- 2. 서비스 --------------------------------- */
 
-export function ServiceStep({ draft, setDraft }: StepProps) {
+export function ServiceStep({
+  draft,
+  setDraft,
+  pets,
+}: StepProps & { pets: Pet[] }) {
+  const pet = pets.find((p) => p.id === draft.petId);
+
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {SERVICES.map((service) => {
         const selected = draft.serviceId === service.id;
+        const unavailable = Boolean(pet && !isServiceForPet(service, pet));
         return (
           <button
             key={service.id}
             type="button"
+            disabled={unavailable}
             onClick={() => setDraft({ serviceId: service.id })}
-            className={`relative flex flex-col rounded-3xl border-2 bg-white p-5 text-left shadow-card transition-all duration-200 tap ${
-              selected
-                ? "border-mint-500 bg-mint-50/60"
-                : "border-transparent hover:border-mint-200"
+            className={`relative flex flex-col rounded-3xl border-2 bg-white p-5 text-left shadow-card transition-all duration-200 ${
+              unavailable
+                ? "cursor-not-allowed border-transparent opacity-50"
+                : selected
+                  ? "border-mint-500 bg-mint-50/60 tap"
+                  : "border-transparent hover:border-mint-200 tap"
             }`}
             aria-pressed={selected}
           >
-            {service.popular && (
-              <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-coral-100 px-2.5 py-1 text-xs font-bold text-coral-600">
-                <Sparkles className="h-3 w-3" />
-                인기
+            {unavailable ? (
+              <span className="absolute right-4 top-4 rounded-full bg-cream-200 px-2.5 py-1 text-xs font-bold text-ink-muted">
+                {service.species === "cat" ? "고양이 전용" : "강아지 전용"}
               </span>
+            ) : (
+              service.popular && (
+                <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-coral-100 px-2.5 py-1 text-xs font-bold text-coral-600">
+                  <Sparkles className="h-3 w-3" />
+                  인기
+                </span>
+              )
             )}
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-mint-50 text-3xl">
               {service.emoji}
@@ -121,7 +153,8 @@ export function ServiceStep({ draft, setDraft }: StepProps) {
             <p className="mt-1.5 text-xs leading-relaxed text-ink-muted">
               {service.desc}
             </p>
-            <div className="mt-4 flex items-center justify-between">
+            {/* 설명 길이가 달라도 같은 줄의 카드끼리 가격 줄 높이를 맞춘다 */}
+            <div className="mt-auto flex items-center justify-between pt-4">
               <span className="text-lg font-extrabold text-ink">
                 {formatWon(service.price)}
               </span>
@@ -148,6 +181,7 @@ export function ServiceStep({ draft, setDraft }: StepProps) {
 /* -------------------------------- 3. 미용실 --------------------------------- */
 
 export function SalonStep({ draft, setDraft }: StepProps) {
+  const { reviews } = useDb();
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {SALONS.map((salon) => {
@@ -165,7 +199,7 @@ export function SalonStep({ draft, setDraft }: StepProps) {
                   : {}),
               })
             }
-            className={`relative overflow-hidden rounded-3xl border-2 bg-white text-left shadow-card transition-all duration-200 tap ${
+            className={`relative flex flex-col overflow-hidden rounded-3xl border-2 bg-white text-left shadow-card transition-all duration-200 tap ${
               selected
                 ? "border-mint-500"
                 : "border-transparent hover:border-mint-200"
@@ -193,10 +227,13 @@ export function SalonStep({ draft, setDraft }: StepProps) {
                 </span>
               )}
             </div>
-            <div className="p-4">
+            <div className="flex flex-1 flex-col p-4">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-base font-bold text-ink">{salon.name}</p>
-                <RatingBadge rating={salon.rating} reviewCount={salon.reviewCount} />
+                <RatingBadge
+                  rating={salon.rating}
+                  reviewCount={salon.reviewCount + countReviews(reviews, "salonId", salon.id)}
+                />
               </div>
               <p className="mt-1 flex items-center gap-1 text-sm text-ink-muted">
                 <MapPin className="h-3.5 w-3.5" />
@@ -212,7 +249,7 @@ export function SalonStep({ draft, setDraft }: StepProps) {
                   </span>
                 ))}
               </div>
-              <p className="mt-2.5 text-sm text-ink-muted">
+              <p className="mt-auto pt-2.5 text-sm text-ink-muted">
                 <span className="font-extrabold text-ink">
                   {formatWon(salon.priceFrom)}
                 </span>
@@ -229,6 +266,7 @@ export function SalonStep({ draft, setDraft }: StepProps) {
 /* -------------------------------- 4. 미용사 --------------------------------- */
 
 export function GroomerStep({ draft, setDraft }: StepProps) {
+  const { reviews } = useDb();
   const groomers = draft.salonId ? getGroomersBySalon(draft.salonId) : [];
 
   if (!draft.salonId) {
@@ -274,7 +312,10 @@ export function GroomerStep({ draft, setDraft }: StepProps) {
                 )}
               </p>
               <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-ink-muted">
-                <RatingBadge rating={groomer.rating} reviewCount={groomer.reviewCount} />
+                <RatingBadge
+                  rating={groomer.rating}
+                  reviewCount={groomer.reviewCount + countReviews(reviews, "groomerId", groomer.id)}
+                />
                 <span>경력 {groomer.careerYears}년</span>
               </div>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -309,6 +350,23 @@ export function DateTimeStep({
     setNow(new Date());
   }, []);
 
+  // 저장돼 있던 선택값이 그 사이 무효가 됐으면 비운다
+  // (지난 날짜, 이미 지나간 시간, 다른 예약으로 잡힌 시간 등)
+  useEffect(() => {
+    if (!now || !draft.date) return;
+    if (draft.date < toDateKey(now)) {
+      setDraft({ date: null, time: null });
+      return;
+    }
+    if (
+      draft.time &&
+      draft.groomerId &&
+      !isSlotBookable(draft.date, draft.time, draft.groomerId, bookings, now)
+    ) {
+      setDraft({ time: null });
+    }
+  }, [now, draft.date, draft.time, draft.groomerId, bookings, setDraft]);
+
   if (!now) {
     return (
       <div className="space-y-4">
@@ -332,6 +390,10 @@ export function DateTimeStep({
           selected={draft.date}
           onSelect={(dateKey) => setDraft({ date: dateKey, time: null })}
           today={now}
+          isFullyBooked={(dateKey) =>
+            Boolean(draft.groomerId) &&
+            isDayFullyBooked(dateKey, draft.groomerId as string, bookings, now)
+          }
         />
       </div>
 

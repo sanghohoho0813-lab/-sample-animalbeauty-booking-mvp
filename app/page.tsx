@@ -11,10 +11,11 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import MiraeLogo from "@/components/brand/MiraeLogo";
+import RecentReviews from "@/components/home/RecentReviews";
 import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import SalonCard from "@/components/ui/SalonCard";
-import { RatingBadge, StarRow } from "@/components/ui/Stars";
-import { GROOMERS, REVIEWS, SALONS, SERVICES } from "@/lib/data";
+import { RatingBadge } from "@/components/ui/Stars";
+import { GROOMERS, SALONS, SERVICES } from "@/lib/data";
 import { formatWon } from "@/lib/format";
 
 const TRUST_FEATURES = [
@@ -47,9 +48,6 @@ export default function HomePage() {
   const topGroomers = [...GROOMERS]
     .sort((a, b) => b.reviewCount - a.reviewCount)
     .slice(0, 4);
-  const recentReviews = [...REVIEWS]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 3);
 
   return (
     <div>
@@ -179,7 +177,7 @@ export default function HomePage() {
             {topGroomers.map((groomer) => (
               <Link
                 key={groomer.id}
-                href={`/booking?salon=${groomer.salonId}`}
+                href={`/booking?salon=${groomer.salonId}&groomer=${groomer.id}`}
                 className="w-60 shrink-0 snap-start rounded-3xl border border-cream-200 bg-white p-5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover md:w-auto"
               >
                 <div className="flex items-center gap-3">
@@ -222,31 +220,7 @@ export default function HomePage() {
         {/* 최근 후기 */}
         <section className="mt-12 md:mt-16">
           <SectionHeader title="보호자들의 생생한 후기" />
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
-            {recentReviews.map((review) => {
-              const salon = SALONS.find((s) => s.id === review.salonId);
-              return (
-                <div
-                  key={review.id}
-                  className="rounded-3xl border border-cream-200 bg-white p-5 shadow-card"
-                >
-                  <div className="flex items-center justify-between">
-                    <StarRow rating={review.rating} />
-                    <span className="text-xs text-ink-faint">{review.date}</span>
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                    {review.content}
-                  </p>
-                  <p className="mt-4 text-xs font-semibold text-ink-muted">
-                    {review.author} · {review.petName} 보호자
-                  </p>
-                  <p className="mt-0.5 text-xs text-ink-faint">
-                    {salon?.name} · {review.serviceName}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <RecentReviews />
         </section>
 
         {/* 신뢰 요소 */}

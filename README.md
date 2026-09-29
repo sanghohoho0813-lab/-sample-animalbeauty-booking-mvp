@@ -31,6 +31,7 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # 프로덕션 빌드
 npm run typecheck  # TypeScript 검사
+npm run lint       # ESLint (next/core-web-vitals)
 ```
 
 ## 페이지 구성

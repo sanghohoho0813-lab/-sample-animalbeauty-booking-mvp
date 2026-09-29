@@ -5,25 +5,30 @@ import {
   ChevronDown,
   MapPin,
   PenLine,
+  RotateCcw,
   Star,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, type ReactNode } from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import PetAvatar from "@/components/ui/PetAvatar";
+import { StarRow } from "@/components/ui/Stars";
+import { useBookingDraft } from "@/lib/booking-context";
+import { REBOOK_STEP, rebookDraft } from "@/lib/booking-rules";
 import {
   getGroomerById,
   getSalonById,
   getServiceById,
+  REVIEWS,
 } from "@/lib/data";
-import {
-  markBookingReviewed,
-  setBookingStatus,
-  useDb,
-} from "@/lib/db";
+import { addReview, setBookingStatus, useDb } from "@/lib/db";
 import { formatDateKo, formatWon } from "@/lib/format";
 import { useToast } from "@/lib/toast";
-import type { Booking, BookingStatus } from "@/lib/types";
+import type { Booking, BookingStatus, Pet, Review } from "@/lib/types";
+import { useModal } from "@/lib/use-modal";
+
+const REVIEW_MAX = 300;
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   pending: "확정 대기",
@@ -42,10 +47,26 @@ const STATUS_STYLE: Record<BookingStatus, string> = {
 type Tab = "upcoming" | "past";
 
 export default function BookingsPage() {
-  const { bookings, pets, hydrated } = useDb();
+  const { bookings, pets, reviews, hydrated } = useDb();
+  const { setDraft } = useBookingDraft();
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("upcoming");
   const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
+
+  // 예약별 내 후기 (방금 작성한 후기 + 샘플 계정의 기존 후기)
+  const reviewByBooking = useMemo(() => {
+    const map = new Map<string, Review>();
+    [...REVIEWS, ...reviews].forEach((r) => {
+      if (r.bookingId) map.set(r.bookingId, r);
+    });
+    return map;
+  }, [reviews]);
+
+  const rebook = (booking: Booking) => {
+    setDraft(rebookDraft(booking));
+    router.push(`/booking?step=${REBOOK_STEP}`);
+  };
 
   const { upcoming, past } = useMemo(() => {
     const sorted = [...bookings].sort((a, b) =>
@@ -110,10 +131,10 @@ export default function BookingsPage() {
             desc={
               tab === "upcoming"
                 ? "우리 아이를 위한 첫 미용을 예약해보세요."
-                : undefined
+                : "미용을 받고 나면 이곳에서 후기를 남길 수 있어요."
             }
-            actionHref={tab === "upcoming" ? "/booking" : undefined}
-            actionLabel={tab === "upcoming" ? "예약하러 가기" : undefined}
+            actionHref="/booking"
+            actionLabel="예약하러 가기"
           />
         )}
 
@@ -122,10 +143,11 @@ export default function BookingsPage() {
             <BookingCard
               key={booking.id}
               booking={booking}
-              petName={pets.find((p) => p.id === booking.petId)?.name}
               pet={pets.find((p) => p.id === booking.petId)}
+              myReview={reviewByBooking.get(booking.id)}
               onCancel={() => setCancelTarget(booking)}
               onReview={() => setReviewTarget(booking)}
+              onRebook={() => rebook(booking)}
             />
           ))}
       </div>
@@ -139,6 +161,7 @@ export default function BookingsPage() {
       {reviewTarget && (
         <ReviewDialog
           booking={reviewTarget}
+          petName={pets.find((p) => p.id === reviewTarget.petId)?.name ?? ""}
           onClose={() => setReviewTarget(null)}
         />
       )}
@@ -149,15 +172,17 @@ export default function BookingsPage() {
 function BookingCard({
   booking,
   pet,
-  petName,
+  myReview,
   onCancel,
   onReview,
+  onRebook,
 }: {
   booking: Booking;
-  pet?: { species: "dog" | "cat"; emoji: string; name: string };
-  petName?: string;
+  pet?: Pet;
+  myReview?: Review;
   onCancel: () => void;
   onReview: () => void;
+  onRebook: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const service = getServiceById(booking.serviceId);
@@ -165,6 +190,9 @@ function BookingCard({
   const groomer = getGroomerById(booking.groomerId);
   const cancellable =
     booking.status === "confirmed" || booking.status === "pending";
+  const isPast =
+    booking.status === "completed" || booking.status === "cancelled";
+  // 후기는 이용 완료된 예약에서만 쓸 수 있다
   const reviewable = booking.status === "completed" && !booking.reviewed;
 
   return (
@@ -176,27 +204,27 @@ function BookingCard({
           >
             {STATUS_LABEL[booking.status]}
           </span>
-          <span className="text-xs text-ink-faint">{booking.bookingNo}</span>
+          {/* 금액을 머리줄로 올려 본문(이름·일시·미용실)이 전체 폭을 쓰게 한다 */}
+          <p className="text-base font-extrabold text-ink">
+            {formatWon(booking.total)}
+          </p>
         </div>
 
         <div className="mt-4 flex items-start gap-3.5">
           {pet && <PetAvatar pet={pet} size="md" />}
           <div className="min-w-0 flex-1">
             <p className="text-base font-bold text-ink">
-              {petName ?? "반려동물"} · {service?.name}
+              {pet?.name ?? "반려동물"} · {service?.name}
             </p>
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
-              <CalendarDays className="h-4 w-4 shrink-0" />
+            <p className="mt-1 flex items-start gap-1.5 text-sm text-ink-muted">
+              <CalendarDays className="mt-0.5 h-4 w-4 shrink-0" />
               {formatDateKo(booking.date)} {booking.time}
             </p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-muted">
-              <MapPin className="h-4 w-4 shrink-0" />
+            <p className="mt-0.5 flex items-start gap-1.5 text-sm text-ink-muted">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
               {salon?.name} · {groomer?.name} 미용사
             </p>
           </div>
-          <p className="shrink-0 text-base font-extrabold text-ink">
-            {formatWon(booking.total)}
-          </p>
         </div>
 
         <button
@@ -212,6 +240,7 @@ function BookingCard({
 
         {open && (
           <dl className="mt-3 space-y-2 rounded-2xl bg-cream-50 p-4 text-sm animate-fade-in">
+            <DetailRow label="예약번호" value={booking.bookingNo} />
             <DetailRow label="서비스" value={`${service?.name} (${service?.shortDesc})`} />
             <DetailRow
               label="소요 시간"
@@ -228,31 +257,53 @@ function BookingCard({
             <DetailRow label="결제 금액" value={formatWon(booking.total)} bold />
           </dl>
         )}
+
+        {booking.status === "completed" && myReview && (
+          <div className="mt-3 rounded-2xl border border-cream-200 bg-cream-50 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-ink-soft">내가 남긴 후기</span>
+              <StarRow rating={myReview.rating} />
+            </div>
+            <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-ink-soft">
+              {myReview.content}
+            </p>
+          </div>
+        )}
       </div>
 
-      {(cancellable || reviewable || booking.reviewed) && (
+      {(cancellable || isPast) && (
         <div className="flex gap-2 border-t border-cream-200 bg-cream-50/60 px-5 py-3.5">
           {cancellable && (
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-muted transition-colors hover:border-coral-300 hover:text-coral-600 tap"
+              className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-muted transition-colors hover:border-coral-300 hover:text-coral-600 tap"
             >
               예약 취소
+            </button>
+          )}
+          {isPast && (
+            <button
+              type="button"
+              onClick={onRebook}
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-soft transition-colors hover:border-mint-300 hover:text-mint-700 tap"
+            >
+              <RotateCcw className="h-4 w-4" />
+              다시 예약
             </button>
           )}
           {reviewable && (
             <button
               type="button"
               onClick={onReview}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-500 py-2.5 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-500 py-2.5 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
             >
               <PenLine className="h-4 w-4" />
               후기 작성
             </button>
           )}
-          {booking.status === "completed" && booking.reviewed && (
-            <span className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-cream-100 py-2.5 text-sm font-bold text-ink-faint">
+          {booking.status === "completed" && booking.reviewed && !myReview && (
+            <span className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-cream-100 py-2.5 text-sm font-bold text-ink-faint">
               <Star className="h-4 w-4" />
               후기 작성 완료
             </span>
@@ -335,9 +386,11 @@ function CancelDialog({
 
 function ReviewDialog({
   booking,
+  petName,
   onClose,
 }: {
   booking: Booking;
+  petName: string;
   onClose: () => void;
 }) {
   const { toast } = useToast();
@@ -345,6 +398,14 @@ function ReviewDialog({
   const [content, setContent] = useState("");
   const salon = getSalonById(booking.salonId);
   const groomer = getGroomerById(booking.groomerId);
+  const trimmed = content.trim();
+
+  const submit = () => {
+    if (!trimmed) return;
+    const saved = addReview(booking, { rating, content: trimmed, petName });
+    if (saved) toast("소중한 후기가 등록되었어요 💚");
+    onClose();
+  };
 
   return (
     <Overlay onClose={onClose}>
@@ -377,19 +438,20 @@ function ReviewDialog({
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
+        maxLength={REVIEW_MAX}
         placeholder="우리 아이의 미용은 어땠나요? 솔직한 후기를 남겨주세요."
+        aria-label="후기 내용"
         className="mt-4 w-full resize-none rounded-2xl border border-cream-300 bg-cream-50 p-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-400"
       />
+      <p className="mt-1 text-right text-xs text-ink-faint">
+        {content.length} / {REVIEW_MAX}
+      </p>
 
       <button
         type="button"
-        disabled={content.trim().length === 0}
-        onClick={() => {
-          markBookingReviewed(booking.id);
-          toast("소중한 후기가 등록되었어요 💚");
-          onClose();
-        }}
-        className="mt-4 w-full rounded-2xl bg-mint-500 py-4 text-base font-bold text-white shadow-cta transition-colors hover:bg-mint-600 disabled:opacity-40 disabled:shadow-none tap"
+        disabled={!trimmed}
+        onClick={submit}
+        className="mt-3 w-full rounded-2xl bg-mint-500 py-4 text-base font-bold text-white shadow-cta transition-colors hover:bg-mint-600 disabled:opacity-40 disabled:shadow-none tap"
       >
         후기 등록하기
       </button>
@@ -401,9 +463,10 @@ function Overlay({
   children,
   onClose,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   onClose: () => void;
 }) {
+  useModal(onClose);
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm animate-fade-in sm:items-center"
@@ -412,7 +475,7 @@ function Overlay({
       aria-modal="true"
     >
       <div
-        className="relative w-full max-w-md rounded-t-3xl bg-white p-6 shadow-card-hover animate-slide-up sm:rounded-3xl sm:animate-scale-in"
+        className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-card-hover animate-slide-up sm:rounded-3xl sm:animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -15,10 +15,12 @@ import {
   SalonStep,
   ServiceStep,
 } from "@/components/booking/steps";
-import { useBookingDraft } from "@/lib/booking-context";
-import { getSalonById, getServiceById } from "@/lib/data";
+import { useBookingDraft, type BookingDraft } from "@/lib/booking-context";
+import { getMaxStep, isServiceForPet } from "@/lib/booking-rules";
+import { getGroomerById, getSalonById, getServiceById } from "@/lib/data";
 import { addBooking, useDb } from "@/lib/db";
-import { formatWon } from "@/lib/format";
+import { formatWon, toDateKey } from "@/lib/format";
+import { isSlotBookable } from "@/lib/slots";
 import { useToast } from "@/lib/toast";
 
 export default function BookingPage() {
@@ -49,48 +51,57 @@ function BookingFlow() {
   const db = useDb();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  // 상태 반영 전에 들어오는 연속 클릭까지 막기 위한 동기 잠금
+  const submitLock = useRef(false);
   const appliedPreset = useRef(false);
 
-  // 홈/미용실 카드에서 넘어온 사전 선택값 적용
+  // 홈/미용실/미용사 카드에서 넘어온 사전 선택값 적용
   useEffect(() => {
-    if (!ready || appliedPreset.current) return;
+    if (!ready || !db.hydrated || appliedPreset.current) return;
     appliedPreset.current = true;
-    const patch: Parameters<typeof setDraft>[0] = {};
+    const patch: Partial<BookingDraft> = {};
     const salonParam = searchParams.get("salon");
     const serviceParam = searchParams.get("service");
-    if (salonParam && getSalonById(salonParam)) patch.salonId = salonParam;
-    if (serviceParam && getServiceById(serviceParam))
-      patch.serviceId = serviceParam;
-    if (Object.keys(patch).length > 0) setDraft(patch);
-  }, [ready, searchParams, setDraft]);
+    const groomer = getGroomerById(searchParams.get("groomer"));
 
-  // 선택 상태 기준으로 진입 가능한 최대 단계
-  const maxStep = useMemo(() => {
-    if (!draft.petId) return 0;
-    if (!draft.serviceId) return 1;
-    if (!draft.salonId) return 2;
-    if (!draft.groomerId) return 3;
-    if (!draft.date || !draft.time) return 4;
-    return 5;
-  }, [draft]);
+    if (salonParam && getSalonById(salonParam)) {
+      patch.salonId = salonParam;
+      // 다른 미용실로 바뀌면 이전 미용실의 미용사·시간은 무효
+      if (salonParam !== draft.salonId) {
+        patch.groomerId = null;
+        patch.time = null;
+      }
+      if (groomer && groomer.salonId === salonParam) {
+        if (groomer.id !== draft.groomerId) patch.time = null;
+        patch.groomerId = groomer.id;
+      }
+    }
+
+    const service = getServiceById(serviceParam);
+    if (service) {
+      patch.serviceId = service.id;
+      // 선택돼 있던 아이가 받을 수 없는 서비스라면 아이를 다시 고르게 한다
+      const pet = db.pets.find((p) => p.id === draft.petId);
+      if (pet && !isServiceForPet(service, pet)) patch.petId = null;
+    }
+
+    if (Object.keys(patch).length > 0) setDraft(patch);
+  }, [ready, db.hydrated, db.pets, searchParams, setDraft, draft.salonId, draft.groomerId, draft.petId]);
+
+  // 선택값이 서로 맞는지를 기준으로 진입 가능한 최대 단계
+  const maxStep = useMemo(() => getMaxStep(draft, db.pets), [draft, db.pets]);
 
   const requested = Number(searchParams.get("step") ?? "0");
-  const step = ready
-    ? Math.min(Number.isFinite(requested) ? Math.max(0, requested) : 0, maxStep)
-    : 0;
+  const step = Math.min(
+    Number.isFinite(requested) ? Math.max(0, Math.floor(requested)) : 0,
+    maxStep
+  );
 
   const goTo = (next: number) => {
     router.push(`/booking?step=${next}`, { scroll: true });
   };
 
-  const canProceed = [
-    Boolean(draft.petId),
-    Boolean(draft.serviceId),
-    Boolean(draft.salonId),
-    Boolean(draft.groomerId),
-    Boolean(draft.date && draft.time),
-    true,
-  ][step];
+  const canProceed = step === BOOKING_STEPS.length - 1 || maxStep > step;
 
   const petName = db.pets.find((p) => p.id === draft.petId)?.name;
   const STEP_TITLES: [string, string][] = [
@@ -109,7 +120,7 @@ function BookingFlow() {
   const isLast = step === BOOKING_STEPS.length - 1;
 
   const handleNext = () => {
-    if (!canProceed || submitting) return;
+    if (!canProceed || submitLock.current) return;
     if (!isLast) {
       goTo(step + 1);
       return;
@@ -125,6 +136,17 @@ function BookingFlow() {
     ) {
       return;
     }
+
+    // 확정 직전 재검증 — 그 사이 지나간 시간, 오래된 선택값, 이미 잡힌 시간 차단
+    const now = new Date();
+    if (!isSlotBookable(draft.date, draft.time, draft.groomerId, db.bookings, now)) {
+      setDraft(draft.date < toDateKey(now) ? { date: null, time: null } : { time: null });
+      toast("선택한 시간은 지금 예약할 수 없어요. 다른 시간을 골라주세요.", "error");
+      goTo(4);
+      return;
+    }
+
+    submitLock.current = true;
     setSubmitting(true);
     const { price, discount, total: finalTotal } = computePrice(draft);
     const payload = {
@@ -147,6 +169,9 @@ function BookingFlow() {
     }, 700);
   };
 
+  // 저장된 선택값·반려동물 목록을 읽기 전에는 단계를 판단하지 않는다 (새로고침 시 1단계 깜빡임 방지)
+  if (!ready || !db.hydrated) return <BookingSkeleton />;
+
   return (
     <div className="mx-auto max-w-6xl px-4 pb-32 pt-5 md:px-6 md:pt-8 lg:pb-16">
       <StepIndicator current={step} onJump={goTo} />
@@ -167,7 +192,9 @@ function BookingFlow() {
                 hydrated={db.hydrated}
               />
             )}
-            {step === 1 && <ServiceStep draft={draft} setDraft={setDraft} />}
+            {step === 1 && (
+              <ServiceStep draft={draft} setDraft={setDraft} pets={db.pets} />
+            )}
             {step === 2 && <SalonStep draft={draft} setDraft={setDraft} />}
             {step === 3 && <GroomerStep draft={draft} setDraft={setDraft} />}
             {step === 4 && (
@@ -218,17 +245,19 @@ function BookingFlow() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          {draft.serviceId && (
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-ink-faint">
-                예상 결제 금액
-              </p>
-              <p className="truncate text-lg font-extrabold text-ink">
-                {formatWon(total)}
-              </p>
-            </div>
-          )}
-          <div className="flex-1" />
+          {/* 금액이 남는 폭을 쓰고, 버튼은 한 줄로 고정한다 */}
+          <div className="min-w-0 flex-1">
+            {draft.serviceId && (
+              <>
+                <p className="whitespace-nowrap text-xs font-semibold text-ink-faint">
+                  예상 결제 금액
+                </p>
+                <p className="truncate text-lg font-extrabold text-ink">
+                  {formatWon(total)}
+                </p>
+              </>
+            )}
+          </div>
           <NextButton
             isLast={isLast}
             disabled={!canProceed}
@@ -261,16 +290,16 @@ function NextButton({
       type="button"
       onClick={onClick}
       disabled={disabled || submitting}
-      className={`flex items-center justify-center gap-1.5 rounded-2xl text-base font-bold text-white transition-all duration-200 tap ${
+      className={`flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl text-base font-bold text-white transition-all duration-200 tap ${
         isLast
           ? "bg-coral-500 shadow-[0_6px_16px_rgba(233,106,71,0.3)] hover:bg-coral-600"
           : "bg-mint-500 shadow-cta hover:bg-mint-600"
-      } ${mobile ? "h-12 px-6" : "px-8 py-3.5"} disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none`}
+      } ${mobile ? "h-12 px-5" : "px-8 py-3.5"} disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none`}
     >
       {submitting ? (
         <>
           <Loader2 className="h-5 w-5 animate-spin" />
-          예약 처리 중…
+          {mobile ? "처리 중…" : "예약 처리 중…"}
         </>
       ) : (
         <>

@@ -2,7 +2,8 @@
 
 import { Loader2, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useModal } from "@/lib/use-modal";
 
 /**
  * 원본 사진 뷰어.
@@ -20,19 +21,7 @@ export default function PhotoViewer({
   onClose: () => void;
 }) {
   const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    const { overflow } = document.body.style;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-    };
-  }, [onClose]);
+  useModal(onClose);
 
   return (
     <div
