@@ -32,12 +32,13 @@ const config: Config = {
           100: "#DCEEE7",
           200: "#BCDFD3",
           300: "#8FC9B7",
-          400: "#5DAE97",
-          500: "#3D9B81",
-          600: "#2E8A71",
-          700: "#27705D",
-          800: "#22594B",
-          900: "#1D4A3F",
+          // 500 이상은 흰 글자·흰 배경 위 글자 모두 WCAG AA(4.5:1)를 만족하도록 맞춘 값
+          400: "#3D9B81",
+          500: "#2A7D66",
+          600: "#236B57",
+          700: "#1E5C4B",
+          800: "#1A4D40",
+          900: "#163F35",
         },
         coral: {
           50: "#FEF3F0",
@@ -46,8 +47,8 @@ const config: Config = {
           300: "#F6A28C",
           400: "#F0805F",
           500: "#E96A47",
-          600: "#D6512F",
-          700: "#B34026",
+          600: "#B34026",
+          700: "#962F1A",
         },
         cream: {
           50: "#FCFAF7",
@@ -67,8 +68,9 @@ const config: Config = {
         ink: {
           DEFAULT: "#22332E",
           soft: "#41534C",
-          muted: "#6C7D75",
-          faint: "#9AA8A1",
+          // 본문 보조(muted)·최하위(faint) 글자도 흰/크림 배경에서 AA 대비를 만족
+          muted: "#56665F",
+          faint: "#64736C",
         },
       },
       fontFamily: {
@@ -92,7 +94,7 @@ const config: Config = {
         card: "0 2px 12px rgba(34, 51, 46, 0.06)",
         "card-hover": "0 8px 24px rgba(34, 51, 46, 0.10)",
         float: "0 -4px 20px rgba(34, 51, 46, 0.08)",
-        cta: "0 6px 16px rgba(61, 155, 129, 0.28)",
+        cta: "0 6px 16px rgba(42, 125, 102, 0.26)",
       },
       borderRadius: {
         "2.5xl": "1.25rem",

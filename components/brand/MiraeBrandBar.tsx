@@ -3,7 +3,7 @@ import MiraeLogo from "./MiraeLogo";
 /** 전 페이지 최상단 제작사 표시 바 */
 export default function MiraeBrandBar() {
   return (
-    <div className="bg-mirae-dark">
+    <aside className="bg-mirae-dark" aria-label="제작사 안내">
       <div className="mx-auto flex max-w-6xl items-center justify-center gap-3 px-4 py-2.5 md:px-6">
         <MiraeLogo
           className="h-5 w-auto md:h-6"
@@ -16,6 +16,6 @@ export default function MiraeBrandBar() {
           입니다
         </p>
       </div>
-    </div>
+    </aside>
   );
 }

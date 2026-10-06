@@ -27,3 +27,8 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# test output
+/test-results/
+/playwright-report/
+/blob-report/

@@ -38,11 +38,13 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={`flex min-w-[56px] flex-col items-center gap-0.5 px-3 pb-2 pt-2.5 text-xs font-semibold transition-colors ${
                 active ? "text-mint-600" : "text-ink-faint hover:text-ink-muted"
               }`}
             >
               <Icon
+                aria-hidden
                 className="h-6 w-6"
                 strokeWidth={active ? 2.4 : 1.8}
                 fill={active && href === "/favorites" ? "currentColor" : "none"}

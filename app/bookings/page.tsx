@@ -22,7 +22,7 @@ import {
   getServiceById,
   REVIEWS,
 } from "@/lib/data";
-import { addReview, setBookingStatus, useDb } from "@/lib/db";
+import { addReview, cancelBooking, useDb } from "@/lib/db";
 import { dDayLabel, formatDateKo, formatWon } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 import type { Booking, BookingStatus, Pet, Review } from "@/lib/types";
@@ -116,7 +116,7 @@ export default function BookingsPage() {
       <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         {!hydrated &&
           [0, 1].map((i) => (
-            <div key={i} className="skeleton h-40 rounded-3xl" />
+            <div key={i} className="skeleton h-[15.75rem] rounded-3xl" />
           ))}
 
         {hydrated && list.length === 0 && (
@@ -382,7 +382,7 @@ function CancelDialog({
   const service = getServiceById(booking.serviceId);
 
   return (
-    <Overlay onClose={onClose}>
+    <Overlay onClose={onClose} label="예약 취소 확인">
       <div className="text-center">
         <span className="text-5xl">🥺</span>
         <h2 className="mt-3 text-lg font-extrabold text-ink">
@@ -405,11 +405,15 @@ function CancelDialog({
         <button
           type="button"
           onClick={() => {
-            setBookingStatus(booking.id, "cancelled");
-            toast("예약이 취소되었어요", "info");
+            toast(
+              cancelBooking(booking.id)
+                ? "예약이 취소되었어요"
+                : "이미 취소되었거나 이용이 끝난 예약이에요",
+              "info"
+            );
             onClose();
           }}
-          className="flex-1 rounded-2xl bg-coral-500 py-3.5 text-sm font-bold text-white transition-colors hover:bg-coral-600 tap"
+          className="flex-1 rounded-2xl bg-coral-600 py-3.5 text-sm font-bold text-white transition-colors hover:bg-coral-700 tap"
         >
           예약 취소
         </button>
@@ -444,7 +448,7 @@ function ReviewDialog({
   };
 
   return (
-    <Overlay onClose={onClose} keepOnBackdrop={trimmed !== ""}>
+    <Overlay onClose={onClose} label="후기 작성" keepOnBackdrop={trimmed !== ""}>
       <h2 className="text-lg font-extrabold text-ink">후기 작성</h2>
       <p className="mt-1 text-sm text-ink-muted">
         {salon?.name} · {groomer?.name} 미용사
@@ -477,7 +481,7 @@ function ReviewDialog({
         maxLength={REVIEW_MAX}
         placeholder="우리 아이의 미용은 어땠나요? 솔직한 후기를 남겨주세요."
         aria-label="후기 내용"
-        className="mt-4 w-full resize-none rounded-2xl border border-cream-300 bg-cream-50 p-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-400"
+        className="mt-4 w-full resize-none rounded-2xl border border-cream-300 bg-cream-50 p-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100"
       />
       <p className="mt-1 text-right text-xs text-ink-faint">
         {content.length} / {REVIEW_MAX}
@@ -498,20 +502,26 @@ function ReviewDialog({
 function Overlay({
   children,
   onClose,
+  label,
   keepOnBackdrop = false,
 }: {
   children: ReactNode;
   onClose: () => void;
+  /** 대화상자 이름 (스크린리더) */
+  label: string;
   /** 작성 중인 내용이 있을 때 바깥을 눌러도 닫히지 않게 한다 */
   keepOnBackdrop?: boolean;
 }) {
-  useModal(onClose);
+  const dialogRef = useModal(onClose);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm animate-fade-in sm:items-center"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 outline-none backdrop-blur-sm animate-fade-in sm:items-center"
       onClick={() => !keepOnBackdrop && onClose()}
       role="dialog"
       aria-modal="true"
+      aria-label={label}
     >
       <div
         className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-card-hover animate-slide-up sm:rounded-3xl sm:animate-scale-in"

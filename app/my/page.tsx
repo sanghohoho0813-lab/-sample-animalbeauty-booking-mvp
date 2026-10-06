@@ -172,11 +172,10 @@ export default function MyPage() {
                     <p className="mt-0.5 text-sm text-ink-muted">
                       {coupon.desc}
                     </p>
-                    {hydrated && (
-                      <p className="mt-0.5 text-sm font-semibold text-ink-soft">
-                        {couponDeadline(coupon, new Date())}
-                      </p>
-                    )}
+                    {/* 날짜는 브라우저 시각 기준이라 마운트 후 채우되, 줄 높이는 미리 잡아 둔다 */}
+                    <p className="mt-0.5 min-h-[1.5em] text-sm font-semibold text-ink-soft">
+                      {hydrated && couponDeadline(coupon, new Date())}
+                    </p>
                   </div>
                 </div>
               ))}

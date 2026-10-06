@@ -9,6 +9,7 @@ export default function NotFound() {
         desc="주소가 바뀌었거나 잘못된 링크일 수 있어요."
         actionHref="/"
         actionLabel="홈으로 가기"
+        titleAs="h1"
       />
     </div>
   );

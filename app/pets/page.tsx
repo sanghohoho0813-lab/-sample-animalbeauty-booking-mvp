@@ -70,7 +70,7 @@ export default function PetsPage() {
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {!hydrated &&
           [0, 1, 2].map((i) => (
-            <div key={i} className="skeleton h-[26rem] rounded-3xl" />
+            <div key={i} className="skeleton h-[37rem] rounded-3xl" />
           ))}
         {hydrated &&
           pets.map((pet) => (
@@ -89,7 +89,7 @@ export default function PetsPage() {
                     src={pet.image}
                     alt={pet.name}
                     fill
-                    sizes="(min-width: 768px) 22rem, 92vw"
+                    sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 92vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                   <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-ink/45 px-3 py-1.5 text-xs font-bold text-white opacity-0 backdrop-blur transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100">
@@ -174,7 +174,7 @@ function AddPetDialog({
   onClose: () => void;
   onAdded?: (pet: Pet) => void;
 }) {
-  useModal(onClose);
+  const dialogRef = useModal(onClose);
   const { toast } = useToast();
   const [species, setSpecies] = useState<Species>("dog");
   const [emoji, setEmoji] = useState("🐶");
@@ -240,7 +240,9 @@ function AddPetDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm animate-fade-in sm:items-center"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 outline-none backdrop-blur-sm animate-fade-in sm:items-center"
       onClick={() => !dirty && onClose()}
       role="dialog"
       aria-modal="true"

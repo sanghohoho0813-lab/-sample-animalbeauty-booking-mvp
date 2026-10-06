@@ -589,7 +589,7 @@ function TimeGroup({
   onSelect,
 }: {
   label: string;
-  slots: { time: string; available: boolean }[];
+  slots: { time: string; available: boolean; petBusy?: boolean }[];
   selected: string | null;
   onSelect: (time: string) => void;
 }) {
@@ -597,8 +597,8 @@ function TimeGroup({
   return (
     <div className="mt-4">
       <p className="text-xs font-bold text-ink-muted">{label}</p>
-      <div className="mt-2 grid grid-cols-4 gap-2">
-        {slots.map(({ time, available }) => {
+      <div className="mt-2 grid grid-cols-4 gap-2" role="group" aria-label={`${label} 시간`}>
+        {slots.map(({ time, available, petBusy }) => {
           const isSelected = selected === time;
           return (
             <button
@@ -614,6 +614,9 @@ function TimeGroup({
                     : "bg-cream-100 text-ink-faint/60 line-through"
               }`}
               aria-pressed={isSelected}
+              aria-label={
+                available ? time : `${time}, ${petBusy ? "다른 예약과 겹침" : "예약 마감"}`
+              }
             >
               {time}
             </button>

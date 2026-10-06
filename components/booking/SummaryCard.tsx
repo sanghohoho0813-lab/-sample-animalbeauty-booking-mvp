@@ -43,7 +43,7 @@ export default function SummaryCard({
 
   return (
     <div className="rounded-3xl border border-cream-200 bg-white p-5 shadow-card">
-      <h3 className="text-base font-extrabold text-ink">예약 요약</h3>
+      <h2 className="text-base font-extrabold text-ink">예약 요약</h2>
 
       {pet ? (
         <div className="mt-4 flex items-center gap-3">

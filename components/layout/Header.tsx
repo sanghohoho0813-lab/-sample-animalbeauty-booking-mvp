@@ -27,7 +27,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="주 메뉴">
           {NAV_ITEMS.map((item) => {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -35,6 +35,7 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={`rounded-full px-3.5 py-2 text-sm font-semibold transition-colors ${
                   active
                     ? "bg-mint-100 text-mint-700"

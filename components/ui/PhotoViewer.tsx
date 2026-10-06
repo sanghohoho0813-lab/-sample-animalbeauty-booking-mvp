@@ -21,11 +21,13 @@ export default function PhotoViewer({
   onClose: () => void;
 }) {
   const [loaded, setLoaded] = useState(false);
-  useModal(onClose);
+  const dialogRef = useModal(onClose);
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-ink/80 p-4 backdrop-blur-sm animate-fade-in"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-ink/80 p-4 outline-none backdrop-blur-sm animate-fade-in"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

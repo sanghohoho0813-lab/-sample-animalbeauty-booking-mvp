@@ -16,7 +16,13 @@ export default function RecentReviews({ limit = 3 }: { limit?: number }) {
     .slice(0, limit);
 
   return (
-    <div className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0">
+    // 링크가 없는 가로 스크롤 영역이라 키보드로도 스크롤할 수 있게 포커스를 받는다
+    <div
+      role="region"
+      aria-label="최근 후기 목록"
+      tabIndex={0}
+      className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0"
+    >
       {recent.map((review) => {
         const salon = SALONS.find((s) => s.id === review.salonId);
         return (

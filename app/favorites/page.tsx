@@ -18,7 +18,7 @@ export default function FavoritesPage() {
         {!hydrated ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {[0, 1].map((i) => (
-              <div key={i} className="skeleton h-28 rounded-3xl sm:h-72" />
+              <div key={i} className="skeleton h-[8.875rem] rounded-3xl sm:h-[27.25rem]" />
             ))}
           </div>
         ) : liked.length === 0 ? (

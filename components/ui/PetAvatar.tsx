@@ -12,10 +12,13 @@ export default function PetAvatar({
   pet,
   size = "md",
   className = "",
+  alt = "",
 }: {
   pet: Pick<Pet, "species" | "emoji" | "name" | "image">;
   size?: keyof typeof SIZES;
   className?: string;
+  /** 대부분 이름이 바로 옆에 있으므로 기본은 장식용(빈 alt) */
+  alt?: string;
 }) {
   const { cls, px } = SIZES[size];
   const bg =
@@ -30,7 +33,7 @@ export default function PetAvatar({
       >
         <Image
           src={pet.image}
-          alt={pet.name}
+          alt={alt}
           width={px * 2}
           height={px * 2}
           sizes={`${px}px`}

@@ -17,7 +17,11 @@ const pretendard = localFont({
   variable: "--font-pretendard",
 });
 
+// 배포 주소(공유 미리보기 이미지의 절대 URL 계산용). 없으면 로컬 주소로 둔다.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "PawBeauty — 반려동물 미용 예약",
     template: "%s | PawBeauty",
@@ -28,6 +32,15 @@ export const metadata: Metadata = {
   authors: [{ name: "미래에이아이랩 (MIRAE AI LAB)" }],
   creator: "미래에이아이랩 (MIRAE AI LAB)",
   publisher: "미래에이아이랩 (MIRAE AI LAB)",
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    siteName: "PawBeauty",
+    title: "PawBeauty — 반려동물 미용 예약",
+    description: "반려동물·서비스·미용실·미용사·일시까지 1분 만에 예약하는 반려동물 미용 예약 서비스",
+  },
+  twitter: { card: "summary_large_image" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -39,20 +52,22 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko" className={pretendard.variable}>
-      <head>
-        <link
-          rel="icon"
-          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>"
-        />
-      </head>
       <body className="min-h-dvh">
         {/* 미래AI랩 데모 공용 뒤로·앞으로 버튼 */}
         <Script src="/mirae-history-nav.js" strategy="beforeInteractive" />
+        <a
+          href="#main"
+          className="sr-only z-[200] rounded-full bg-ink px-4 py-2.5 text-sm font-bold text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        >
+          본문으로 건너뛰기
+        </a>
         <ToastProvider>
           <BookingProvider>
             <MiraeBrandBar />
             <Header />
-            <main>{children}</main>
+            <main id="main" tabIndex={-1} className="outline-none">
+              {children}
+            </main>
             <PageBottom />
             <BottomNav />
           </BookingProvider>

@@ -56,14 +56,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 top-4 z-[100] flex flex-col items-center gap-2 px-4">
+      {/* 항상 존재하는 live region — 새 알림을 스크린리더가 읽어준다 */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-4 z-[100] flex flex-col items-center gap-2 px-4"
+        role="status"
+        aria-live="polite"
+      >
         {items.map((t) => (
           <div
             key={t.id}
             className={`flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-white shadow-card-hover transition-all duration-300 ${
               t.leaving ? "-translate-y-2 opacity-0" : "animate-fade-in-up"
             }`}
-            role="status"
           >
             {ICONS[t.kind]}
             <span>{t.message}</span>

@@ -26,7 +26,8 @@ export default function MiraeLogo({
       width={828}
       height={250}
       priority={priority}
-      sizes="(min-width: 768px) 22rem, 14rem"
+      // 가장 크게 쓰는 곳(푸터 h-12)이 약 160px 폭이다
+      sizes="10rem"
       className={className}
     />
   );

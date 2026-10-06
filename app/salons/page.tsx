@@ -50,7 +50,7 @@ export default function SalonsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="미용실 이름, 지역, 키워드로 검색"
-          className="w-full rounded-2xl border border-cream-300 bg-white py-3.5 pl-12 pr-4 text-sm text-ink shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-mint-400"
+          className="w-full rounded-2xl border border-cream-300 bg-white py-3.5 pl-12 pr-4 text-sm text-ink shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100"
           aria-label="미용실 검색"
         />
       </div>

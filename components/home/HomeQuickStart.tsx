@@ -16,7 +16,13 @@ export default function HomeQuickStart() {
   const { hydrated, pets, bookings } = useDb();
 
   if (!hydrated) {
-    return <div className="skeleton h-[7.5rem] rounded-3xl" aria-hidden />;
+    // 실제 카드와 같은 높이로 자리를 잡아 두어, 불러온 뒤 아래 내용이 밀리지 않게 한다
+    return (
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2" aria-hidden>
+        <div className="skeleton h-[9.75rem] rounded-3xl lg:h-[11.75rem]" />
+        <div className="skeleton h-[10.5rem] rounded-3xl lg:h-[11.75rem]" />
+      </div>
+    );
   }
 
   const next: Booking | undefined = bookings

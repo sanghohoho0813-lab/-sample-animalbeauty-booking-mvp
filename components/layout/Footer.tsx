@@ -70,7 +70,7 @@ export default function Footer() {
               <b className="text-ink-soft">미래에이아이랩</b>
             </span>
           </div>
-          <p className="text-xs leading-relaxed text-ink-faint">
+          <p className="text-xs leading-relaxed text-ink-muted">
             © 2026 미래에이아이랩 (MIRAE AI LAB).
             <br className="hidden sm:block" /> 본 서비스는 포트폴리오 시연용 MVP
             레퍼런스입니다.

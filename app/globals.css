@@ -10,18 +10,37 @@
     @apply bg-cream-50 text-ink antialiased;
     word-break: keep-all;
     overflow-wrap: break-word;
+    /* 가격·시간·날짜가 많은 화면이라 숫자 폭을 고정해 값이 바뀌어도 줄이 흔들리지 않게 */
+    font-variant-numeric: tabular-nums;
   }
   ::selection {
     @apply bg-mint-200 text-ink;
+  }
+  /* 키보드로 이동할 때만 보이는 공통 포커스 링 (마우스 클릭에는 표시하지 않음) */
+  :focus-visible {
+    outline: 2px solid theme("colors.mint.500");
+    outline-offset: 2px;
+  }
+}
+
+/* 움직임 줄이기 설정을 켠 사용자에게는 장식 애니메이션을 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 @layer components {
   .input-base {
-    @apply w-full rounded-2xl border border-cream-300 bg-cream-50 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-400;
+    @apply w-full rounded-2xl border border-cream-300 bg-cream-50 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100;
   }
   .field-error .input-base {
-    @apply border-coral-400 bg-coral-50/40 focus:border-coral-500;
+    @apply border-coral-400 bg-coral-50/40 focus:border-coral-500 focus:ring-coral-100;
   }
 }
 
