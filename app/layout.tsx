@@ -8,6 +8,7 @@ import PageBottom from "@/components/layout/PageBottom";
 import { BookingProvider } from "@/lib/booking-context";
 import { ToastProvider } from "@/lib/toast";
 import "./globals.css";
+import Script from "next/script";
 
 const pretendard = localFont({
   src: "./fonts/PretendardVariable.woff2",
@@ -45,6 +46,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body className="min-h-dvh">
+        {/* 미래AI랩 데모 공용 뒤로·앞으로 버튼 */}
+        <Script src="/mirae-history-nav.js" strategy="beforeInteractive" />
         <ToastProvider>
           <BookingProvider>
             <MiraeBrandBar />
