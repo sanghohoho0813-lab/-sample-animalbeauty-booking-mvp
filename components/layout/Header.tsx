@@ -1,9 +1,8 @@
 "use client";
 
-import { Bell, PawPrint } from "lucide-react";
+import { PawPrint } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useToast } from "@/lib/toast";
 
 const NAV_ITEMS = [
   { href: "/booking", label: "예약하기" },
@@ -15,7 +14,6 @@ const NAV_ITEMS = [
 
 export default function Header() {
   const pathname = usePathname();
-  const { toast } = useToast();
 
   return (
     <header className="sticky top-0 z-40 border-b border-cream-200 bg-cream-50/90 backdrop-blur-md">
@@ -50,15 +48,6 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => toast("새로운 알림이 없어요", "info")}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-cream-100 tap"
-            aria-label="알림"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-coral-400" />
-          </button>
           <Link
             href="/my"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-mint-100 text-lg tap"

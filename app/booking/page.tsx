@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import StepIndicator, {
   BOOKING_STEPS,
 } from "@/components/booking/StepIndicator";
+import SelectionTrail from "@/components/booking/SelectionTrail";
 import SummaryCard, { computePrice } from "@/components/booking/SummaryCard";
 import {
   ConfirmStep,
@@ -54,12 +55,29 @@ function BookingFlow() {
   // 상태 반영 전에 들어오는 연속 클릭까지 막기 위한 동기 잠금
   const submitLock = useRef(false);
   const appliedPreset = useRef(false);
+  // 프리셋 반영 전 단계로 한 프레임 그려졌다가 넘어가는 깜빡임 방지
+  const [presetReady, setPresetReady] = useState(false);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 홈/미용실/미용사 카드에서 넘어온 사전 선택값 적용
+  useEffect(
+    () => () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    },
+    []
+  );
+
+  // 홈/미용실/미용사/반려동물 카드에서 넘어온 사전 선택값 적용
   useEffect(() => {
     if (!ready || !db.hydrated || appliedPreset.current) return;
     appliedPreset.current = true;
     const patch: Partial<BookingDraft> = {};
+
+    const presetPet = db.pets.find((p) => p.id === searchParams.get("pet"));
+    if (presetPet) {
+      patch.petId = presetPet.id;
+      const current = getServiceById(draft.serviceId);
+      if (current && !isServiceForPet(current, presetPet)) patch.serviceId = null;
+    }
     const salonParam = searchParams.get("salon");
     const serviceParam = searchParams.get("service");
     const groomer = getGroomerById(searchParams.get("groomer"));
@@ -81,12 +99,16 @@ function BookingFlow() {
     if (service) {
       patch.serviceId = service.id;
       // 선택돼 있던 아이가 받을 수 없는 서비스라면 아이를 다시 고르게 한다
-      const pet = db.pets.find((p) => p.id === draft.petId);
-      if (pet && !isServiceForPet(service, pet)) patch.petId = null;
+      const pet = presetPet ?? db.pets.find((p) => p.id === draft.petId);
+      if (pet && !isServiceForPet(service, pet)) {
+        if (presetPet) delete patch.serviceId;
+        else patch.petId = null;
+      }
     }
 
     if (Object.keys(patch).length > 0) setDraft(patch);
-  }, [ready, db.hydrated, db.pets, searchParams, setDraft, draft.salonId, draft.groomerId, draft.petId]);
+    setPresetReady(true);
+  }, [ready, db.hydrated, db.pets, searchParams, setDraft, draft.salonId, draft.groomerId, draft.petId, draft.serviceId]);
 
   // 선택값이 서로 맞는지를 기준으로 진입 가능한 최대 단계
   const maxStep = useMemo(() => getMaxStep(draft, db.pets), [draft, db.pets]);
@@ -98,22 +120,26 @@ function BookingFlow() {
   );
 
   const goTo = (next: number) => {
+    if (advanceTimer.current) clearTimeout(advanceTimer.current);
     router.push(`/booking?step=${next}`, { scroll: true });
+  };
+
+  // 하나만 고르는 단계(반려동물·서비스·미용실·미용사)는 선택하면 잠깐 선택 표시를 보여준 뒤 다음으로 넘어간다
+  const advanceFrom = (from: number) => {
+    if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    advanceTimer.current = setTimeout(() => goTo(from + 1), 260);
   };
 
   const canProceed = step === BOOKING_STEPS.length - 1 || maxStep > step;
 
   const petName = db.pets.find((p) => p.id === draft.petId)?.name;
-  const STEP_TITLES: [string, string][] = [
-    ["어떤 아이가 미용을 받나요?", "미용 받을 반려동물을 선택해주세요."],
-    [
-      petName ? `${petName}에게 어떤 관리가 필요할까요?` : "어떤 관리가 필요할까요?",
-      "원하는 미용 서비스를 선택해주세요.",
-    ],
-    ["어느 미용실이 좋을까요?", "가까운 미용실을 선택해주세요."],
-    ["누구에게 맡길까요?", "미용사의 경력과 후기를 확인하고 선택해주세요."],
-    ["언제 방문할까요?", "원하는 날짜와 시간을 선택해주세요."],
-    ["예약 내용을 확인해주세요", "아래 내용으로 예약을 확정할게요."],
+  const STEP_TITLES = [
+    "어떤 아이가 미용을 받나요?",
+    petName ? `${petName}에게 어떤 관리가 필요할까요?` : "어떤 관리가 필요할까요?",
+    "어느 미용실이 좋을까요?",
+    "누구에게 맡길까요?",
+    "언제 방문할까요?",
+    "예약 내용을 확인해주세요",
   ];
 
   const { total } = computePrice(draft);
@@ -170,18 +196,23 @@ function BookingFlow() {
   };
 
   // 저장된 선택값·반려동물 목록을 읽기 전에는 단계를 판단하지 않는다 (새로고침 시 1단계 깜빡임 방지)
-  if (!ready || !db.hydrated) return <BookingSkeleton />;
+  if (!ready || !db.hydrated || !presetReady) return <BookingSkeleton />;
+
+  const onChosen = () => advanceFrom(step);
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-32 pt-5 md:px-6 md:pt-8 lg:pb-16">
       <StepIndicator current={step} onJump={goTo} />
 
-      <div className="mt-6 grid gap-6 md:mt-8 lg:grid-cols-[1fr_21rem] lg:items-start">
+      <div className="mt-5 grid gap-6 md:mt-7 lg:grid-cols-[1fr_21rem] lg:items-start">
         <section key={step} className="min-w-0 animate-fade-in-up">
           <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
-            {STEP_TITLES[step][0]}
+            {STEP_TITLES[step]}
           </h1>
-          <p className="mt-1 text-sm text-ink-muted">{STEP_TITLES[step][1]}</p>
+          {/* 모바일에는 요약 카드가 없으므로, 지금까지 고른 것을 한 줄로 보여주고 눌러서 바로 고칠 수 있게 한다 */}
+          {step > 0 && step < 5 && (
+            <SelectionTrail draft={draft} pets={db.pets} upTo={step} onJump={goTo} />
+          )}
 
           <div className="mt-5">
             {step === 0 && (
@@ -190,13 +221,23 @@ function BookingFlow() {
                 setDraft={setDraft}
                 pets={db.pets}
                 hydrated={db.hydrated}
+                onChosen={onChosen}
               />
             )}
             {step === 1 && (
-              <ServiceStep draft={draft} setDraft={setDraft} pets={db.pets} />
+              <ServiceStep
+                draft={draft}
+                setDraft={setDraft}
+                pets={db.pets}
+                onChosen={onChosen}
+              />
             )}
-            {step === 2 && <SalonStep draft={draft} setDraft={setDraft} />}
-            {step === 3 && <GroomerStep draft={draft} setDraft={setDraft} />}
+            {step === 2 && (
+              <SalonStep draft={draft} setDraft={setDraft} onChosen={onChosen} />
+            )}
+            {step === 3 && (
+              <GroomerStep draft={draft} setDraft={setDraft} onChosen={onChosen} />
+            )}
             {step === 4 && (
               <DateTimeStep
                 draft={draft}
@@ -205,7 +246,12 @@ function BookingFlow() {
               />
             )}
             {step === 5 && (
-              <ConfirmStep draft={draft} setDraft={setDraft} pets={db.pets} />
+              <ConfirmStep
+                draft={draft}
+                setDraft={setDraft}
+                pets={db.pets}
+                onEdit={goTo}
+              />
             )}
           </div>
 
@@ -230,7 +276,11 @@ function BookingFlow() {
 
         {/* 데스크톱 예약 요약 */}
         <aside className="hidden lg:sticky lg:top-24 lg:block">
-          <SummaryCard draft={draft} pets={db.pets} />
+          <SummaryCard
+            draft={draft}
+            pets={db.pets}
+            onToggleCoupon={isLast ? (useCoupon) => setDraft({ useCoupon }) : undefined}
+          />
         </aside>
       </div>
 

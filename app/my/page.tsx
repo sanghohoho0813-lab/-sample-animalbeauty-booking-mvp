@@ -7,15 +7,22 @@ import {
   Crown,
   Dog,
   Heart,
+  Plus,
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import MiraeLogo from "@/components/brand/MiraeLogo";
 import PetAvatar from "@/components/ui/PetAvatar";
 import { COUPONS, DEMO_USER } from "@/lib/data";
 import { useDb } from "@/lib/db";
 import { useToast } from "@/lib/toast";
+import type { Coupon } from "@/lib/types";
+
+/** 쿠폰 만료일 표시 — '10월 31일까지' */
+function couponDeadline(coupon: Coupon, now: Date): string {
+  const end = new Date(now.getFullYear(), now.getMonth() + coupon.expiresInMonths + 1, 0);
+  return `${end.getMonth() + 1}월 ${end.getDate()}일까지`;
+}
 
 export default function MyPage() {
   const { pets, bookings, favorites, hydrated } = useDb();
@@ -40,31 +47,16 @@ export default function MyPage() {
             {DEMO_USER.emoji}
           </span>
           <div className="min-w-0 flex-1">
-            <MiraeLogo className="h-5 w-auto md:h-6" />
-            <p className="mt-1.5 text-lg font-extrabold leading-tight text-ink">
-              <span className="block text-sm font-bold text-ink-muted">
-                {DEMO_USER.org}
-              </span>
+            <p className="text-sm font-bold text-mirae-teal">{DEMO_USER.org}</p>
+            <p className="mt-0.5 flex items-center gap-2 text-lg font-extrabold leading-tight text-ink">
               {DEMO_USER.name}님
+              <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
+                <Crown className="h-3.5 w-3.5" />
+                멤버
+              </span>
             </p>
-            <p className="truncate text-sm text-ink-muted">{DEMO_USER.email}</p>
+            <p className="mt-0.5 truncate text-sm text-ink-muted">{DEMO_USER.email}</p>
           </div>
-          <span className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-700">
-            <Crown className="h-3.5 w-3.5" />
-            멤버
-          </span>
-        </div>
-        <div className="flex items-center justify-between bg-mint-50 px-5 py-3.5">
-          <p className="text-sm font-semibold text-mint-700">
-            {DEMO_USER.membership} · 등급별 혜택과 전용 쿠폰을 확인해보세요
-          </p>
-          <button
-            type="button"
-            onClick={() => toast("멤버십 혜택은 준비 중이에요", "info")}
-            className="shrink-0 text-sm font-bold text-mint-600 underline-offset-2 hover:underline"
-          >
-            혜택 보기
-          </button>
         </div>
       </div>
 
@@ -93,18 +85,31 @@ export default function MyPage() {
       {/* 내 반려동물 미리보기 */}
       <SectionCard title="내 반려동물" moreHref="/pets">
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+          {!hydrated && <div className="skeleton h-[8.5rem] w-40 shrink-0 rounded-2xl" />}
           {(hydrated ? pets : []).map((pet) => (
-            <div
+            <Link
               key={pet.id}
-              className="flex w-40 shrink-0 flex-col items-center rounded-2xl bg-cream-50 p-4 text-center"
+              href={`/booking?pet=${pet.id}&step=1`}
+              className="flex w-40 shrink-0 flex-col items-center rounded-2xl bg-cream-50 p-4 text-center transition-colors hover:bg-mint-50 tap"
+              aria-label={`${pet.name} 미용 예약하기`}
             >
               <PetAvatar pet={pet} size="md" />
-              <p className="mt-2 text-sm font-bold text-ink">{pet.name}</p>
-              <p className="text-xs text-ink-muted">
+              <p className="mt-2 w-full truncate text-sm font-bold text-ink">{pet.name}</p>
+              <p className="w-full truncate text-xs text-ink-muted">
                 {pet.breed} · {pet.age}살
               </p>
-            </div>
+              <p className="mt-2 text-xs font-bold text-mint-600">예약하기</p>
+            </Link>
           ))}
+          {hydrated && (
+            <Link
+              href="/pets?add=1"
+              className="flex w-40 shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cream-300 p-4 text-sm font-bold text-ink-muted transition-colors hover:border-mint-300 hover:text-mint-700 tap"
+            >
+              <Plus className="h-6 w-6" />
+              새로 등록
+            </Link>
+          )}
         </div>
       </SectionCard>
 
@@ -120,12 +125,15 @@ export default function MyPage() {
                 <Ticket className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-extrabold text-coral-600">
+                <p className="text-base font-extrabold text-coral-600">
                   {coupon.name}
                 </p>
-                <p className="mt-0.5 text-xs text-ink-muted">
-                  {coupon.desc} · {coupon.expiresAt} 까지
-                </p>
+                <p className="mt-0.5 text-sm text-ink-muted">{coupon.desc}</p>
+                {hydrated && (
+                  <p className="mt-0.5 text-sm font-semibold text-ink-soft">
+                    {couponDeadline(coupon, new Date())}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -158,10 +166,6 @@ export default function MyPage() {
         </div>
       </SectionCard>
 
-      <p className="mt-8 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-ink-faint">
-        <MiraeLogo className="h-5 w-auto" />
-        <span>PawBeauty MVP · 데모 계정으로 이용 중이에요</span>
-      </p>
     </div>
   );
 }

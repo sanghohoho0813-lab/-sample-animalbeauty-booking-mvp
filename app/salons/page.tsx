@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import SalonCard from "@/components/ui/SalonCard";
@@ -27,7 +27,7 @@ export default function SalonsPage() {
         (q === "" ||
           s.name.includes(q) ||
           s.address.includes(q) ||
-          s.tags.some((t) => t.includes(q)))
+          s.tags.some((t) => t.includes(q))),
     );
     list = [...list].sort((a, b) => {
       if (sort === "distance") return a.distanceKm - b.distanceKm;
@@ -42,12 +42,9 @@ export default function SalonsPage() {
       <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
         미용실 찾기
       </h1>
-      <p className="mt-1 text-sm text-ink-muted">
-        우리 동네의 검증된 반려동물 미용실이에요.
-      </p>
 
       {/* 검색 */}
-      <div className="relative mt-5">
+      <div className="relative mt-4">
         <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
         <input
           value={query}
@@ -59,13 +56,13 @@ export default function SalonsPage() {
       </div>
 
       {/* 필터 */}
-      <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        <SlidersHorizontal className="h-4 w-4 shrink-0 text-ink-faint" />
+      <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {SORT_OPTIONS.map(([key, label]) => (
           <button
             key={key}
             type="button"
             onClick={() => setSort(key)}
+            aria-pressed={sort === key}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors tap ${
               sort === key
                 ? "bg-mint-500 text-white shadow-cta"
@@ -75,18 +72,26 @@ export default function SalonsPage() {
             {label}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={() => setTodayOnly((v) => !v)}
-          className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors tap ${
-            todayOnly
-              ? "bg-coral-500 text-white"
-              : "border border-cream-300 bg-white text-ink-muted hover:border-coral-300"
-          }`}
-          aria-pressed={todayOnly}
+      </div>
+
+      {/* 결과 수 + 오늘 예약 가능 필터 */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <p
+          className="min-w-0 truncate text-sm text-ink-muted"
+          aria-live="polite"
         >
+          <span className="font-bold text-ink">{salons.length}곳</span>
+          {query.trim() && ` · '${query.trim()}' 검색 결과`}
+        </p>
+        <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 text-sm font-bold text-ink-soft">
+          <input
+            type="checkbox"
+            checked={todayOnly}
+            onChange={(e) => setTodayOnly(e.target.checked)}
+            className="h-5 w-5 accent-mint-500"
+          />
           오늘 예약 가능
-        </button>
+        </label>
       </div>
 
       {/* 목록 */}
@@ -110,9 +115,9 @@ export default function SalonsPage() {
           </EmptyState>
         </div>
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {salons.map((salon) => (
-            <SalonCard key={salon.id} salon={salon} />
+            <SalonCard key={salon.id} salon={salon} compactOnMobile />
           ))}
         </div>
       )}

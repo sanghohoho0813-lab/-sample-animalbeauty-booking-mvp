@@ -3,7 +3,7 @@
 import { CalendarCheck, Expand, Plus, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import PhotoViewer from "@/components/ui/PhotoViewer";
 import { useBookingDraft } from "@/lib/booking-context";
 import { addPet, useDb } from "@/lib/db";
@@ -21,6 +21,14 @@ export default function PetsPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [viewing, setViewing] = useState<Pet | null>(null);
 
+  // 홈·마이·예약 화면의 '추가' 버튼(/pets?add=1)으로 들어오면 등록 창을 바로 연다
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("add") === "1") {
+      setShowAdd(true);
+      router.replace("/pets", { scroll: false });
+    }
+  }, [router]);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
       <div className="flex items-center justify-between">
@@ -28,9 +36,6 @@ export default function PetsPage() {
           <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
             내 반려동물
           </h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            우리 아이들의 정보를 관리하세요.
-          </p>
         </div>
         <button
           type="button"
@@ -38,11 +43,11 @@ export default function PetsPage() {
           className="flex items-center gap-1.5 rounded-full bg-mint-500 px-4 py-2.5 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
         >
           <Plus className="h-4 w-4" strokeWidth={2.5} />
-          추가
+          새로 등록
         </button>
       </div>
 
-      <div className="mt-6 grid gap-5 sm:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {!hydrated &&
           [0, 1, 2].map((i) => (
             <div key={i} className="skeleton h-[26rem] rounded-3xl" />
@@ -132,6 +137,8 @@ export default function PetsPage() {
   );
 }
 
+type PetField = "name" | "breed" | "age" | "weight";
+
 function AddPetDialog({ onClose }: { onClose: () => void }) {
   useModal(onClose);
   const { toast } = useToast();
@@ -143,16 +150,43 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
   const [weight, setWeight] = useState("");
   const [note, setNote] = useState("");
 
+  const [touched, setTouched] = useState<Partial<Record<PetField, boolean>>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
   const emojis = species === "dog" ? DOG_EMOJIS : CAT_EMOJIS;
-  const valid =
-    name.trim() !== "" &&
-    breed.trim() !== "" &&
-    Number(age) > 0 &&
-    Number(weight) > 0;
+  const ageNum = Number(age);
+  const weightNum = Number(weight);
+  const errors: Partial<Record<PetField, string>> = {
+    name: name.trim() === "" ? "이름을 입력해주세요." : undefined,
+    breed: breed.trim() === "" ? "품종을 입력해주세요." : undefined,
+    age:
+      age === ""
+        ? "나이를 입력해주세요."
+        : ageNum < 1 || ageNum > 30
+          ? "1~30 사이로 입력해주세요. (1살 미만은 1)"
+          : undefined,
+    weight:
+      weight === ""
+        ? "몸무게를 입력해주세요."
+        : !Number.isFinite(weightNum) || weightNum <= 0 || weightNum > 80
+          ? "0.1~80 사이 숫자로 입력해주세요."
+          : undefined,
+  };
+  const valid = !Object.values(errors).some(Boolean);
+  // 입력을 마친 칸(또는 등록을 한 번 누른 뒤)에만 오류를 보여준다
+  const errorOf = (field: PetField) =>
+    submitted || touched[field] ? errors[field] : undefined;
+  const blur = (field: PetField) => () => setTouched((t) => ({ ...t, [field]: true }));
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!valid) return;
+    if (!valid) {
+      setSubmitted(true);
+      const first = (["name", "breed", "age", "weight"] as PetField[]).find((f) => errors[f]);
+      formRef.current?.querySelector<HTMLInputElement>(`[name="${first}"]`)?.focus();
+      return;
+    }
     addPet({
       name: name.trim(),
       species,
@@ -174,6 +208,8 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
       aria-modal="true"
     >
       <form
+        ref={formRef}
+        noValidate
         onSubmit={submit}
         onClick={(e) => e.stopPropagation()}
         className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-card-hover animate-slide-up sm:rounded-3xl sm:animate-scale-in"
@@ -238,8 +274,13 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="mt-4 space-y-3">
-          <Field label="이름" required>
+          <Field label="이름" required error={errorOf("name")} id="pet-name">
             <input
+              id="pet-name"
+              name="name"
+              onBlur={blur("name")}
+              aria-invalid={Boolean(errorOf("name"))}
+              aria-describedby={errorOf("name") ? "pet-name-error" : undefined}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="예: 콩이"
@@ -247,8 +288,13 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
               maxLength={10}
             />
           </Field>
-          <Field label="품종" required>
+          <Field label="품종" required error={errorOf("breed")} id="pet-breed">
             <input
+              id="pet-breed"
+              name="breed"
+              onBlur={blur("breed")}
+              aria-invalid={Boolean(errorOf("breed"))}
+              aria-describedby={errorOf("breed") ? "pet-breed-error" : undefined}
               value={breed}
               onChange={(e) => setBreed(e.target.value)}
               placeholder={species === "dog" ? "예: 푸들" : "예: 코리안숏헤어"}
@@ -256,9 +302,14 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
               maxLength={20}
             />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="나이 (살)" required>
+          <div className="grid grid-cols-2 items-start gap-3">
+            <Field label="나이 (살)" required error={errorOf("age")} id="pet-age">
               <input
+                id="pet-age"
+                name="age"
+                onBlur={blur("age")}
+                aria-invalid={Boolean(errorOf("age"))}
+                aria-describedby={errorOf("age") ? "pet-age-error" : undefined}
                 value={age}
                 onChange={(e) => setAge(e.target.value.replace(/[^0-9]/g, ""))}
                 placeholder="3"
@@ -267,8 +318,13 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
                 maxLength={2}
               />
             </Field>
-            <Field label="몸무게 (kg)" required>
+            <Field label="몸무게 (kg)" required error={errorOf("weight")} id="pet-weight">
               <input
+                id="pet-weight"
+                name="weight"
+                onBlur={blur("weight")}
+                aria-invalid={Boolean(errorOf("weight"))}
+                aria-describedby={errorOf("weight") ? "pet-weight-error" : undefined}
                 value={weight}
                 onChange={(e) =>
                   setWeight(e.target.value.replace(/[^0-9.]/g, ""))
@@ -280,8 +336,9 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
               />
             </Field>
           </div>
-          <Field label="특이사항 (선택)">
+          <Field label="특이사항 (선택)" id="pet-note">
             <input
+              id="pet-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="예: 드라이어 소리를 무서워해요"
@@ -293,8 +350,7 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
 
         <button
           type="submit"
-          disabled={!valid}
-          className="mt-5 w-full rounded-2xl bg-mint-500 py-4 text-base font-bold text-white shadow-cta transition-colors hover:bg-mint-600 disabled:opacity-40 disabled:shadow-none tap safe-bottom"
+          className="mt-5 w-full rounded-2xl bg-mint-500 py-4 text-base font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap safe-bottom"
         >
           등록하기
         </button>
@@ -306,19 +362,28 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
 function Field({
   label,
   required = false,
+  error,
+  id,
   children,
 }: {
   label: string;
   required?: boolean;
+  error?: string;
+  id?: string;
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
-      <span className="text-xs font-bold text-ink-soft">
+    <div className={error ? "field-error" : undefined}>
+      <label htmlFor={id} className="text-sm font-bold text-ink-soft">
         {label}
         {required && <span className="text-coral-500"> *</span>}
-      </span>
+      </label>
       <div className="mt-1.5">{children}</div>
-    </label>
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-sm font-semibold text-coral-600" role="alert">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

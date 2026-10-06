@@ -23,6 +23,18 @@ export function formatDateShortKo(dateKey: string): string {
   return `${m}월 ${d}일 (${WEEKDAYS_KO[date.getDay()]})`;
 }
 
+/** 오늘 기준 남은 날짜 — "오늘" / "내일" / "D-n" (지난 날짜는 null) */
+export function dDayLabel(dateKey: string, now: Date = new Date()): string | null {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const target = new Date(y, m - 1, d).getTime();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const days = Math.round((target - today) / 86_400_000);
+  if (days < 0) return null;
+  if (days === 0) return "오늘";
+  if (days === 1) return "내일";
+  return `D-${days}`;
+}
+
 export function addDays(base: Date, days: number): Date {
   const d = new Date(base);
   d.setDate(d.getDate() + days);

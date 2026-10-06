@@ -16,13 +16,13 @@ export default function RecentReviews({ limit = 3 }: { limit?: number }) {
     .slice(0, limit);
 
   return (
-    <div className="mt-4 grid gap-4 md:grid-cols-3">
+    <div className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0">
       {recent.map((review) => {
         const salon = SALONS.find((s) => s.id === review.salonId);
         return (
           <div
             key={review.id}
-            className="flex flex-col rounded-3xl border border-cream-200 bg-white p-5 shadow-card"
+            className="flex w-[82%] shrink-0 snap-start flex-col rounded-3xl border border-cream-200 bg-white p-5 shadow-card sm:w-[60%] md:w-auto"
           >
             <div className="flex items-center justify-between">
               <StarRow rating={review.rating} />

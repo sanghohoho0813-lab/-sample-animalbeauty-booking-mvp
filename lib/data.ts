@@ -549,21 +549,21 @@ export const COUPONS: Coupon[] = [
     name: "10% 할인 쿠폰",
     desc: "전체 서비스 10% 할인",
     discountRate: 0.1,
-    expiresAt: "2026-09-30",
+    expiresInMonths: 0,
   },
   {
     id: "cpn-2",
     name: "첫 방문 5,000원 할인",
     desc: "신규 미용실 첫 예약 시",
     discountRate: 0,
-    expiresAt: "2026-10-31",
+    expiresInMonths: 1,
   },
   {
     id: "cpn-3",
     name: "스파 15% 할인",
     desc: "프리미엄 스파 전용",
     discountRate: 0.15,
-    expiresAt: "2026-09-15",
+    expiresInMonths: 2,
   },
 ];
 

@@ -20,6 +20,9 @@
   .input-base {
     @apply w-full rounded-2xl border border-cream-300 bg-cream-50 px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-400;
   }
+  .field-error .input-base {
+    @apply border-coral-400 bg-coral-50/40 focus:border-coral-500;
+  }
 }
 
 @layer utilities {

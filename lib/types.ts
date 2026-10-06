@@ -94,7 +94,8 @@ export interface Coupon {
   name: string;
   desc: string;
   discountRate: number; // 0.1 = 10%
-  expiresAt: string;
+  /** 유효기간: 이번 달 말일 기준 n개월 뒤 말일까지 (데모가 언제 열려도 만료되지 않게 상대값으로 둔다) */
+  expiresInMonths: number;
 }
 
 export interface DemoUser {

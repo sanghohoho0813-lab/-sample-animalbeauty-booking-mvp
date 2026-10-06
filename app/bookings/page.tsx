@@ -23,7 +23,7 @@ import {
   REVIEWS,
 } from "@/lib/data";
 import { addReview, setBookingStatus, useDb } from "@/lib/db";
-import { formatDateKo, formatWon } from "@/lib/format";
+import { dDayLabel, formatDateKo, formatWon } from "@/lib/format";
 import { useToast } from "@/lib/toast";
 import type { Booking, BookingStatus, Pet, Review } from "@/lib/types";
 import { useModal } from "@/lib/use-modal";
@@ -70,14 +70,14 @@ export default function BookingsPage() {
 
   const { upcoming, past } = useMemo(() => {
     const sorted = [...bookings].sort((a, b) =>
-      `${a.date}${a.time}` < `${b.date}${b.time}` ? 1 : -1
+      `${a.date}${a.time}` < `${b.date}${b.time}` ? 1 : -1,
     );
     return {
       upcoming: sorted
         .filter((b) => b.status === "confirmed" || b.status === "pending")
         .reverse(),
       past: sorted.filter(
-        (b) => b.status === "completed" || b.status === "cancelled"
+        (b) => b.status === "completed" || b.status === "cancelled",
       ),
     };
   }, [bookings]);
@@ -89,9 +89,6 @@ export default function BookingsPage() {
       <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
         예약 내역
       </h1>
-      <p className="mt-1 text-sm text-ink-muted">
-        예정된 예약과 지난 이용 내역을 확인하세요.
-      </p>
 
       {/* 탭 */}
       <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1">
@@ -118,7 +115,9 @@ export default function BookingsPage() {
 
       <div className="mt-5 space-y-4">
         {!hydrated &&
-          [0, 1].map((i) => <div key={i} className="skeleton h-40 rounded-3xl" />)}
+          [0, 1].map((i) => (
+            <div key={i} className="skeleton h-40 rounded-3xl" />
+          ))}
 
         {hydrated && list.length === 0 && (
           <EmptyState
@@ -194,15 +193,23 @@ function BookingCard({
     booking.status === "completed" || booking.status === "cancelled";
   // 후기는 이용 완료된 예약에서만 쓸 수 있다
   const reviewable = booking.status === "completed" && !booking.reviewed;
+  const dDay = cancellable ? dDayLabel(booking.date) : null;
 
   return (
     <div className="overflow-hidden rounded-3xl border border-cream-200 bg-white shadow-card animate-fade-in-up">
       <div className="p-5">
         <div className="flex items-center justify-between gap-2">
-          <span
-            className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_STYLE[booking.status]}`}
-          >
-            {STATUS_LABEL[booking.status]}
+          <span className="flex items-center gap-1.5">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_STYLE[booking.status]}`}
+            >
+              {STATUS_LABEL[booking.status]}
+            </span>
+            {dDay && (
+              <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-bold text-white">
+                {dDay}
+              </span>
+            )}
           </span>
           {/* 금액을 머리줄로 올려 본문(이름·일시·미용실)이 전체 폭을 쓰게 한다 */}
           <p className="text-base font-extrabold text-ink">
@@ -213,13 +220,27 @@ function BookingCard({
         <div className="mt-4 flex items-start gap-3.5">
           {pet && <PetAvatar pet={pet} size="md" />}
           <div className="min-w-0 flex-1">
-            <p className="text-base font-bold text-ink">
-              {pet?.name ?? "반려동물"} · {service?.name}
-            </p>
-            <p className="mt-1 flex items-start gap-1.5 text-sm text-ink-muted">
-              <CalendarDays className="mt-0.5 h-4 w-4 shrink-0" />
-              {formatDateKo(booking.date)} {booking.time}
-            </p>
+            {/* 다가오는 예약은 '언제'가 가장 중요하므로 일시를 제목으로 올린다 */}
+            {cancellable ? (
+              <>
+                <p className="text-lg font-extrabold leading-snug text-ink">
+                  {formatDateKo(booking.date)} {booking.time}
+                </p>
+                <p className="mt-0.5 text-base font-semibold text-ink-soft">
+                  {pet?.name ?? "반려동물"} · {service?.name}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-base font-bold text-ink">
+                  {pet?.name ?? "반려동물"} · {service?.name}
+                </p>
+                <p className="mt-1 flex items-start gap-1.5 text-sm text-ink-muted">
+                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0" />
+                  {formatDateKo(booking.date)} {booking.time}
+                </p>
+              </>
+            )}
             <p className="mt-0.5 flex items-start gap-1.5 text-sm text-ink-muted">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
               {salon?.name} · {groomer?.name} 미용사
@@ -227,41 +248,42 @@ function BookingCard({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="mt-4 flex w-full items-center justify-center gap-1 rounded-xl bg-cream-100 py-2 text-xs font-bold text-ink-muted transition-colors hover:bg-cream-200"
-        >
-          상세 정보
-          <ChevronDown
-            className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          />
-        </button>
-
         {open && (
-          <dl className="mt-3 space-y-2 rounded-2xl bg-cream-50 p-4 text-sm animate-fade-in">
+          <dl className="mt-4 space-y-2 rounded-2xl bg-cream-50 p-4 text-sm animate-fade-in">
             <DetailRow label="예약번호" value={booking.bookingNo} />
-            <DetailRow label="서비스" value={`${service?.name} (${service?.shortDesc})`} />
+            <DetailRow
+              label="서비스"
+              value={`${service?.name} (${service?.shortDesc})`}
+            />
             <DetailRow
               label="소요 시간"
               value={service ? `약 ${service.durationMin}분` : "-"}
             />
             <DetailRow label="미용실 주소" value={salon?.address ?? "-"} />
-            <DetailRow label="기본 가격" value={service ? formatWon(booking.price) : "-"} />
+            <DetailRow
+              label="기본 가격"
+              value={service ? formatWon(booking.price) : "-"}
+            />
             {booking.discount > 0 && (
               <DetailRow
                 label="할인"
                 value={`- ₩ ${booking.discount.toLocaleString("ko-KR")}`}
               />
             )}
-            <DetailRow label="결제 금액" value={formatWon(booking.total)} bold />
+            <DetailRow
+              label="결제 금액"
+              value={formatWon(booking.total)}
+              bold
+            />
           </dl>
         )}
 
         {booking.status === "completed" && myReview && (
           <div className="mt-3 rounded-2xl border border-cream-200 bg-cream-50 p-4">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-ink-soft">내가 남긴 후기</span>
+              <span className="text-xs font-bold text-ink-soft">
+                내가 남긴 후기
+              </span>
               <StarRow rating={myReview.rating} />
             </div>
             <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-ink-soft">
@@ -271,45 +293,55 @@ function BookingCard({
         )}
       </div>
 
-      {(cancellable || isPast) && (
-        <div className="flex gap-2 border-t border-cream-200 bg-cream-50/60 px-5 py-3.5">
-          {cancellable && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-muted transition-colors hover:border-coral-300 hover:text-coral-600 tap"
-            >
-              예약 취소
-            </button>
-          )}
-          {isPast && (
-            <button
-              type="button"
-              onClick={onRebook}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-soft transition-colors hover:border-mint-300 hover:text-mint-700 tap"
-            >
-              <RotateCcw className="h-4 w-4" />
-              다시 예약
-            </button>
-          )}
-          {reviewable && (
-            <button
-              type="button"
-              onClick={onReview}
-              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-500 py-2.5 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
-            >
-              <PenLine className="h-4 w-4" />
-              후기 작성
-            </button>
-          )}
-          {booking.status === "completed" && booking.reviewed && !myReview && (
-            <span className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-cream-100 py-2.5 text-sm font-bold text-ink-faint">
-              <Star className="h-4 w-4" />
-              후기 작성 완료
-            </span>
-          )}
-        </div>
-      )}
+      <div className="flex gap-2 border-t border-cream-200 bg-cream-50/60 px-5 py-3">
+        {/* 상세 정보는 자주 보지 않으므로 행동 버튼 줄의 작은 토글로 둔다 */}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex min-h-11 shrink-0 items-center justify-center gap-0.5 rounded-xl px-2.5 text-sm font-bold text-ink-muted transition-colors hover:bg-cream-100 hover:text-ink"
+          aria-expanded={open}
+        >
+          상세
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+        {cancellable && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-muted transition-colors hover:border-coral-300 hover:text-coral-600 tap"
+          >
+            예약 취소
+          </button>
+        )}
+        {isPast && (
+          <button
+            type="button"
+            onClick={onRebook}
+            className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-soft transition-colors hover:border-mint-300 hover:text-mint-700 tap"
+          >
+            <RotateCcw className="h-4 w-4" />
+            다시 예약
+          </button>
+        )}
+        {reviewable && (
+          <button
+            type="button"
+            onClick={onReview}
+            className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-500 py-2.5 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+          >
+            <PenLine className="h-4 w-4" />
+            후기 작성
+          </button>
+        )}
+        {booking.status === "completed" && booking.reviewed && !myReview && (
+          <span className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-cream-100 py-2.5 text-sm font-bold text-ink-faint">
+            <Star className="h-4 w-4" />
+            후기 작성 완료
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -326,7 +358,9 @@ function DetailRow({
   return (
     <div className="flex items-start justify-between gap-3">
       <dt className="shrink-0 text-ink-muted">{label}</dt>
-      <dd className={`text-right ${bold ? "font-extrabold text-ink" : "font-semibold text-ink-soft"}`}>
+      <dd
+        className={`text-right ${bold ? "font-extrabold text-ink" : "font-semibold text-ink-soft"}`}
+      >
         {value}
       </dd>
     </div>

@@ -1,45 +1,14 @@
-import {
-  BadgeCheck,
-  CalendarCheck,
-  ChevronRight,
-  Clock,
-  ShieldCheck,
-  Sparkles,
-  Tag,
-  UsersRound,
-} from "lucide-react";
+import { BadgeCheck, CalendarCheck, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import MiraeLogo from "@/components/brand/MiraeLogo";
+import HomeQuickStart from "@/components/home/HomeQuickStart";
 import RecentReviews from "@/components/home/RecentReviews";
 import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import SalonCard from "@/components/ui/SalonCard";
 import { RatingBadge } from "@/components/ui/Stars";
 import { GROOMERS, SALONS, SERVICES } from "@/lib/data";
 import { formatWon } from "@/lib/format";
-
-const TRUST_FEATURES = [
-  {
-    icon: CalendarCheck,
-    title: "간편 예약",
-    desc: "날짜와 시간을 한눈에 선택",
-  },
-  {
-    icon: UsersRound,
-    title: "전문 미용사",
-    desc: "경력과 후기로 믿고 선택",
-  },
-  {
-    icon: Tag,
-    title: "쿠폰 & 멤버십",
-    desc: "다양한 혜택으로 더 합리적으로",
-  },
-  {
-    icon: ShieldCheck,
-    title: "안전한 케어",
-    desc: "위생과 안전을 최우선으로",
-  },
-];
 
 export default function HomePage() {
   const popularSalons = [...SALONS]
@@ -55,13 +24,9 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-mint-100 via-cream-50 to-cream-100">
         <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-mint-200/50 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 left-1/4 h-56 w-56 rounded-full bg-coral-100/60 blur-3xl" />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pb-12 pt-8 md:flex-row md:justify-between md:gap-8 md:px-6 md:pb-20 md:pt-16">
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pb-8 pt-7 md:flex-row md:justify-between md:gap-8 md:px-6 md:pb-20 md:pt-16">
           <div className="w-full max-w-xl text-center md:text-left">
             <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-xs font-bold text-mint-700 shadow-card">
-                <Sparkles className="h-4 w-4" />
-                반려동물 미용 예약 서비스
-              </span>
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-card">
                 <MiraeLogo className="h-6 w-auto md:h-7" />
                 <span className="border-l border-cream-300 pl-2 text-xs font-bold text-ink-soft">
@@ -77,7 +42,7 @@ export default function HomePage() {
             <p className="mt-3 text-base leading-relaxed text-ink-muted md:mt-4 md:text-lg">
               전문 미용사와 함께 건강하고 예쁜 스타일을 완성해요.
             </p>
-            <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row md:mt-8 md:justify-start">
+            <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:gap-3 md:mt-8 md:justify-start">
               <Link
                 href="/booking"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-mint-500 px-8 py-4 text-base font-bold text-white shadow-cta transition-all hover:bg-mint-600 sm:w-auto tap"
@@ -87,13 +52,13 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/salons"
-                className="inline-flex w-full items-center justify-center gap-1 rounded-2xl border border-mint-200 bg-white/80 px-8 py-4 text-base font-bold text-mint-700 transition-colors hover:bg-white sm:w-auto tap"
+                className="inline-flex items-center justify-center gap-1 rounded-2xl px-4 py-2.5 text-base font-bold text-mint-700 transition-colors hover:bg-white/60 sm:border sm:border-mint-200 sm:bg-white/80 sm:px-8 sm:py-4 sm:hover:bg-white tap"
               >
-                서비스 둘러보기
+                미용실 둘러보기
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="mt-7 flex items-center justify-center gap-5 text-sm text-ink-muted md:justify-start">
+            <div className="mt-4 flex items-center justify-center gap-5 text-sm text-ink-muted sm:mt-7 md:justify-start">
               <span className="flex items-center gap-1.5">
                 <BadgeCheck className="h-4 w-4 text-mint-500" />
                 누적 예약 1.2만+
@@ -105,7 +70,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative h-56 w-56 shrink-0 md:h-[22rem] md:w-[22rem]">
+          <div className="relative hidden h-56 w-56 shrink-0 sm:block md:h-[22rem] md:w-[22rem]">
             <div className="absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br from-white/90 to-mint-100 shadow-card-hover">
               <Image
                 src="/images/pets/pet-01-kongi-v2.png"
@@ -116,9 +81,9 @@ export default function HomePage() {
                 className="object-cover"
               />
             </div>
-            <span className="absolute -left-1 top-4 rotate-[-12deg] text-3xl md:text-4xl">🧼</span>
-            <span className="absolute -right-2 top-12 text-2xl md:text-3xl">🩷</span>
-            <span className="absolute -bottom-2 right-2 rounded-full bg-white px-3.5 py-2 text-xs font-bold text-mint-700 shadow-card-hover md:text-sm">
+            <span className="absolute -left-1 top-4 hidden rotate-[-12deg] text-3xl sm:block md:text-4xl">🧼</span>
+            <span className="absolute -right-2 top-12 hidden text-2xl sm:block md:text-3xl">🩷</span>
+            <span className="absolute -bottom-2 right-2 hidden rounded-full bg-white px-3.5 py-2 text-xs font-bold text-mint-700 shadow-card-hover sm:block md:text-sm">
               오늘도 뽀송하게 🫧
             </span>
           </div>
@@ -126,8 +91,13 @@ export default function HomePage() {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 md:px-6">
+        {/* 내 예약·반려동물 바로가기 */}
+        <section className="mt-6 md:mt-10" aria-label="빠른 예약">
+          <HomeQuickStart />
+        </section>
+
         {/* 서비스 카테고리 */}
-        <section className="mt-10 md:mt-16">
+        <section className="mt-10 md:mt-14">
           <SectionHeader
             title="어떤 관리가 필요하세요?"
             moreHref="/booking"
@@ -153,21 +123,23 @@ export default function HomePage() {
         </section>
 
         {/* 인기 미용실 */}
-        <section className="mt-12 md:mt-16">
+        <section className="mt-10 md:mt-14">
           <SectionHeader
             title="지금 인기 있는 미용실"
             moreHref="/salons"
             moreLabel="전체 보기"
           />
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 lg:grid-cols-3">
             {popularSalons.map((salon) => (
-              <SalonCard key={salon.id} salon={salon} />
+              <div key={salon.id} className="w-[78%] shrink-0 snap-start sm:w-auto">
+                <SalonCard salon={salon} />
+              </div>
             ))}
           </div>
         </section>
 
         {/* 추천 미용사 */}
-        <section className="mt-12 md:mt-16">
+        <section className="mt-10 md:mt-14">
           <SectionHeader
             title="오늘 예약 가능한 추천 미용사"
             moreHref="/booking"
@@ -218,45 +190,9 @@ export default function HomePage() {
         </section>
 
         {/* 최근 후기 */}
-        <section className="mt-12 md:mt-16">
+        <section className="mt-10 md:mt-14">
           <SectionHeader title="보호자들의 생생한 후기" />
           <RecentReviews />
-        </section>
-
-        {/* 신뢰 요소 */}
-        <section className="mt-12 md:mt-16">
-          <div className="grid grid-cols-2 gap-3 rounded-3xl bg-mint-50 p-5 md:grid-cols-4 md:gap-6 md:p-8">
-            {TRUST_FEATURES.map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex flex-col items-center p-2 text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-mint-600 shadow-card">
-                  <Icon className="h-6 w-6" strokeWidth={2} />
-                </span>
-                <p className="mt-3 text-sm font-bold text-ink">{title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-ink-muted">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 하단 CTA */}
-        <section className="mt-12 md:mt-16">
-          <div className="relative overflow-hidden rounded-3xl bg-mint-600 px-6 py-10 text-center md:py-14">
-            <span className="pointer-events-none absolute -left-6 -top-6 text-7xl opacity-20">🐾</span>
-            <span className="pointer-events-none absolute -bottom-4 -right-4 text-7xl opacity-20">🐾</span>
-            <h2 className="text-xl font-extrabold text-white md:text-2xl">
-              우리 아이에게 딱 맞는 미용을 찾아보세요
-            </h2>
-            <p className="mt-2 text-sm text-mint-100 md:text-base">
-              지금 예약하면 10% 할인 쿠폰이 자동 적용돼요.
-            </p>
-            <Link
-              href="/booking"
-              className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-bold text-mint-700 shadow-card-hover transition-transform hover:scale-[1.02] tap"
-            >
-              <Clock className="h-5 w-5" />
-              1분 만에 예약하기
-            </Link>
-          </div>
         </section>
       </div>
     </div>
