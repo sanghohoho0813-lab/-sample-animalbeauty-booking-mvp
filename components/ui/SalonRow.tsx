@@ -11,10 +11,14 @@ import type { Salon } from "@/lib/types";
 export default function SalonRow({
   salon,
   reviewCount,
+  price,
 }: {
   salon: Salon;
   reviewCount: number;
+  /** 표시할 가격 — 기본은 그 미용실의 기본 미용 가격 */
+  price?: { label: string; amount: number };
 }) {
+  const shown = price ?? { label: "기본 미용", amount: salon.priceFrom };
   return (
     <div className="flex min-w-0 items-center gap-3.5">
       <div
@@ -44,8 +48,8 @@ export default function SalonRow({
           {salon.tags.slice(0, 2).join(" · ")}
         </p>
         <p className="mt-1 text-sm text-ink-muted">
-          <span className="font-extrabold text-ink">{formatWon(salon.priceFrom)}</span>
-          <span className="ml-1">부터</span>
+          <span className="mr-1">{shown.label}</span>
+          <span className="font-extrabold text-ink">{formatWon(shown.amount)}</span>
         </p>
       </div>
     </div>

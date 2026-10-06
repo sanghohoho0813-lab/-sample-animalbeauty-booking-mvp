@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import PhotoViewer from "@/components/ui/PhotoViewer";
 import { useBookingDraft } from "@/lib/booking-context";
+import { isSalonForPet, isServiceForPet } from "@/lib/booking-rules";
+import { getSalonById, getServiceById } from "@/lib/data";
 import { addPet, useDb } from "@/lib/db";
 import { useToast } from "@/lib/toast";
 import type { Pet, Species } from "@/lib/types";
@@ -16,21 +18,39 @@ const CAT_EMOJIS = ["🐱", "🐈", "🐈‍⬛"];
 
 export default function PetsPage() {
   const { pets, hydrated } = useDb();
-  const { setDraft } = useBookingDraft();
+  const { draft, setDraft } = useBookingDraft();
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
+  const [fromBooking, setFromBooking] = useState(false);
   const [viewing, setViewing] = useState<Pet | null>(null);
 
   // 홈·마이·예약 화면의 '추가' 버튼(/pets?add=1)으로 들어오면 등록 창을 바로 연다
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("add") === "1") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("add") === "1") {
       setShowAdd(true);
+      setFromBooking(params.get("from") === "booking");
       router.replace("/pets", { scroll: false });
     }
   }, [router]);
 
+  // 예약 중에 등록했다면 새 아이를 선택한 채로 예약으로 돌아간다
+  const handleAdded = (pet: Pet) => {
+    if (!fromBooking) return;
+    const service = getServiceById(draft.serviceId);
+    const salon = getSalonById(draft.salonId);
+    setDraft({
+      petId: pet.id,
+      ...(service && !isServiceForPet(service, pet) ? { serviceId: null } : {}),
+      ...(salon && !isSalonForPet(salon, pet)
+        ? { salonId: null, groomerId: null, time: null }
+        : {}),
+    });
+    router.push("/booking?step=1");
+  };
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
@@ -47,7 +67,7 @@ export default function PetsPage() {
         </button>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {!hydrated &&
           [0, 1, 2].map((i) => (
             <div key={i} className="skeleton h-[26rem] rounded-3xl" />
@@ -132,14 +152,28 @@ export default function PetsPage() {
           onClose={() => setViewing(null)}
         />
       )}
-      {showAdd && <AddPetDialog onClose={() => setShowAdd(false)} />}
+      {showAdd && (
+        <AddPetDialog
+          onClose={() => {
+            setShowAdd(false);
+            setFromBooking(false);
+          }}
+          onAdded={handleAdded}
+        />
+      )}
     </div>
   );
 }
 
 type PetField = "name" | "breed" | "age" | "weight";
 
-function AddPetDialog({ onClose }: { onClose: () => void }) {
+function AddPetDialog({
+  onClose,
+  onAdded,
+}: {
+  onClose: () => void;
+  onAdded?: (pet: Pet) => void;
+}) {
   useModal(onClose);
   const { toast } = useToast();
   const [species, setSpecies] = useState<Species>("dog");
@@ -187,7 +221,7 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
       formRef.current?.querySelector<HTMLInputElement>(`[name="${first}"]`)?.focus();
       return;
     }
-    addPet({
+    const pet = addPet({
       name: name.trim(),
       species,
       breed: breed.trim(),
@@ -198,14 +232,19 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
     });
     toast(`${name.trim()} 정보가 등록되었어요 🐾`);
     onClose();
+    onAdded?.(pet);
   };
+
+  // 입력하던 중에 바깥을 눌러 창이 닫히며 내용이 사라지지 않게 한다 (닫기 버튼·Esc는 그대로)
+  const dirty = [name, breed, age, weight, note].some((v) => v.trim() !== "");
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm animate-fade-in sm:items-center"
-      onClick={onClose}
+      onClick={() => !dirty && onClose()}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="add-pet-title"
     >
       <form
         ref={formRef}
@@ -223,10 +262,9 @@ function AddPetDialog({ onClose }: { onClose: () => void }) {
           <X className="h-5 w-5" />
         </button>
 
-        <h2 className="text-lg font-extrabold text-ink">새 가족 등록하기</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          우리 아이의 정보를 알려주세요.
-        </p>
+        <h2 id="add-pet-title" className="text-lg font-extrabold text-ink">
+          새 가족 등록하기
+        </h2>
 
         {/* 종 선택 */}
         <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1">

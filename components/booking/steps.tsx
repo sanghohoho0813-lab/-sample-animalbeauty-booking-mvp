@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Calendar from "@/components/booking/Calendar";
 import { PriceSummary } from "@/components/booking/SummaryCard";
 import GroomerAvatar from "@/components/ui/GroomerAvatar";
@@ -19,7 +19,7 @@ import PetAvatar from "@/components/ui/PetAvatar";
 import SalonRow from "@/components/ui/SalonRow";
 import { RatingBadge } from "@/components/ui/Stars";
 import type { BookingDraft } from "@/lib/booking-context";
-import { isServiceForPet } from "@/lib/booking-rules";
+import { isSalonForPet, isServiceForPet, petSlotCheck } from "@/lib/booking-rules";
 import {
   getGroomerById,
   getGroomersBySalon,
@@ -30,7 +30,9 @@ import {
 } from "@/lib/data";
 import { formatDateKo, formatDateShortKo, formatWon, toDateKey } from "@/lib/format";
 import { countReviews, useDb } from "@/lib/db";
+import { priceAt } from "@/lib/pricing";
 import { getSlots, isDayFullyBooked, isSlotBookable } from "@/lib/slots";
+import { useToast } from "@/lib/toast";
 import type { Booking, Pet } from "@/lib/types";
 
 interface StepProps {
@@ -47,6 +49,7 @@ export function PetStep({
   hydrated,
   onChosen,
 }: StepProps & { pets: Pet[]; hydrated: boolean; onChosen?: () => void }) {
+  const { toast } = useToast();
   if (!hydrated) {
     return (
       <div className="grid grid-cols-3 gap-3">
@@ -69,12 +72,20 @@ export function PetStep({
               onClick={() => {
                 // 새로 고른 아이가 받을 수 없는 서비스가 남아 있으면 비운다
                 const service = getServiceById(draft.serviceId);
+                const salon = getSalonById(draft.salonId);
                 setDraft({
                   petId: pet.id,
                   ...(service && !isServiceForPet(service, pet)
                     ? { serviceId: null }
                     : {}),
+                  // 고양이 전문 미용실처럼 받을 수 없는 곳이면 미용실부터 다시 고른다
+                  ...(salon && !isSalonForPet(salon, pet)
+                    ? { salonId: null, groomerId: null, time: null }
+                    : {}),
                 });
+                if (salon && !isSalonForPet(salon, pet)) {
+                  toast(`${salon.name}은(는) ${salon.species === "cat" ? "고양이" : "강아지"} 전용이라 미용실을 다시 골라주세요`, "info");
+                }
                 onChosen?.();
               }}
               className={`relative flex min-w-0 flex-col items-center rounded-3xl border-2 bg-white p-2.5 pb-3.5 text-center shadow-card transition-all duration-200 tap md:p-3 md:pb-4 ${
@@ -101,7 +112,7 @@ export function PetStep({
         })}
       </div>
       <Link
-        href="/pets?add=1"
+        href="/pets?add=1&from=booking"
         className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-cream-300 bg-white/60 p-3.5 text-sm font-bold text-ink-muted transition-colors hover:border-mint-300 hover:text-mint-600 tap"
       >
         <Plus className="h-4 w-4" />새 반려동물 등록하기
@@ -144,6 +155,8 @@ export function ServiceStep({
   onChosen,
 }: StepProps & { pets: Pet[]; onChosen?: () => void }) {
   const pet = pets.find((p) => p.id === draft.petId);
+  // 미용실을 먼저 골라 들어왔다면 그 미용실 가격으로 보여준다
+  const salon = getSalonById(draft.salonId);
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -197,7 +210,7 @@ export function ServiceStep({
               {/* 설명 길이가 달라도 같은 줄의 카드끼리 가격 줄 높이를 맞춘다 */}
               <div className="mt-auto hidden items-center justify-between pt-4 sm:flex">
                 <span className="text-lg font-extrabold text-ink">
-                  {formatWon(service.price)}
+                  {formatWon(priceAt(service, salon))}
                 </span>
                 <span className="flex items-center gap-1 text-xs font-semibold text-ink-faint">
                   <Clock className="h-3.5 w-3.5" />약 {service.durationMin}분
@@ -206,7 +219,7 @@ export function ServiceStep({
             </div>
             <span className="flex shrink-0 flex-col items-end sm:hidden">
               <span className="text-base font-extrabold text-ink">
-                {formatWon(service.price)}
+                {formatWon(priceAt(service, salon))}
               </span>
               <span className="text-sm text-ink-faint">약 {service.durationMin}분</span>
             </span>
@@ -220,7 +233,9 @@ export function ServiceStep({
       })}
       <p className="flex items-start gap-1.5 text-xs text-ink-faint sm:col-span-2">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        견종, 털 길이, 체형 등에 따라 추가 요금이 발생할 수 있어요.
+        {salon
+          ? `${salon.name} 기준 가격이에요.`
+          : "미용실마다 가격이 조금씩 달라요. 다음 단계에서 미용실별 가격을 볼 수 있어요."}
       </p>
     </div>
   );
@@ -233,17 +248,31 @@ export function SalonStep({
   setDraft,
   onChosen,
 }: StepProps & { onChosen?: () => void }) {
-  const { reviews } = useDb();
+  const { reviews, pets } = useDb();
+  const pet = pets.find((p) => p.id === draft.petId);
+  const service = getServiceById(draft.serviceId);
+  // 받을 수 없는 미용실(고양이 전문 등)은 맨 뒤로
+  const salons = [...SALONS].sort(
+    (a, b) =>
+      Number(Boolean(pet && !isSalonForPet(a, pet))) -
+      Number(Boolean(pet && !isSalonForPet(b, pet)))
+  );
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {SALONS.map((salon) => {
+      {salons.map((salon) => {
         const selected = draft.salonId === salon.id;
+        const unavailable = Boolean(pet && !isSalonForPet(salon, pet));
         const reviewCount =
           salon.reviewCount + countReviews(reviews, "salonId", salon.id);
+        // 고른 서비스의 이 미용실 가격 — 미용실끼리 바로 비교할 수 있게
+        const price = service
+          ? { label: service.name, amount: priceAt(service, salon) }
+          : { label: "기본 미용", amount: salon.priceFrom };
         return (
           <button
             key={salon.id}
             type="button"
+            disabled={unavailable}
             onClick={() => {
               setDraft({
                 salonId: salon.id,
@@ -254,19 +283,21 @@ export function SalonStep({
               });
               onChosen?.();
             }}
-            className={`relative flex flex-col overflow-hidden rounded-3xl border-2 bg-white text-left shadow-card transition-all duration-200 tap ${
-              selected
-                ? "border-mint-500 max-sm:bg-mint-50/60"
-                : "border-transparent hover:border-mint-200"
+            className={`relative flex flex-col overflow-hidden rounded-3xl border-2 bg-white text-left shadow-card transition-all duration-200 ${
+              unavailable
+                ? "cursor-not-allowed border-transparent opacity-50"
+                : selected
+                  ? "border-mint-500 max-sm:bg-mint-50/60 tap"
+                  : "border-transparent hover:border-mint-200 tap"
             }`}
             aria-pressed={selected}
           >
             {/* 모바일: 한 줄 요약 */}
             <div className="flex items-center gap-2 p-3 sm:hidden">
               <div className="min-w-0 flex-1">
-                <SalonRow salon={salon} reviewCount={reviewCount} />
+                <SalonRow salon={salon} reviewCount={reviewCount} price={price} />
               </div>
-              <SelectCircle selected={selected} />
+              {unavailable ? <SpeciesOnly species={salon.species} /> : <SelectCircle selected={selected} />}
             </div>
 
             {/* 태블릿 이상: 사진 카드 */}
@@ -280,10 +311,16 @@ export function SalonStep({
                 sizes="(min-width: 640px) 24rem, 92vw"
                 className="object-cover"
               />
-              {salon.availableToday && (
-                <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-xs font-bold text-white">
-                  오늘 예약 가능
+              {unavailable ? (
+                <span className="absolute left-3 top-3">
+                  <SpeciesOnly species={salon.species} />
                 </span>
+              ) : (
+                salon.availableToday && (
+                  <span className="absolute left-3 top-3 rounded-full bg-mint-600/90 px-2.5 py-1 text-xs font-bold text-white">
+                    오늘 예약 가능
+                  </span>
+                )
               )}
               {selected && (
                 <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-mint-500 text-white shadow-cta">
@@ -311,16 +348,24 @@ export function SalonStep({
                 ))}
               </div>
               <p className="mt-auto pt-2.5 text-sm text-ink-muted">
+                <span className="mr-1">{price.label}</span>
                 <span className="font-extrabold text-ink">
-                  {formatWon(salon.priceFrom)}
+                  {formatWon(price.amount)}
                 </span>
-                <span className="ml-1">부터</span>
               </p>
             </div>
           </button>
         );
       })}
     </div>
+  );
+}
+
+function SpeciesOnly({ species }: { species?: Pet["species"] }) {
+  return (
+    <span className="shrink-0 rounded-full bg-cream-200 px-2.5 py-1 text-xs font-bold text-ink-muted">
+      {species === "cat" ? "고양이 전용" : "강아지 전용"}
+    </span>
   );
 }
 
@@ -410,6 +455,10 @@ export function DateTimeStep({
   // new Date()는 hydration 불일치를 피하기 위해 마운트 후에만 사용한다
   const [now, setNow] = useState<Date | null>(null);
   const timesRef = useRef<HTMLDivElement>(null);
+  const { pets } = useDb();
+  const petName = pets.find((p) => p.id === draft.petId)?.name ?? "이 아이";
+  const { petId, serviceId } = draft;
+  const pet = useMemo(() => petSlotCheck({ petId, serviceId }), [petId, serviceId]);
   useEffect(() => {
     setNow(new Date());
   }, []);
@@ -425,11 +474,11 @@ export function DateTimeStep({
     if (
       draft.time &&
       draft.groomerId &&
-      !isSlotBookable(draft.date, draft.time, draft.groomerId, bookings, now)
+      !isSlotBookable(draft.date, draft.time, draft.groomerId, bookings, now, pet)
     ) {
       setDraft({ time: null });
     }
-  }, [now, draft.date, draft.time, draft.groomerId, bookings, setDraft]);
+  }, [now, draft.date, draft.time, draft.groomerId, bookings, setDraft, pet]);
 
   if (!now) {
     return (
@@ -442,8 +491,9 @@ export function DateTimeStep({
 
   const slots =
     draft.date && draft.groomerId
-      ? getSlots(draft.date, draft.groomerId, bookings, now)
+      ? getSlots(draft.date, draft.groomerId, bookings, now, pet)
       : [];
+  const hasPetConflict = slots.some((s) => s.petBusy);
   const openCount = slots.filter((s) => s.available).length;
   const morning = slots.filter((s) => Number(s.time.slice(0, 2)) < 12);
   const afternoon = slots.filter((s) => Number(s.time.slice(0, 2)) >= 12);
@@ -467,7 +517,7 @@ export function DateTimeStep({
           today={now}
           isFullyBooked={(dateKey) =>
             Boolean(draft.groomerId) &&
-            isDayFullyBooked(dateKey, draft.groomerId as string, bookings, now)
+            isDayFullyBooked(dateKey, draft.groomerId as string, bookings, now, pet)
           }
         />
       </div>
@@ -492,7 +542,9 @@ export function DateTimeStep({
             </div>
             {openCount === 0 ? (
               <p className="mt-4 rounded-2xl bg-cream-100 p-4 text-center text-sm text-ink-muted">
-                이 날은 예약이 모두 마감됐어요. 다른 날짜를 골라주세요.
+                {hasPetConflict
+                  ? `이 날은 ${petName}의 다른 예약과 시간이 겹쳐요. 다른 날짜를 골라주세요.`
+                  : "이 날은 예약이 모두 마감됐어요. 다른 날짜를 골라주세요."}
               </p>
             ) : (
               <>
@@ -508,6 +560,12 @@ export function DateTimeStep({
                   selected={draft.time}
                   onSelect={(time) => setDraft({ time })}
                 />
+                {hasPetConflict && (
+                  <p className="mt-4 flex items-start gap-1.5 text-sm text-ink-muted">
+                    <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                    {petName}의 다른 예약과 겹치는 시간은 고를 수 없어요.
+                  </p>
+                )}
               </>
             )}
           </>

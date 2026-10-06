@@ -161,7 +161,7 @@ export default function BookingCompletePage({
           </div>
         </div>
 
-        {/* 액션 — 주 1개 + 보조 1개 + 텍스트 링크 */}
+        {/* 액션 — 방금 예약했다면 '내역 보기 / 홈', 지난 예약이라면 '다시 예약'까지 */}
         <div className="mt-6 space-y-3">
           <Link
             href="/bookings"
@@ -170,25 +170,36 @@ export default function BookingCompletePage({
             <ReceiptText className="h-5 w-5" />
             예약 내역 보기
           </Link>
-          <button
-            type="button"
-            onClick={rebook}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cream-300 bg-white px-6 py-4 text-base font-bold text-ink-soft transition-colors hover:bg-cream-100 tap"
-          >
-            <RotateCcw className="h-5 w-5" />
-            같은 조건으로 다시 예약
-          </button>
-          <Link
-            href="/"
-            className="flex min-h-11 w-full items-center justify-center text-sm font-semibold text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
-          >
-            홈으로 이동
-          </Link>
+          {isActive ? (
+            <Link
+              href="/"
+              className="flex w-full items-center justify-center rounded-2xl border border-cream-300 bg-white px-6 py-4 text-base font-bold text-ink-soft transition-colors hover:bg-cream-100 tap"
+            >
+              홈으로
+            </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={rebook}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cream-300 bg-white px-6 py-4 text-base font-bold text-ink-soft transition-colors hover:bg-cream-100 tap"
+              >
+                <RotateCcw className="h-5 w-5" />
+                같은 조건으로 다시 예약
+              </button>
+              <Link
+                href="/"
+                className="flex min-h-11 w-full items-center justify-center text-sm font-semibold text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+              >
+                홈으로
+              </Link>
+            </>
+          )}
         </div>
 
         {isActive && (
-          <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-ink-faint">
-            <CalendarDays className="h-3.5 w-3.5" />
+          <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-sm text-ink-muted">
+            <CalendarDays className="h-4 w-4" />
             방문 하루 전에 알림으로 다시 알려드릴게요.
           </p>
         )}

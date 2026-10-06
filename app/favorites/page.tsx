@@ -14,15 +14,11 @@ export default function FavoritesPage() {
       <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
         찜한 미용실
       </h1>
-      <p className="mt-1 text-sm text-ink-muted">
-        마음에 든 미용실을 모아두고 빠르게 예약하세요.
-      </p>
-
-      <div className="mt-6">
+      <div className="mt-5">
         {!hydrated ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {[0, 1].map((i) => (
-              <div key={i} className="skeleton h-72 rounded-3xl" />
+              <div key={i} className="skeleton h-28 rounded-3xl sm:h-72" />
             ))}
           </div>
         ) : liked.length === 0 ? (
@@ -34,9 +30,9 @@ export default function FavoritesPage() {
             actionLabel="미용실 둘러보기"
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {liked.map((salon) => (
-              <SalonCard key={salon.id} salon={salon} />
+              <SalonCard key={salon.id} salon={salon} compactOnMobile />
             ))}
           </div>
         )}

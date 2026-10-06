@@ -5,11 +5,12 @@ import PetAvatar from "@/components/ui/PetAvatar";
 import type { BookingDraft } from "@/lib/booking-context";
 import { getGroomerById, getSalonById, getServiceById } from "@/lib/data";
 import { formatDateKo, formatWon } from "@/lib/format";
+import { priceAt } from "@/lib/pricing";
 import type { Pet } from "@/lib/types";
 
 export function computePrice(draft: BookingDraft) {
   const service = getServiceById(draft.serviceId);
-  const price = service?.price ?? 0;
+  const price = service ? priceAt(service, getSalonById(draft.salonId)) : 0;
   const discount = draft.useCoupon ? Math.floor(price * 0.1) : 0;
   return { price, discount, total: price - discount };
 }

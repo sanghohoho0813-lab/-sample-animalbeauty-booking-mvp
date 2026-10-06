@@ -1,6 +1,7 @@
 import type { BookingDraft } from "./booking-context";
 import { getGroomerById, getSalonById, getServiceById } from "./data";
-import type { Booking, Pet, Service } from "./types";
+import type { PetSlotCheck } from "./slots";
+import type { Booking, Pet, Salon, Service } from "./types";
 
 /**
  * 예약 단계 간 선택값 규칙.
@@ -16,13 +17,31 @@ export function isServiceForPet(
   return !service.species || service.species === pet.species;
 }
 
+/** 고양이 전문처럼 특정 종만 받는 미용실인지 */
+export function isSalonForPet(
+  salon: Pick<Salon, "species">,
+  pet: Pick<Pet, "species">
+): boolean {
+  return !salon.species || salon.species === pet.species;
+}
+
+/** 시간 선택 시 같은 아이의 다른 예약과 겹치는지 확인할 정보 */
+export function petSlotCheck(
+  draft: Pick<BookingDraft, "petId" | "serviceId">
+): PetSlotCheck | undefined {
+  const service = getServiceById(draft.serviceId);
+  if (!draft.petId || !service) return undefined;
+  return { petId: draft.petId, durationMin: service.durationMin };
+}
+
 /** 현재 선택값으로 진입 가능한 가장 먼 단계 (0: 반려동물 ~ 5: 예약 확인) */
 export function getMaxStep(draft: BookingDraft, pets: Pet[]): number {
   const pet = pets.find((p) => p.id === draft.petId);
   if (!pet) return 0;
   const service = getServiceById(draft.serviceId);
   if (!service || !isServiceForPet(service, pet)) return 1;
-  if (!getSalonById(draft.salonId)) return 2;
+  const salon = getSalonById(draft.salonId);
+  if (!salon || !isSalonForPet(salon, pet)) return 2;
   const groomer = getGroomerById(draft.groomerId);
   if (!groomer || groomer.salonId !== draft.salonId) return 3;
   if (!draft.date || !draft.time) return 4;

@@ -29,8 +29,9 @@ create table if not exists salons (
   rating numeric(2, 1) default 0,
   review_count int default 0,
   distance_km numeric(4, 1),
-  price_from int not null,
+  price_from int not null, -- 이 미용실의 기본 미용 가격 (다른 서비스는 같은 비율로 계산)
   available_today boolean default true,
+  species text check (species in ('dog', 'cat')), -- null이면 강아지·고양이 모두
   tags text[] default '{}',
   address text,
   open_hours text,

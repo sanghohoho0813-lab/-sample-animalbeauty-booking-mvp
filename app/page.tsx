@@ -24,9 +24,9 @@ export default function HomePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-mint-100 via-cream-50 to-cream-100">
         <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-mint-200/50 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 left-1/4 h-56 w-56 rounded-full bg-coral-100/60 blur-3xl" />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pb-8 pt-7 md:flex-row md:justify-between md:gap-8 md:px-6 md:pb-20 md:pt-16">
-          <div className="w-full max-w-xl text-center md:text-left">
-            <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pb-8 pt-7 md:px-6 md:pb-14 md:pt-12 lg:flex-row lg:justify-between lg:gap-8 lg:pb-20 lg:pt-16">
+          <div className="w-full max-w-xl text-center lg:text-left">
+            <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-card">
                 <MiraeLogo className="h-6 w-auto md:h-7" />
                 <span className="border-l border-cream-300 pl-2 text-xs font-bold text-ink-soft">
@@ -34,31 +34,31 @@ export default function HomePage() {
                 </span>
               </span>
             </div>
-            <h1 className="mt-4 text-3xl font-extrabold leading-snug tracking-tight text-ink md:text-[3.506rem] md:leading-[1.25]">
+            <h1 className="mt-4 text-3xl font-extrabold leading-snug tracking-tight text-ink md:text-[2.8rem] md:leading-[1.25] lg:text-[3.506rem]">
               우리 아이의
               <br />
               특별한 하루를 위한 미용
             </h1>
-            <p className="mt-3 text-base leading-relaxed text-ink-muted md:mt-4 md:text-lg">
+            <p className="mt-3 text-balance text-base leading-relaxed text-ink-muted md:mt-4 md:text-lg">
               전문 미용사와 함께 건강하고 예쁜 스타일을 완성해요.
             </p>
-            <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:gap-3 md:mt-8 md:justify-start">
+            <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-3 md:mt-8 lg:justify-start">
               <Link
                 href="/booking"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-mint-500 px-8 py-4 text-base font-bold text-white shadow-cta transition-all hover:bg-mint-600 sm:w-auto tap"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-mint-500 px-8 py-4 text-base font-bold whitespace-nowrap text-white shadow-cta transition-all hover:bg-mint-600 sm:w-auto tap"
               >
                 <CalendarCheck className="h-5 w-5" />
                 예약하기
               </Link>
               <Link
                 href="/salons"
-                className="inline-flex items-center justify-center gap-1 rounded-2xl px-4 py-2.5 text-base font-bold text-mint-700 transition-colors hover:bg-white/60 sm:border sm:border-mint-200 sm:bg-white/80 sm:px-8 sm:py-4 sm:hover:bg-white tap"
+                className="inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-2xl px-4 py-2.5 text-base font-bold text-mint-700 transition-colors hover:bg-white/60 sm:border sm:border-mint-200 sm:bg-white/80 sm:px-8 sm:py-4 sm:hover:bg-white tap"
               >
                 미용실 둘러보기
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="mt-4 flex items-center justify-center gap-5 text-sm text-ink-muted sm:mt-7 md:justify-start">
+            <div className="mt-4 flex items-center justify-center gap-5 text-sm text-ink-muted sm:mt-7 lg:justify-start">
               <span className="flex items-center gap-1.5">
                 <BadgeCheck className="h-4 w-4 text-mint-500" />
                 누적 예약 1.2만+
@@ -70,20 +70,19 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative hidden h-56 w-56 shrink-0 sm:block md:h-[22rem] md:w-[22rem]">
+          <div className="relative hidden h-[22rem] w-[22rem] shrink-0 lg:block">
             <div className="absolute inset-0 overflow-hidden rounded-full bg-gradient-to-br from-white/90 to-mint-100 shadow-card-hover">
               <Image
                 src="/images/pets/pet-01-kongi-v2.png"
                 alt="미용을 마친 푸들"
                 fill
-                priority
-                sizes="(min-width: 768px) 22rem, 14rem"
+                sizes="22rem"
                 className="object-cover"
               />
             </div>
-            <span className="absolute -left-1 top-4 hidden rotate-[-12deg] text-3xl sm:block md:text-4xl">🧼</span>
-            <span className="absolute -right-2 top-12 hidden text-2xl sm:block md:text-3xl">🩷</span>
-            <span className="absolute -bottom-2 right-2 hidden rounded-full bg-white px-3.5 py-2 text-xs font-bold text-mint-700 shadow-card-hover sm:block md:text-sm">
+            <span className="absolute -left-1 top-4 rotate-[-12deg] text-4xl">🧼</span>
+            <span className="absolute -right-2 top-12 text-3xl">🩷</span>
+            <span className="absolute -bottom-2 right-2 rounded-full bg-white px-3.5 py-2 text-sm font-bold text-mint-700 shadow-card-hover">
               오늘도 뽀송하게 🫧
             </span>
           </div>
@@ -140,11 +139,7 @@ export default function HomePage() {
 
         {/* 추천 미용사 */}
         <section className="mt-10 md:mt-14">
-          <SectionHeader
-            title="오늘 예약 가능한 추천 미용사"
-            moreHref="/booking"
-            moreLabel="예약하기"
-          />
+          <SectionHeader title="추천 미용사" />
           <div className="-mx-4 mt-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
             {topGroomers.map((groomer) => (
               <Link
@@ -163,8 +158,9 @@ export default function HomePage() {
                         </span>
                       )}
                     </p>
-                    <p className="text-xs text-ink-muted">
-                      경력 {groomer.careerYears}년
+                    <p className="truncate text-sm text-ink-muted">
+                      {SALONS.find((s) => s.id === groomer.salonId)?.name} · 경력{" "}
+                      {groomer.careerYears}년
                     </p>
                   </div>
                 </div>

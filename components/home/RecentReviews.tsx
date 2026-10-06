@@ -26,7 +26,9 @@ export default function RecentReviews({ limit = 3 }: { limit?: number }) {
           >
             <div className="flex items-center justify-between">
               <StarRow rating={review.rating} />
-              <span className="text-xs text-ink-faint">{review.date}</span>
+              <span className="text-xs text-ink-faint">
+                {Number(review.date.slice(5, 7))}월 {Number(review.date.slice(8, 10))}일
+              </span>
             </div>
             <p className="mt-3 line-clamp-4 break-words text-sm leading-relaxed text-ink-soft">
               {review.content}

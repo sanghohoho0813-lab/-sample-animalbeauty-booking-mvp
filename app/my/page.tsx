@@ -11,16 +11,22 @@ import {
   Ticket,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PetAvatar from "@/components/ui/PetAvatar";
 import { COUPONS, DEMO_USER } from "@/lib/data";
 import { useDb } from "@/lib/db";
 import { useToast } from "@/lib/toast";
 import type { Coupon } from "@/lib/types";
 
+const SETTINGS_KEY = "pawbeauty-settings-v1";
+
 /** 쿠폰 만료일 표시 — '10월 31일까지' */
 function couponDeadline(coupon: Coupon, now: Date): string {
-  const end = new Date(now.getFullYear(), now.getMonth() + coupon.expiresInMonths + 1, 0);
+  const end = new Date(
+    now.getFullYear(),
+    now.getMonth() + coupon.expiresInMonths + 1,
+    0,
+  );
   return `${end.getMonth() + 1}월 ${end.getDate()}일까지`;
 }
 
@@ -30,142 +36,188 @@ export default function MyPage() {
   const [notifyBooking, setNotifyBooking] = useState(true);
   const [notifyEvent, setNotifyEvent] = useState(false);
 
+  // 알림 설정은 새로고침해도 유지한다
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? "null");
+      if (saved) {
+        setNotifyBooking(Boolean(saved.booking));
+        setNotifyEvent(Boolean(saved.event));
+      }
+    } catch {
+      /* 저장소를 못 쓰면 기본값 */
+    }
+  }, []);
+  const saveSettings = (next: { booking: boolean; event: boolean }) => {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+    } catch {
+      /* 무시 */
+    }
+  };
+
   const upcomingCount = bookings.filter(
-    (b) => b.status === "confirmed" || b.status === "pending"
+    (b) => b.status === "confirmed" || b.status === "pending",
   ).length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
       <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
         마이페이지
       </h1>
 
-      {/* 프로필 */}
-      <div className="mt-5 overflow-hidden rounded-3xl border border-cream-200 bg-white shadow-card">
-        <div className="flex items-center gap-4 p-5">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-mint-100 to-mint-200 text-3xl">
-            {DEMO_USER.emoji}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-mirae-teal">{DEMO_USER.org}</p>
-            <p className="mt-0.5 flex items-center gap-2 text-lg font-extrabold leading-tight text-ink">
-              {DEMO_USER.name}님
-              <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
-                <Crown className="h-3.5 w-3.5" />
-                멤버
-              </span>
-            </p>
-            <p className="mt-0.5 truncate text-sm text-ink-muted">{DEMO_USER.email}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 요약 통계 */}
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <StatCard
-          href="/pets"
-          icon={<Dog className="h-5 w-5" />}
-          label="내 반려동물"
-          value={hydrated ? `${pets.length}` : "-"}
-        />
-        <StatCard
-          href="/bookings"
-          icon={<CalendarDays className="h-5 w-5" />}
-          label="예정된 예약"
-          value={hydrated ? `${upcomingCount}` : "-"}
-        />
-        <StatCard
-          href="/favorites"
-          icon={<Heart className="h-5 w-5" />}
-          label="찜한 미용실"
-          value={hydrated ? `${favorites.length}` : "-"}
-        />
-      </div>
-
-      {/* 내 반려동물 미리보기 */}
-      <SectionCard title="내 반려동물" moreHref="/pets">
-        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-          {!hydrated && <div className="skeleton h-[8.5rem] w-40 shrink-0 rounded-2xl" />}
-          {(hydrated ? pets : []).map((pet) => (
-            <Link
-              key={pet.id}
-              href={`/booking?pet=${pet.id}&step=1`}
-              className="flex w-40 shrink-0 flex-col items-center rounded-2xl bg-cream-50 p-4 text-center transition-colors hover:bg-mint-50 tap"
-              aria-label={`${pet.name} 미용 예약하기`}
-            >
-              <PetAvatar pet={pet} size="md" />
-              <p className="mt-2 w-full truncate text-sm font-bold text-ink">{pet.name}</p>
-              <p className="w-full truncate text-xs text-ink-muted">
-                {pet.breed} · {pet.age}살
-              </p>
-              <p className="mt-2 text-xs font-bold text-mint-600">예약하기</p>
-            </Link>
-          ))}
-          {hydrated && (
-            <Link
-              href="/pets?add=1"
-              className="flex w-40 shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cream-300 p-4 text-sm font-bold text-ink-muted transition-colors hover:border-mint-300 hover:text-mint-700 tap"
-            >
-              <Plus className="h-6 w-6" />
-              새로 등록
-            </Link>
-          )}
-        </div>
-      </SectionCard>
-
-      {/* 보유 쿠폰 */}
-      <SectionCard title={`보유 쿠폰 ${COUPONS.length}장`}>
-        <div className="space-y-3">
-          {COUPONS.map((coupon) => (
-            <div
-              key={coupon.id}
-              className="flex items-center gap-3.5 rounded-2xl border border-dashed border-coral-200 bg-coral-50/60 p-4"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-coral-500 shadow-card">
-                <Ticket className="h-5 w-5" />
+      {/* 넓은 화면: 왼쪽 내 정보 · 오른쪽 쿠폰/설정 */}
+      <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-2 lg:gap-6">
+        <div className="space-y-4">
+          {/* 프로필 */}
+          <div className="overflow-hidden rounded-3xl border border-cream-200 bg-white shadow-card">
+            <div className="flex items-center gap-4 p-5">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-mint-100 to-mint-200 text-3xl">
+                {DEMO_USER.emoji}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-base font-extrabold text-coral-600">
-                  {coupon.name}
+                <p className="text-sm font-bold text-mirae-teal">
+                  {DEMO_USER.org}
                 </p>
-                <p className="mt-0.5 text-sm text-ink-muted">{coupon.desc}</p>
-                {hydrated && (
-                  <p className="mt-0.5 text-sm font-semibold text-ink-soft">
-                    {couponDeadline(coupon, new Date())}
-                  </p>
-                )}
+                <p className="mt-0.5 flex items-center gap-2 text-lg font-extrabold leading-tight text-ink">
+                  {DEMO_USER.name}님
+                  <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
+                    <Crown className="h-3.5 w-3.5" />
+                    멤버
+                  </span>
+                </p>
+                <p className="mt-0.5 truncate text-sm text-ink-muted">
+                  {DEMO_USER.email}
+                </p>
               </div>
             </div>
-          ))}
-        </div>
-      </SectionCard>
+          </div>
 
-      {/* 알림 설정 */}
-      <SectionCard title="알림 설정">
-        <div className="space-y-1">
-          <ToggleRow
-            icon={<Bell className="h-4 w-4" />}
-            label="예약 알림"
-            desc="예약 확정·방문 전날 알림을 받아요"
-            checked={notifyBooking}
-            onChange={(v) => {
-              setNotifyBooking(v);
-              toast(v ? "예약 알림을 켰어요" : "예약 알림을 껐어요", "info");
-            }}
-          />
-          <ToggleRow
-            icon={<Ticket className="h-4 w-4" />}
-            label="혜택 알림"
-            desc="쿠폰·이벤트 소식을 받아요"
-            checked={notifyEvent}
-            onChange={(v) => {
-              setNotifyEvent(v);
-              toast(v ? "혜택 알림을 켰어요" : "혜택 알림을 껐어요", "info");
-            }}
-          />
-        </div>
-      </SectionCard>
+          {/* 요약 통계 */}
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard
+              href="/pets"
+              icon={<Dog className="h-5 w-5" />}
+              label="내 반려동물"
+              value={hydrated ? `${pets.length}` : "-"}
+            />
+            <StatCard
+              href="/bookings"
+              icon={<CalendarDays className="h-5 w-5" />}
+              label="예정된 예약"
+              value={hydrated ? `${upcomingCount}` : "-"}
+            />
+            <StatCard
+              href="/favorites"
+              icon={<Heart className="h-5 w-5" />}
+              label="찜한 미용실"
+              value={hydrated ? `${favorites.length}` : "-"}
+            />
+          </div>
 
+          {/* 내 반려동물 미리보기 */}
+          <SectionCard title="내 반려동물" moreHref="/pets">
+            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+              {!hydrated && (
+                <div className="skeleton h-[8.5rem] w-40 shrink-0 rounded-2xl" />
+              )}
+              {(hydrated ? pets : []).map((pet) => (
+                <Link
+                  key={pet.id}
+                  href={`/booking?pet=${pet.id}&step=1`}
+                  className="flex w-40 shrink-0 flex-col items-center rounded-2xl bg-cream-50 p-4 text-center transition-colors hover:bg-mint-50 tap"
+                  aria-label={`${pet.name} 미용 예약하기`}
+                >
+                  <PetAvatar pet={pet} size="md" />
+                  <p className="mt-2 w-full truncate text-sm font-bold text-ink">
+                    {pet.name}
+                  </p>
+                  <p className="w-full truncate text-xs text-ink-muted">
+                    {pet.breed} · {pet.age}살
+                  </p>
+                  <p className="mt-2 text-xs font-bold text-mint-600">
+                    예약하기
+                  </p>
+                </Link>
+              ))}
+              {hydrated && (
+                <Link
+                  href="/pets?add=1"
+                  className="flex w-40 shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cream-300 p-4 text-sm font-bold text-ink-muted transition-colors hover:border-mint-300 hover:text-mint-700 tap"
+                >
+                  <Plus className="h-6 w-6" />
+                  새로 등록
+                </Link>
+              )}
+            </div>
+          </SectionCard>
+        </div>
+
+        <div className="space-y-4">
+          {/* 보유 쿠폰 */}
+          <SectionCard title={`보유 쿠폰 ${COUPONS.length}장`}>
+            <div className="space-y-3">
+              {COUPONS.map((coupon) => (
+                <div
+                  key={coupon.id}
+                  className="flex items-center gap-3.5 rounded-2xl border border-dashed border-coral-200 bg-coral-50/60 p-4"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-coral-500 shadow-card">
+                    <Ticket className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-base font-extrabold text-coral-600">
+                      {coupon.name}
+                    </p>
+                    <p className="mt-0.5 text-sm text-ink-muted">
+                      {coupon.desc}
+                    </p>
+                    {hydrated && (
+                      <p className="mt-0.5 text-sm font-semibold text-ink-soft">
+                        {couponDeadline(coupon, new Date())}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+
+          {/* 알림 설정 */}
+          <SectionCard title="알림 설정">
+            <div className="space-y-1">
+              <ToggleRow
+                icon={<Bell className="h-4 w-4" />}
+                label="예약 알림"
+                desc="예약 확정·방문 전날 알림을 받아요"
+                checked={notifyBooking}
+                onChange={(v) => {
+                  setNotifyBooking(v);
+                  saveSettings({ booking: v, event: notifyEvent });
+                  toast(
+                    v ? "예약 알림을 켰어요" : "예약 알림을 껐어요",
+                    "info",
+                  );
+                }}
+              />
+              <ToggleRow
+                icon={<Ticket className="h-4 w-4" />}
+                label="혜택 알림"
+                desc="쿠폰·이벤트 소식을 받아요"
+                checked={notifyEvent}
+                onChange={(v) => {
+                  setNotifyEvent(v);
+                  saveSettings({ booking: notifyBooking, event: v });
+                  toast(
+                    v ? "혜택 알림을 켰어요" : "혜택 알림을 껐어요",
+                    "info",
+                  );
+                }}
+              />
+            </div>
+          </SectionCard>
+        </div>
+      </div>
     </div>
   );
 }
@@ -203,7 +255,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-4 rounded-3xl border border-cream-200 bg-white p-5 shadow-card">
+    <section className="rounded-3xl border border-cream-200 bg-white p-5 shadow-card">
       <div className="flex items-center justify-between">
         <h2 className="text-base font-extrabold text-ink">{title}</h2>
         {moreHref && (

@@ -196,6 +196,7 @@ export const SALONS: Salon[] = [
     distanceKm: 2.8,
     priceFrom: 55000,
     availableToday: false,
+    species: "cat",
     tags: ["고양이 전문", "무마취 미용"],
     address: "서울 강남구 역삼동 102-4",
     openHours: "11:00 - 20:00",

@@ -110,10 +110,10 @@ export default function SalonCard({
               ))}
             </div>
             <p className="mt-3 text-sm text-ink-muted">
+              <span className="mr-1">기본 미용</span>
               <span className="font-extrabold text-ink">
                 {formatWon(salon.priceFrom)}
               </span>
-              <span className="ml-1">부터</span>
             </p>
           </div>
         </Link>

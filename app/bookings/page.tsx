@@ -85,13 +85,13 @@ export default function BookingsPage() {
   const list = tab === "upcoming" ? upcoming : past;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
+    <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
       <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
         예약 내역
       </h1>
 
       {/* 탭 */}
-      <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1">
+      <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1 md:max-w-md">
         {(
           [
             ["upcoming", `예정된 예약${hydrated ? ` ${upcoming.length}` : ""}`],
@@ -113,28 +113,30 @@ export default function BookingsPage() {
         ))}
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         {!hydrated &&
           [0, 1].map((i) => (
             <div key={i} className="skeleton h-40 rounded-3xl" />
           ))}
 
         {hydrated && list.length === 0 && (
-          <EmptyState
-            emoji={tab === "upcoming" ? "🗓️" : "🐾"}
-            title={
-              tab === "upcoming"
-                ? "예정된 예약이 없어요"
-                : "지난 이용 내역이 없어요"
-            }
-            desc={
-              tab === "upcoming"
-                ? "우리 아이를 위한 첫 미용을 예약해보세요."
-                : "미용을 받고 나면 이곳에서 후기를 남길 수 있어요."
-            }
-            actionHref="/booking"
-            actionLabel="예약하러 가기"
-          />
+          <div className="lg:col-span-2">
+            <EmptyState
+              emoji={tab === "upcoming" ? "🗓️" : "🐾"}
+              title={
+                tab === "upcoming"
+                  ? "예정된 예약이 없어요"
+                  : "지난 이용 내역이 없어요"
+              }
+              desc={
+                tab === "upcoming"
+                  ? "우리 아이를 위한 첫 미용을 예약해보세요."
+                  : "미용을 받고 나면 이곳에서 후기를 남길 수 있어요."
+              }
+              actionHref="/booking"
+              actionLabel="예약하러 가기"
+            />
+          </div>
         )}
 
         {hydrated &&
@@ -442,7 +444,7 @@ function ReviewDialog({
   };
 
   return (
-    <Overlay onClose={onClose}>
+    <Overlay onClose={onClose} keepOnBackdrop={trimmed !== ""}>
       <h2 className="text-lg font-extrabold text-ink">후기 작성</h2>
       <p className="mt-1 text-sm text-ink-muted">
         {salon?.name} · {groomer?.name} 미용사
@@ -496,15 +498,18 @@ function ReviewDialog({
 function Overlay({
   children,
   onClose,
+  keepOnBackdrop = false,
 }: {
   children: ReactNode;
   onClose: () => void;
+  /** 작성 중인 내용이 있을 때 바깥을 눌러도 닫히지 않게 한다 */
+  keepOnBackdrop?: boolean;
 }) {
   useModal(onClose);
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm animate-fade-in sm:items-center"
-      onClick={onClose}
+      onClick={() => !keepOnBackdrop && onClose()}
       role="dialog"
       aria-modal="true"
     >

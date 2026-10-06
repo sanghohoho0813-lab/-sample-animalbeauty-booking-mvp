@@ -95,9 +95,10 @@ function UpcomingCard({
         <p className="mt-1 truncate text-base font-bold text-ink">
           {pet?.name ?? "반려동물"} · {service?.name}
         </p>
-        <p className="truncate text-sm text-ink-muted">
-          {formatDateShortKo(booking.date)} {booking.time} · {salon?.name}
+        <p className="text-sm font-semibold text-ink-soft">
+          {formatDateShortKo(booking.date)} {booking.time}
         </p>
+        <p className="truncate text-sm text-ink-muted">{salon?.name}</p>
       </div>
       <ChevronRight className="h-5 w-5 shrink-0 text-mint-600 transition-transform group-hover:translate-x-0.5" />
     </Link>

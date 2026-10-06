@@ -34,6 +34,8 @@ export interface Salon {
   distanceKm: number;
   priceFrom: number;
   availableToday: boolean;
+  /** 특정 종만 받는 미용실 (없으면 강아지·고양이 모두) */
+  species?: Species;
   tags: string[];
   address: string;
   openHours: string;

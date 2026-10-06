@@ -17,7 +17,7 @@ import {
   ServiceStep,
 } from "@/components/booking/steps";
 import { useBookingDraft, type BookingDraft } from "@/lib/booking-context";
-import { getMaxStep, isServiceForPet } from "@/lib/booking-rules";
+import { getMaxStep, isServiceForPet, petSlotCheck } from "@/lib/booking-rules";
 import { getGroomerById, getSalonById, getServiceById } from "@/lib/data";
 import { addBooking, useDb } from "@/lib/db";
 import { formatWon, toDateKey } from "@/lib/format";
@@ -165,7 +165,7 @@ function BookingFlow() {
 
     // 확정 직전 재검증 — 그 사이 지나간 시간, 오래된 선택값, 이미 잡힌 시간 차단
     const now = new Date();
-    if (!isSlotBookable(draft.date, draft.time, draft.groomerId, db.bookings, now)) {
+    if (!isSlotBookable(draft.date, draft.time, draft.groomerId, db.bookings, now, petSlotCheck(draft))) {
       setDraft(draft.date < toDateKey(now) ? { date: null, time: null } : { time: null });
       toast("선택한 시간은 지금 예약할 수 없어요. 다른 시간을 골라주세요.", "error");
       goTo(4);
@@ -190,7 +190,7 @@ function BookingFlow() {
     setTimeout(() => {
       const booking = addBooking(payload);
       resetDraft();
-      toast("예약이 완료되었습니다! 🎉");
+      // 완료 화면이 결과를 크게 보여주므로 같은 내용의 토스트는 띄우지 않는다
       router.push(`/booking/complete/${booking.id}`);
     }, 700);
   };
@@ -263,7 +263,7 @@ function BookingFlow() {
               className="flex items-center gap-1.5 rounded-2xl border border-cream-300 bg-white px-6 py-3.5 text-sm font-bold text-ink-soft transition-colors hover:bg-cream-100 tap"
             >
               <ArrowLeft className="h-4 w-4" />
-              이전
+              {step === 0 ? "홈으로" : "이전"}
             </button>
             <NextButton
               isLast={isLast}
@@ -291,13 +291,13 @@ function BookingFlow() {
             type="button"
             onClick={() => (step === 0 ? router.push("/") : goTo(step - 1))}
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cream-300 bg-white text-ink-soft tap"
-            aria-label="이전 단계"
+            aria-label={step === 0 ? "홈으로" : "이전 단계"}
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           {/* 금액이 남는 폭을 쓰고, 버튼은 한 줄로 고정한다 */}
           <div className="min-w-0 flex-1">
-            {draft.serviceId && (
+            {draft.serviceId ? (
               <>
                 <p className="whitespace-nowrap text-xs font-semibold text-ink-faint">
                   예상 결제 금액
@@ -306,6 +306,13 @@ function BookingFlow() {
                   {formatWon(total)}
                 </p>
               </>
+            ) : (
+              // '다음'이 왜 비활성인지 알려준다 — 고르면 자동으로 넘어간다
+              !canProceed && (
+                <p className="text-sm font-semibold leading-snug text-ink-muted">
+                  고르면 바로 다음으로 넘어가요
+                </p>
+              )
             )}
           </div>
           <NextButton
