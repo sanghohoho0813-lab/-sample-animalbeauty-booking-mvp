@@ -8,11 +8,7 @@ import PetAvatar from "@/components/ui/PetAvatar";
 import EmptyState from "@/components/ui/EmptyState";
 import { useBookingDraft } from "@/lib/booking-context";
 import { REBOOK_STEP, rebookDraft } from "@/lib/booking-rules";
-import {
-  getGroomerById,
-  getSalonById,
-  getServiceById,
-} from "@/lib/data";
+import { getGroomerById, getSalonById, getServiceById } from "@/lib/data";
 import { useDb } from "@/lib/db";
 import { formatDateKo, formatWon } from "@/lib/format";
 import type { BookingStatus } from "@/lib/types";
@@ -37,11 +33,7 @@ const HEADINGS: Record<BookingStatus, { title: string; desc: string }> = {
   },
 };
 
-export default function BookingCompletePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function BookingCompletePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { bookings, pets, hydrated } = useDb();
   const { setDraft } = useBookingDraft();
@@ -76,8 +68,7 @@ export default function BookingCompletePage({
   const salon = getSalonById(booking.salonId);
   const groomer = getGroomerById(booking.groomerId);
   const heading = HEADINGS[booking.status];
-  const isActive =
-    booking.status === "confirmed" || booking.status === "pending";
+  const isActive = booking.status === "confirmed" || booking.status === "pending";
 
   const rebook = () => {
     setDraft(rebookDraft(booking));
@@ -85,9 +76,7 @@ export default function BookingCompletePage({
   };
 
   return (
-    <div
-      className={`bg-gradient-to-b ${isActive ? "from-mint-50" : "from-cream-100"} to-cream-50`}
-    >
+    <div className={`bg-gradient-to-b ${isActive ? "from-mint-50" : "from-cream-100"} to-cream-50`}>
       <div className="mx-auto max-w-lg px-4 pb-16 pt-10 md:pt-14">
         <div className="flex flex-col items-center text-center">
           {isActive ? (
@@ -138,22 +127,13 @@ export default function BookingCompletePage({
             <Row label="서비스" value={service?.name ?? "-"} />
             <Row label="미용실" value={salon?.name ?? "-"} />
             <Row label="미용사" value={groomer?.name ?? "-"} />
-            <Row
-              label="예약 일시"
-              value={`${formatDateKo(booking.date)} ${booking.time}`}
-            />
+            <Row label="예약 일시" value={`${formatDateKo(booking.date)} ${booking.time}`} />
             {booking.discount > 0 && (
-              <Row
-                label="할인"
-                value={`- ₩ ${booking.discount.toLocaleString("ko-KR")}`}
-                accent
-              />
+              <Row label="할인" value={`- ₩ ${booking.discount.toLocaleString("ko-KR")}`} accent />
             )}
             <div className="flex items-center justify-between border-t border-cream-200 pt-3">
               <dt className="font-bold text-ink">결제 금액</dt>
-              <dd className="text-lg font-extrabold text-coral-500">
-                {formatWon(booking.total)}
-              </dd>
+              <dd className="text-lg font-extrabold text-coral-500">{formatWon(booking.total)}</dd>
             </div>
           </dl>
           <div className="bg-mint-50 px-5 py-3.5 text-center text-xs font-semibold text-mint-700">
@@ -208,21 +188,11 @@ export default function BookingCompletePage({
   );
 }
 
-function Row({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
+function Row({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <dt className="text-ink-muted">{label}</dt>
-      <dd
-        className={`text-right font-semibold ${accent ? "text-coral-500" : "text-ink"}`}
-      >
+      <dd className={`text-right font-semibold ${accent ? "text-coral-500" : "text-ink"}`}>
         {value}
       </dd>
     </div>

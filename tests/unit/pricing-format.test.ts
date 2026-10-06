@@ -22,7 +22,9 @@ describe("priceAt — 미용실별 가격", () => {
 
   it("가격대가 높은 미용실일수록 비싸다", () => {
     const spa = getServiceById("svc-3")!;
-    expect(priceAt(spa, getSalonById("salon-4"))).toBeGreaterThan(priceAt(spa, getSalonById("salon-5")));
+    expect(priceAt(spa, getSalonById("salon-4"))).toBeGreaterThan(
+      priceAt(spa, getSalonById("salon-5"))
+    );
   });
 });
 

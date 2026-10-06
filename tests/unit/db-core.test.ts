@@ -34,9 +34,24 @@ describe("parseStoredDb — 저장 데이터 검증", () => {
   it("깨진 레코드만 버리고 나머지는 살린다", () => {
     const parsed = parseStoredDb({
       pets: [customPet, { id: "pet-bad", name: "" }, null],
-      bookings: [validBooking, { ...validBooking, id: "bk-bad", date: "10/9" }, { ...validBooking, id: "bk-bad2", status: "unknown" }],
+      bookings: [
+        validBooking,
+        { ...validBooking, id: "bk-bad", date: "10/9" },
+        { ...validBooking, id: "bk-bad2", status: "unknown" },
+      ],
       favorites: ["salon-1", "salon-999", 3],
-      reviews: [{ id: "r1", salonId: "salon-1", author: "a", petName: "p", rating: 9, content: "", date: "2030-01-01", serviceName: "" }],
+      reviews: [
+        {
+          id: "r1",
+          salonId: "salon-1",
+          author: "a",
+          petName: "p",
+          rating: 9,
+          content: "",
+          date: "2030-01-01",
+          serviceName: "",
+        },
+      ],
     })!;
     expect(parsed.pets.map((p) => p.id)).toEqual(["pet-custom"]);
     expect(parsed.bookings.map((b) => b.id)).toEqual([validBooking.id]);
@@ -45,7 +60,11 @@ describe("parseStoredDb — 저장 데이터 검증", () => {
   });
 
   it("같은 id가 여러 번 저장돼 있으면 하나만 남긴다", () => {
-    const parsed = parseStoredDb({ pets: [customPet, customPet], bookings: [validBooking, validBooking], favorites: ["salon-1", "salon-1"] })!;
+    const parsed = parseStoredDb({
+      pets: [customPet, customPet],
+      bookings: [validBooking, validBooking],
+      favorites: ["salon-1", "salon-1"],
+    })!;
     expect(parsed.pets).toHaveLength(1);
     expect(parsed.bookings).toHaveLength(1);
     expect(parsed.favorites).toEqual(["salon-1"]);
@@ -67,7 +86,10 @@ describe("loadDb", () => {
 
   it("사용자가 등록한 아이는 유지하고 데모 아이는 최신 정의로 갱신한다", () => {
     const stalePet = { ...SEED_PETS[0], image: "/old.png" };
-    const db = loadDb(JSON.stringify({ pets: [stalePet, customPet], bookings: [], favorites: [] }), NOW);
+    const db = loadDb(
+      JSON.stringify({ pets: [stalePet, customPet], bookings: [], favorites: [] }),
+      NOW
+    );
     expect(db.pets[0].image).toBe(SEED_PETS[0].image);
     expect(db.pets.at(-1)).toEqual(customPet);
   });
@@ -100,7 +122,12 @@ describe("시드 예약", () => {
 });
 
 describe("settlePastBookings", () => {
-  const at = (date: string, time: string, status: Booking["status"] = "confirmed") => ({ ...validBooking, date, time, status });
+  const at = (date: string, time: string, status: Booking["status"] = "confirmed") => ({
+    ...validBooking,
+    date,
+    time,
+    status,
+  });
 
   it("방문 시각이 지난 예정 예약은 이용 완료로", () => {
     const [b] = settlePastBookings([at("2030-01-10", "11:00")], NOW);
@@ -120,7 +147,10 @@ describe("settlePastBookings", () => {
 
 describe("mergeSeedPets / newId", () => {
   it("시드 아이가 지워졌어도 다시 채운다", () => {
-    expect(mergeSeedPets([customPet]).map((p) => p.id)).toEqual([...SEED_PETS.map((p) => p.id), "pet-custom"]);
+    expect(mergeSeedPets([customPet]).map((p) => p.id)).toEqual([
+      ...SEED_PETS.map((p) => p.id),
+      "pet-custom",
+    ]);
   });
 
   it("연속으로 만들어도 id가 겹치지 않는다", () => {

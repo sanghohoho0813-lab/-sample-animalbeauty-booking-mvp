@@ -3,9 +3,7 @@
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import StepIndicator, {
-  BOOKING_STEPS,
-} from "@/components/booking/StepIndicator";
+import StepIndicator, { BOOKING_STEPS } from "@/components/booking/StepIndicator";
 import SelectionTrail from "@/components/booking/SelectionTrail";
 import SummaryCard, { computePrice } from "@/components/booking/SummaryCard";
 import {
@@ -108,7 +106,17 @@ function BookingFlow() {
 
     if (Object.keys(patch).length > 0) setDraft(patch);
     setPresetReady(true);
-  }, [ready, db.hydrated, db.pets, searchParams, setDraft, draft.salonId, draft.groomerId, draft.petId, draft.serviceId]);
+  }, [
+    ready,
+    db.hydrated,
+    db.pets,
+    searchParams,
+    setDraft,
+    draft.salonId,
+    draft.groomerId,
+    draft.petId,
+    draft.serviceId,
+  ]);
 
   // 선택값이 서로 맞는지를 기준으로 진입 가능한 최대 단계
   const maxStep = useMemo(() => getMaxStep(draft, db.pets), [draft, db.pets]);
@@ -165,7 +173,16 @@ function BookingFlow() {
 
     // 확정 직전 재검증 — 그 사이 지나간 시간, 오래된 선택값, 이미 잡힌 시간 차단
     const now = new Date();
-    if (!isSlotBookable(draft.date, draft.time, draft.groomerId, db.bookings, now, petSlotCheck(draft))) {
+    if (
+      !isSlotBookable(
+        draft.date,
+        draft.time,
+        draft.groomerId,
+        db.bookings,
+        now,
+        petSlotCheck(draft)
+      )
+    ) {
       setDraft(draft.date < toDateKey(now) ? { date: null, time: null } : { time: null });
       toast("선택한 시간은 지금 예약할 수 없어요. 다른 시간을 골라주세요.", "error");
       goTo(4);
@@ -225,33 +242,15 @@ function BookingFlow() {
               />
             )}
             {step === 1 && (
-              <ServiceStep
-                draft={draft}
-                setDraft={setDraft}
-                pets={db.pets}
-                onChosen={onChosen}
-              />
+              <ServiceStep draft={draft} setDraft={setDraft} pets={db.pets} onChosen={onChosen} />
             )}
-            {step === 2 && (
-              <SalonStep draft={draft} setDraft={setDraft} onChosen={onChosen} />
-            )}
-            {step === 3 && (
-              <GroomerStep draft={draft} setDraft={setDraft} onChosen={onChosen} />
-            )}
+            {step === 2 && <SalonStep draft={draft} setDraft={setDraft} onChosen={onChosen} />}
+            {step === 3 && <GroomerStep draft={draft} setDraft={setDraft} onChosen={onChosen} />}
             {step === 4 && (
-              <DateTimeStep
-                draft={draft}
-                setDraft={setDraft}
-                bookings={db.bookings}
-              />
+              <DateTimeStep draft={draft} setDraft={setDraft} bookings={db.bookings} />
             )}
             {step === 5 && (
-              <ConfirmStep
-                draft={draft}
-                setDraft={setDraft}
-                pets={db.pets}
-                onEdit={goTo}
-              />
+              <ConfirmStep draft={draft} setDraft={setDraft} pets={db.pets} onEdit={goTo} />
             )}
           </div>
 
@@ -302,9 +301,7 @@ function BookingFlow() {
                 <p className="whitespace-nowrap text-xs font-semibold text-ink-faint">
                   예상 결제 금액
                 </p>
-                <p className="truncate text-lg font-extrabold text-ink">
-                  {formatWon(total)}
-                </p>
+                <p className="truncate text-lg font-extrabold text-ink">{formatWon(total)}</p>
               </>
             ) : (
               // '다음'이 왜 비활성인지 알려준다 — 고르면 자동으로 넘어간다

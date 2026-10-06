@@ -37,7 +37,8 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "PawBeauty",
     title: "PawBeauty — 반려동물 미용 예약",
-    description: "반려동물·서비스·미용실·미용사·일시까지 1분 만에 예약하는 반려동물 미용 예약 서비스",
+    description:
+      "반려동물·서비스·미용실·미용사·일시까지 1분 만에 예약하는 반려동물 미용 예약 서비스",
   },
   twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },

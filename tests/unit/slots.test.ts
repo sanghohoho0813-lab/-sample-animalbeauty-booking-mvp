@@ -25,7 +25,8 @@ const booking = (patch: Partial<Booking>): Booking => ({
   ...patch,
 });
 
-const open = (slots: ReturnType<typeof getSlots>) => slots.filter((s) => s.available).map((s) => s.time);
+const open = (slots: ReturnType<typeof getSlots>) =>
+  slots.filter((s) => s.available).map((s) => s.time);
 
 describe("getSlots", () => {
   it("영업 시간표의 모든 슬롯을 순서대로 돌려준다", () => {
@@ -66,8 +67,14 @@ describe("같은 아이의 시간 겹침", () => {
 
   it("겹치는 슬롯은 petBusy로 막는다", () => {
     const slots = getSlots(FUTURE, "grm-1", existing, NOW, { petId: "pet-1", durationMin: 30 });
-    expect(slots.find((s) => s.time === "10:00")).toMatchObject({ available: false, petBusy: true });
-    expect(slots.find((s) => s.time === "11:00")).toMatchObject({ available: false, petBusy: true });
+    expect(slots.find((s) => s.time === "10:00")).toMatchObject({
+      available: false,
+      petBusy: true,
+    });
+    expect(slots.find((s) => s.time === "11:00")).toMatchObject({
+      available: false,
+      petBusy: true,
+    });
   });
 
   it("새 예약이 길어서 기존 예약 시작과 겹쳐도 막는다 (09:00 + 120분 → 11:00)", () => {

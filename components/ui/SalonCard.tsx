@@ -24,18 +24,14 @@ export default function SalonCard({
   const { favorites, reviews, hydrated } = useDb();
   const { toast } = useToast();
   const liked = hydrated && favorites.includes(salon.id);
-  const reviewCount =
-    salon.reviewCount + countReviews(reviews, "salonId", salon.id);
+  const reviewCount = salon.reviewCount + countReviews(reviews, "salonId", salon.id);
 
   const heart = (className: string) => (
     <button
       type="button"
       onClick={() => {
         toggleFavorite(salon.id);
-        toast(
-          liked ? "찜 목록에서 삭제했어요" : "찜 목록에 추가했어요",
-          "info",
-        );
+        toast(liked ? "찜 목록에서 삭제했어요" : "찜 목록에 추가했어요", "info");
       }}
       className={`flex h-10 w-10 items-center justify-center rounded-full transition-transform tap ${className}`}
       aria-label={liked ? `${salon.name} 찜 해제` : `${salon.name} 찜하기`}
@@ -96,8 +92,7 @@ export default function SalonCard({
             </div>
             <p className="mt-1 flex items-center gap-1 text-sm text-ink-muted">
               <MapPin className="h-3.5 w-3.5" />
-              {salon.distanceKm}km ·{" "}
-              {salon.address.split(" ").slice(1, 3).join(" ")}
+              {salon.distanceKm}km · {salon.address.split(" ").slice(1, 3).join(" ")}
             </p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               {salon.tags.slice(0, 2).map((tag) => (
@@ -111,9 +106,7 @@ export default function SalonCard({
             </div>
             <p className="mt-3 text-sm text-ink-muted">
               <span className="mr-1">기본 미용</span>
-              <span className="font-extrabold text-ink">
-                {formatWon(salon.priceFrom)}
-              </span>
+              <span className="font-extrabold text-ink">{formatWon(salon.priceFrom)}</span>
             </p>
           </div>
         </Link>

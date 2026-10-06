@@ -22,15 +22,12 @@ export default function Header() {
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-mint-500 text-white">
             <PawPrint className="h-5 w-5" strokeWidth={2.2} />
           </span>
-          <span className="text-lg font-extrabold tracking-tight text-mint-700">
-            PawBeauty
-          </span>
+          <span className="text-lg font-extrabold tracking-tight text-mint-700">PawBeauty</span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="주 메뉴">
           {NAV_ITEMS.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}

@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Bell,
-  CalendarDays,
-  ChevronRight,
-  Crown,
-  Dog,
-  Heart,
-  Plus,
-  Ticket,
-} from "lucide-react";
+import { Bell, CalendarDays, ChevronRight, Crown, Dog, Heart, Plus, Ticket } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PetAvatar from "@/components/ui/PetAvatar";
@@ -22,11 +13,7 @@ const SETTINGS_KEY = "pawbeauty-settings-v1";
 
 /** 쿠폰 만료일 표시 — '10월 31일까지' */
 function couponDeadline(coupon: Coupon, now: Date): string {
-  const end = new Date(
-    now.getFullYear(),
-    now.getMonth() + coupon.expiresInMonths + 1,
-    0,
-  );
+  const end = new Date(now.getFullYear(), now.getMonth() + coupon.expiresInMonths + 1, 0);
   return `${end.getMonth() + 1}월 ${end.getDate()}일까지`;
 }
 
@@ -57,14 +44,12 @@ export default function MyPage() {
   };
 
   const upcomingCount = bookings.filter(
-    (b) => b.status === "confirmed" || b.status === "pending",
+    (b) => b.status === "confirmed" || b.status === "pending"
   ).length;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
-        마이페이지
-      </h1>
+      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">마이페이지</h1>
 
       {/* 넓은 화면: 왼쪽 내 정보 · 오른쪽 쿠폰/설정 */}
       <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-2 lg:gap-6">
@@ -76,9 +61,7 @@ export default function MyPage() {
                 {DEMO_USER.emoji}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-mirae-teal">
-                  {DEMO_USER.org}
-                </p>
+                <p className="text-sm font-bold text-mirae-teal">{DEMO_USER.org}</p>
                 <p className="mt-0.5 flex items-center gap-2 text-lg font-extrabold leading-tight text-ink">
                   {DEMO_USER.name}님
                   <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
@@ -86,9 +69,7 @@ export default function MyPage() {
                     멤버
                   </span>
                 </p>
-                <p className="mt-0.5 truncate text-sm text-ink-muted">
-                  {DEMO_USER.email}
-                </p>
+                <p className="mt-0.5 truncate text-sm text-ink-muted">{DEMO_USER.email}</p>
               </div>
             </div>
           </div>
@@ -118,9 +99,7 @@ export default function MyPage() {
           {/* 내 반려동물 미리보기 */}
           <SectionCard title="내 반려동물" moreHref="/pets">
             <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-              {!hydrated && (
-                <div className="skeleton h-[8.5rem] w-40 shrink-0 rounded-2xl" />
-              )}
+              {!hydrated && <div className="skeleton h-[8.5rem] w-40 shrink-0 rounded-2xl" />}
               {(hydrated ? pets : []).map((pet) => (
                 <Link
                   key={pet.id}
@@ -129,15 +108,11 @@ export default function MyPage() {
                   aria-label={`${pet.name} 미용 예약하기`}
                 >
                   <PetAvatar pet={pet} size="md" />
-                  <p className="mt-2 w-full truncate text-sm font-bold text-ink">
-                    {pet.name}
-                  </p>
+                  <p className="mt-2 w-full truncate text-sm font-bold text-ink">{pet.name}</p>
                   <p className="w-full truncate text-xs text-ink-muted">
                     {pet.breed} · {pet.age}살
                   </p>
-                  <p className="mt-2 text-xs font-bold text-mint-600">
-                    예약하기
-                  </p>
+                  <p className="mt-2 text-xs font-bold text-mint-600">예약하기</p>
                 </Link>
               ))}
               {hydrated && (
@@ -166,12 +141,8 @@ export default function MyPage() {
                     <Ticket className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-base font-extrabold text-coral-600">
-                      {coupon.name}
-                    </p>
-                    <p className="mt-0.5 text-sm text-ink-muted">
-                      {coupon.desc}
-                    </p>
+                    <p className="text-base font-extrabold text-coral-600">{coupon.name}</p>
+                    <p className="mt-0.5 text-sm text-ink-muted">{coupon.desc}</p>
                     {/* 날짜는 브라우저 시각 기준이라 마운트 후 채우되, 줄 높이는 미리 잡아 둔다 */}
                     <p className="mt-0.5 min-h-[1.5em] text-sm font-semibold text-ink-soft">
                       {hydrated && couponDeadline(coupon, new Date())}
@@ -193,10 +164,7 @@ export default function MyPage() {
                 onChange={(v) => {
                   setNotifyBooking(v);
                   saveSettings({ booking: v, event: notifyEvent });
-                  toast(
-                    v ? "예약 알림을 켰어요" : "예약 알림을 껐어요",
-                    "info",
-                  );
+                  toast(v ? "예약 알림을 켰어요" : "예약 알림을 껐어요", "info");
                 }}
               />
               <ToggleRow
@@ -207,10 +175,7 @@ export default function MyPage() {
                 onChange={(v) => {
                   setNotifyEvent(v);
                   saveSettings({ booking: notifyBooking, event: v });
-                  toast(
-                    v ? "혜택 알림을 켰어요" : "혜택 알림을 껐어요",
-                    "info",
-                  );
+                  toast(v ? "혜택 알림을 켰어요" : "혜택 알림을 껐어요", "info");
                 }}
               />
             </div>

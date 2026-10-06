@@ -166,28 +166,20 @@ export function addReview(
   };
   update({
     reviews: [review, ...state.reviews],
-    bookings: state.bookings.map((b) =>
-      b.id === booking.id ? { ...b, reviewed: true } : b
-    ),
+    bookings: state.bookings.map((b) => (b.id === booking.id ? { ...b, reviewed: true } : b)),
   });
   return review;
 }
 
 /** 사용자 후기 중 특정 미용실/미용사에 달린 개수 */
-export function countReviews(
-  reviews: Review[],
-  key: "salonId" | "groomerId",
-  id: string
-): number {
+export function countReviews(reviews: Review[], key: "salonId" | "groomerId", id: string): number {
   return reviews.reduce((n, r) => (r[key] === id ? n + 1 : n), 0);
 }
 
 export function toggleFavorite(salonId: string) {
   const has = state.favorites.includes(salonId);
   update({
-    favorites: has
-      ? state.favorites.filter((f) => f !== salonId)
-      : [...state.favorites, salonId],
+    favorites: has ? state.favorites.filter((f) => f !== salonId) : [...state.favorites, salonId],
   });
 }
 

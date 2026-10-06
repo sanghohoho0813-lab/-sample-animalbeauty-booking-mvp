@@ -26,9 +26,7 @@ export default function StepIndicator({
       {/* 모바일·태블릿: 현재 단계가 항상 보이는 진행 막대 */}
       <div className="lg:hidden">
         <div className="flex items-baseline justify-between">
-          <p className="text-sm font-bold text-mint-700">
-            {BOOKING_STEPS[current]}
-          </p>
+          <p className="text-sm font-bold text-mint-700">{BOOKING_STEPS[current]}</p>
           <p className="text-xs font-semibold text-ink-faint">
             <span className="text-ink-soft">{current + 1}</span> / {total}
           </p>

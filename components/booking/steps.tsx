@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  CalendarDays,
-  Check,
-  Clock,
-  Info,
-  MapPin,
-  Plus,
-  Sparkles,
-} from "lucide-react";
+import { CalendarDays, Check, Clock, Info, MapPin, Plus, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -75,16 +67,17 @@ export function PetStep({
                 const salon = getSalonById(draft.salonId);
                 setDraft({
                   petId: pet.id,
-                  ...(service && !isServiceForPet(service, pet)
-                    ? { serviceId: null }
-                    : {}),
+                  ...(service && !isServiceForPet(service, pet) ? { serviceId: null } : {}),
                   // 고양이 전문 미용실처럼 받을 수 없는 곳이면 미용실부터 다시 고른다
                   ...(salon && !isSalonForPet(salon, pet)
                     ? { salonId: null, groomerId: null, time: null }
                     : {}),
                 });
                 if (salon && !isSalonForPet(salon, pet)) {
-                  toast(`${salon.name}은(는) ${salon.species === "cat" ? "고양이" : "강아지"} 전용이라 미용실을 다시 골라주세요`, "info");
+                  toast(
+                    `${salon.name}은(는) ${salon.species === "cat" ? "고양이" : "강아지"} 전용이라 미용실을 다시 골라주세요`,
+                    "info"
+                  );
                 }
                 onChosen?.();
               }}
@@ -96,9 +89,7 @@ export function PetStep({
               aria-pressed={selected}
             >
               <PetPhoto pet={pet} />
-              <p className="mt-2.5 w-full truncate text-base font-bold text-ink">
-                {pet.name}
-              </p>
+              <p className="mt-2.5 w-full truncate text-base font-bold text-ink">{pet.name}</p>
               <p className="w-full truncate text-xs text-ink-muted">
                 {pet.breed} · {pet.age}살
               </p>
@@ -243,11 +234,7 @@ export function ServiceStep({
 
 /* -------------------------------- 3. 미용실 --------------------------------- */
 
-export function SalonStep({
-  draft,
-  setDraft,
-  onChosen,
-}: StepProps & { onChosen?: () => void }) {
+export function SalonStep({ draft, setDraft, onChosen }: StepProps & { onChosen?: () => void }) {
   const { reviews, pets } = useDb();
   const pet = pets.find((p) => p.id === draft.petId);
   const service = getServiceById(draft.serviceId);
@@ -262,8 +249,7 @@ export function SalonStep({
       {salons.map((salon) => {
         const selected = draft.salonId === salon.id;
         const unavailable = Boolean(pet && !isSalonForPet(salon, pet));
-        const reviewCount =
-          salon.reviewCount + countReviews(reviews, "salonId", salon.id);
+        const reviewCount = salon.reviewCount + countReviews(reviews, "salonId", salon.id);
         // 고른 서비스의 이 미용실 가격 — 미용실끼리 바로 비교할 수 있게
         const price = service
           ? { label: service.name, amount: priceAt(service, salon) }
@@ -277,9 +263,7 @@ export function SalonStep({
               setDraft({
                 salonId: salon.id,
                 // 미용실이 바뀌면 미용사·시간 선택 초기화
-                ...(draft.salonId !== salon.id
-                  ? { groomerId: null, time: null }
-                  : {}),
+                ...(draft.salonId !== salon.id ? { groomerId: null, time: null } : {}),
               });
               onChosen?.();
             }}
@@ -297,7 +281,11 @@ export function SalonStep({
               <div className="min-w-0 flex-1">
                 <SalonRow salon={salon} reviewCount={reviewCount} price={price} />
               </div>
-              {unavailable ? <SpeciesOnly species={salon.species} /> : <SelectCircle selected={selected} />}
+              {unavailable ? (
+                <SpeciesOnly species={salon.species} />
+              ) : (
+                <SelectCircle selected={selected} />
+              )}
             </div>
 
             {/* 태블릿 이상: 사진 카드 */}
@@ -349,9 +337,7 @@ export function SalonStep({
               </div>
               <p className="mt-auto pt-2.5 text-sm text-ink-muted">
                 <span className="mr-1">{price.label}</span>
-                <span className="font-extrabold text-ink">
-                  {formatWon(price.amount)}
-                </span>
+                <span className="font-extrabold text-ink">{formatWon(price.amount)}</span>
               </p>
             </div>
           </button>
@@ -371,11 +357,7 @@ function SpeciesOnly({ species }: { species?: Pet["species"] }) {
 
 /* -------------------------------- 4. 미용사 --------------------------------- */
 
-export function GroomerStep({
-  draft,
-  setDraft,
-  onChosen,
-}: StepProps & { onChosen?: () => void }) {
+export function GroomerStep({ draft, setDraft, onChosen }: StepProps & { onChosen?: () => void }) {
   const { reviews } = useDb();
   const groomers = draft.salonId ? getGroomersBySalon(draft.salonId) : [];
 
@@ -447,11 +429,7 @@ export function GroomerStep({
 
 /* ------------------------------ 5. 날짜/시간 -------------------------------- */
 
-export function DateTimeStep({
-  draft,
-  setDraft,
-  bookings,
-}: StepProps & { bookings: Booking[] }) {
+export function DateTimeStep({ draft, setDraft, bookings }: StepProps & { bookings: Booking[] }) {
   // new Date()는 hydration 불일치를 피하기 위해 마운트 후에만 사용한다
   const [now, setNow] = useState<Date | null>(null);
   const timesRef = useRef<HTMLDivElement>(null);
@@ -490,9 +468,7 @@ export function DateTimeStep({
   }
 
   const slots =
-    draft.date && draft.groomerId
-      ? getSlots(draft.date, draft.groomerId, bookings, now, pet)
-      : [];
+    draft.date && draft.groomerId ? getSlots(draft.date, draft.groomerId, bookings, now, pet) : [];
   const hasPetConflict = slots.some((s) => s.petBusy);
   const openCount = slots.filter((s) => s.available).length;
   const morning = slots.filter((s) => Number(s.time.slice(0, 2)) < 12);
@@ -531,13 +507,9 @@ export function DateTimeStep({
         {draft.date ? (
           <>
             <div className="flex items-baseline justify-between gap-2">
-              <p className="text-base font-bold text-ink">
-                {formatDateShortKo(draft.date)}
-              </p>
+              <p className="text-base font-bold text-ink">{formatDateShortKo(draft.date)}</p>
               {openCount > 0 && (
-                <p className="text-sm font-semibold text-mint-600">
-                  {openCount}개 시간 가능
-                </p>
+                <p className="text-sm font-semibold text-mint-600">{openCount}개 시간 가능</p>
               )}
             </div>
             {openCount === 0 ? (

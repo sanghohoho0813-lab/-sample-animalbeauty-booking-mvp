@@ -69,9 +69,7 @@ export default function PetsPage() {
 
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {!hydrated &&
-          [0, 1, 2].map((i) => (
-            <div key={i} className="skeleton h-[37rem] rounded-3xl" />
-          ))}
+          [0, 1, 2].map((i) => <div key={i} className="skeleton h-[37rem] rounded-3xl" />)}
         {hydrated &&
           pets.map((pet) => (
             <article
@@ -167,13 +165,7 @@ export default function PetsPage() {
 
 type PetField = "name" | "breed" | "age" | "weight";
 
-function AddPetDialog({
-  onClose,
-  onAdded,
-}: {
-  onClose: () => void;
-  onAdded?: (pet: Pet) => void;
-}) {
+function AddPetDialog({ onClose, onAdded }: { onClose: () => void; onAdded?: (pet: Pet) => void }) {
   const dialogRef = useModal(onClose);
   const { toast } = useToast();
   const [species, setSpecies] = useState<Species>("dog");
@@ -209,8 +201,7 @@ function AddPetDialog({
   };
   const valid = !Object.values(errors).some(Boolean);
   // 입력을 마친 칸(또는 등록을 한 번 누른 뒤)에만 오류를 보여준다
-  const errorOf = (field: PetField) =>
-    submitted || touched[field] ? errors[field] : undefined;
+  const errorOf = (field: PetField) => (submitted || touched[field] ? errors[field] : undefined);
   const blur = (field: PetField) => () => setTouched((t) => ({ ...t, [field]: true }));
 
   const submit = (e: FormEvent) => {
@@ -284,9 +275,7 @@ function AddPetDialog({
                 setEmoji(key === "dog" ? "🐶" : "🐱");
               }}
               className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
-                species === key
-                  ? "bg-white text-ink shadow-card"
-                  : "text-ink-muted"
+                species === key ? "bg-white text-ink shadow-card" : "text-ink-muted"
               }`}
             >
               {label}
@@ -302,9 +291,7 @@ function AddPetDialog({
               type="button"
               onClick={() => setEmoji(e)}
               className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl transition-all tap ${
-                emoji === e
-                  ? "bg-mint-100 ring-2 ring-mint-400"
-                  : "bg-cream-100 hover:bg-cream-200"
+                emoji === e ? "bg-mint-100 ring-2 ring-mint-400" : "bg-cream-100 hover:bg-cream-200"
               }`}
               aria-label={`프로필 ${e}`}
             >
@@ -366,9 +353,7 @@ function AddPetDialog({
                 aria-invalid={Boolean(errorOf("weight"))}
                 aria-describedby={errorOf("weight") ? "pet-weight-error" : undefined}
                 value={weight}
-                onChange={(e) =>
-                  setWeight(e.target.value.replace(/[^0-9.]/g, ""))
-                }
+                onChange={(e) => setWeight(e.target.value.replace(/[^0-9.]/g, ""))}
                 placeholder="4.2"
                 inputMode="decimal"
                 className="input-base"

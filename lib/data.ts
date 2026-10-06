@@ -1,12 +1,4 @@
-import type {
-  Coupon,
-  DemoUser,
-  Groomer,
-  Pet,
-  Review,
-  Salon,
-  Service,
-} from "./types";
+import type { Coupon, DemoUser, Groomer, Pet, Review, Salon, Service } from "./types";
 
 export const DEMO_USER: DemoUser = {
   name: "김팀장",
@@ -368,8 +360,7 @@ export const REVIEWS: Review[] = [
     author: "김팀장",
     petName: "콩이",
     rating: 5,
-    content:
-      "겁 많은 콩이가 처음으로 안 떨고 미용을 받았어요. 이수진 선생님 최고예요!",
+    content: "겁 많은 콩이가 처음으로 안 떨고 미용을 받았어요. 이수진 선생님 최고예요!",
     date: "2026-08-18",
     serviceName: "기본 미용",
   },
@@ -399,8 +390,7 @@ export const REVIEWS: Review[] = [
     author: "최민준",
     petName: "초코",
     rating: 5,
-    content:
-      "리트리버라 미용실 찾기 힘들었는데 대형견도 정성껏 해주셔서 감동했어요.",
+    content: "리트리버라 미용실 찾기 힘들었는데 대형견도 정성껏 해주셔서 감동했어요.",
     date: "2026-08-17",
     serviceName: "기본 미용",
   },
@@ -420,8 +410,7 @@ export const REVIEWS: Review[] = [
     author: "한소희",
     petName: "구름",
     rating: 5,
-    content:
-      "15살 노령견인데 중간중간 쉬어가며 해주셔서 마음 놓고 맡겼어요.",
+    content: "15살 노령견인데 중간중간 쉬어가며 해주셔서 마음 놓고 맡겼어요.",
     date: "2026-08-16",
     serviceName: "약욕 & 피부 케어",
   },
@@ -441,8 +430,7 @@ export const REVIEWS: Review[] = [
     author: "김팀장",
     petName: "몽이",
     rating: 5,
-    content:
-      "탄산 스파 받고 나서 털이 정말 부드러워졌어요. 몽이도 기분 좋아 보여요.",
+    content: "탄산 스파 받고 나서 털이 정말 부드러워졌어요. 몽이도 기분 좋아 보여요.",
     date: "2026-08-14",
     serviceName: "프리미엄 스파",
   },
@@ -494,8 +482,7 @@ export const REVIEWS: Review[] = [
     author: "김팀장",
     petName: "보리",
     rating: 5,
-    content:
-      "무마취인데도 보리가 얌전히 있었다니 신기해요. 고양이 전문은 다르네요.",
+    content: "무마취인데도 보리가 얌전히 있었다니 신기해요. 고양이 전문은 다르네요.",
     date: "2026-08-19",
     serviceName: "고양이 미용",
   },
@@ -505,8 +492,7 @@ export const REVIEWS: Review[] = [
     author: "황인엽",
     petName: "치즈",
     rating: 5,
-    content:
-      "장모종이라 엉킨 털이 많았는데 아프지 않게 잘 풀어주셨어요. 감사합니다.",
+    content: "장모종이라 엉킨 털이 많았는데 아프지 않게 잘 풀어주셨어요. 감사합니다.",
     date: "2026-08-10",
     serviceName: "고양이 미용",
   },
@@ -568,16 +554,7 @@ export const COUPONS: Coupon[] = [
   },
 ];
 
-export const TIME_SLOTS = [
-  "09:00",
-  "10:00",
-  "11:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-];
+export const TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 
 export function getServiceById(id: string | null) {
   return SERVICES.find((s) => s.id === id) ?? null;

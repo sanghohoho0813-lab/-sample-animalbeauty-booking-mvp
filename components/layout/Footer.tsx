@@ -18,9 +18,7 @@ export default function Footer() {
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-mint-500 text-white">
                 <PawPrint className="h-4 w-4" strokeWidth={2.2} />
               </span>
-              <span className="text-base font-extrabold text-mint-700">
-                PawBeauty
-              </span>
+              <span className="text-base font-extrabold text-mint-700">PawBeauty</span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-muted">
               우리 아이의 특별한 하루를 위한
@@ -72,8 +70,7 @@ export default function Footer() {
           </div>
           <p className="text-xs leading-relaxed text-ink-muted">
             © 2026 미래에이아이랩 (MIRAE AI LAB).
-            <br className="hidden sm:block" /> 본 서비스는 포트폴리오 시연용 MVP
-            레퍼런스입니다.
+            <br className="hidden sm:block" /> 본 서비스는 포트폴리오 시연용 MVP 레퍼런스입니다.
           </p>
         </div>
       </div>

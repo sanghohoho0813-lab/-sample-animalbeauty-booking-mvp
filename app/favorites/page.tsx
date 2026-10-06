@@ -11,9 +11,7 @@ export default function FavoritesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
-        찜한 미용실
-      </h1>
+      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">찜한 미용실</h1>
       <div className="mt-5">
         {!hydrated ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">

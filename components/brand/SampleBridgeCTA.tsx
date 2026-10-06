@@ -49,9 +49,7 @@ export default function SampleBridgeCTA({
               {copy.badge}
             </span>
 
-            <p className="mt-4 text-sm font-bold text-mirae-teal">
-              {copy.eyebrow}
-            </p>
+            <p className="mt-4 text-sm font-bold text-mirae-teal">{copy.eyebrow}</p>
             <h2
               id="mirae-bridge-title"
               className="mt-1.5 whitespace-pre-line text-xl font-extrabold leading-snug tracking-tight text-ink md:text-2xl"
@@ -125,12 +123,7 @@ function BridgeLink({
 }) {
   if (/^https?:\/\//.test(href)) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-      >
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
         {children}
       </a>
     );

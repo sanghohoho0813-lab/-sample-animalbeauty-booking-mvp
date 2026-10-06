@@ -13,7 +13,10 @@ test.describe("미용실 찾기", () => {
     await expect(count).toContainText("6곳");
 
     await page.getByRole("button", { name: "평점 높은 순" }).click();
-    await expect(page.getByRole("button", { name: "평점 높은 순" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "평점 높은 순" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
 
     await page.getByLabel("오늘 예약 가능").check();
     await expect(count).not.toContainText("6곳");
@@ -24,7 +27,9 @@ test.describe("미용실 찾기", () => {
     const heart = page.getByRole("button", { name: "멍뭉살롱 찜하기" }).locator("visible=true");
     await heart.click();
     await page.reload();
-    await expect(page.getByRole("button", { name: "멍뭉살롱 찜 해제" }).locator("visible=true")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "멍뭉살롱 찜 해제" }).locator("visible=true")
+    ).toBeVisible();
     expect((await readDb(page)).favorites).toContain("salon-2");
   });
 });
@@ -76,7 +81,10 @@ test.describe("마이페이지", () => {
     const was = await toggle.getAttribute("aria-checked");
     await toggle.click();
     await page.reload();
-    await expect(page.getByRole("switch", { name: /혜택 알림/ })).not.toHaveAttribute("aria-checked", was!);
+    await expect(page.getByRole("switch", { name: /혜택 알림/ })).not.toHaveAttribute(
+      "aria-checked",
+      was!
+    );
   });
 });
 

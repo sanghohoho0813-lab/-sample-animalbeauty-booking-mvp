@@ -35,10 +35,10 @@ export const EMPTY_DRAFT: Draft = {
 /** 예약 선택값을 미리 넣어 특정 단계부터 시작한다 */
 export async function openBookingAt(page: Page, step: number, draft: Partial<Draft>) {
   await page.goto("/");
-  await page.evaluate(
-    ([key, value]) => sessionStorage.setItem(key, value),
-    [DRAFT_KEY, JSON.stringify({ ...EMPTY_DRAFT, ...draft })] as const
-  );
+  await page.evaluate(([key, value]) => sessionStorage.setItem(key, value), [
+    DRAFT_KEY,
+    JSON.stringify({ ...EMPTY_DRAFT, ...draft }),
+  ] as const);
   await page.goto(`/booking?step=${step}`);
   await expect(page.locator("h1")).toBeVisible();
 }
@@ -51,7 +51,14 @@ export const readDb = async (page: Page) => {
   await page.waitForFunction((key) => localStorage.getItem(key) !== null, DB_KEY);
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "{}"), DB_KEY) as Promise<{
     pets: { id: string; name: string }[];
-    bookings: { id: string; petId: string; status: string; date: string; time: string; total: number }[];
+    bookings: {
+      id: string;
+      petId: string;
+      status: string;
+      date: string;
+      time: string;
+      total: number;
+    }[];
     favorites: string[];
   }>;
 };

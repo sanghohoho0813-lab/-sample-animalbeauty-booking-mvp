@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  CalendarCheck,
-  Heart,
-  Home,
-  Search,
-  UserRound,
-} from "lucide-react";
+import { CalendarCheck, Heart, Home, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isBookingFlow } from "@/lib/routes";
@@ -32,8 +26,7 @@ export default function BottomNav() {
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around">
         {ITEMS.map(({ href, label, icon: Icon }) => {
-          const active =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <Link
               key={href}

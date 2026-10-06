@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  CalendarDays,
-  ChevronDown,
-  MapPin,
-  PenLine,
-  RotateCcw,
-  Star,
-  X,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, MapPin, PenLine, RotateCcw, Star, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import EmptyState from "@/components/ui/EmptyState";
@@ -16,12 +8,7 @@ import PetAvatar from "@/components/ui/PetAvatar";
 import { StarRow } from "@/components/ui/Stars";
 import { useBookingDraft } from "@/lib/booking-context";
 import { REBOOK_STEP, rebookDraft } from "@/lib/booking-rules";
-import {
-  getGroomerById,
-  getSalonById,
-  getServiceById,
-  REVIEWS,
-} from "@/lib/data";
+import { getGroomerById, getSalonById, getServiceById, REVIEWS } from "@/lib/data";
 import { addReview, cancelBooking, useDb } from "@/lib/db";
 import { dDayLabel, formatDateKo, formatWon } from "@/lib/format";
 import { useToast } from "@/lib/toast";
@@ -70,15 +57,11 @@ export default function BookingsPage() {
 
   const { upcoming, past } = useMemo(() => {
     const sorted = [...bookings].sort((a, b) =>
-      `${a.date}${a.time}` < `${b.date}${b.time}` ? 1 : -1,
+      `${a.date}${a.time}` < `${b.date}${b.time}` ? 1 : -1
     );
     return {
-      upcoming: sorted
-        .filter((b) => b.status === "confirmed" || b.status === "pending")
-        .reverse(),
-      past: sorted.filter(
-        (b) => b.status === "completed" || b.status === "cancelled",
-      ),
+      upcoming: sorted.filter((b) => b.status === "confirmed" || b.status === "pending").reverse(),
+      past: sorted.filter((b) => b.status === "completed" || b.status === "cancelled"),
     };
   }, [bookings]);
 
@@ -86,9 +69,7 @@ export default function BookingsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
-        예약 내역
-      </h1>
+      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">예약 내역</h1>
 
       {/* 탭 */}
       <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1 md:max-w-md">
@@ -103,9 +84,7 @@ export default function BookingsPage() {
             type="button"
             onClick={() => setTab(key)}
             className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all duration-200 ${
-              tab === key
-                ? "bg-white text-ink shadow-card"
-                : "text-ink-muted hover:text-ink"
+              tab === key ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"
             }`}
           >
             {label}
@@ -115,19 +94,13 @@ export default function BookingsPage() {
 
       <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         {!hydrated &&
-          [0, 1].map((i) => (
-            <div key={i} className="skeleton h-[15.75rem] rounded-3xl" />
-          ))}
+          [0, 1].map((i) => <div key={i} className="skeleton h-[15.75rem] rounded-3xl" />)}
 
         {hydrated && list.length === 0 && (
           <div className="lg:col-span-2">
             <EmptyState
               emoji={tab === "upcoming" ? "🗓️" : "🐾"}
-              title={
-                tab === "upcoming"
-                  ? "예정된 예약이 없어요"
-                  : "지난 이용 내역이 없어요"
-              }
+              title={tab === "upcoming" ? "예정된 예약이 없어요" : "지난 이용 내역이 없어요"}
               desc={
                 tab === "upcoming"
                   ? "우리 아이를 위한 첫 미용을 예약해보세요."
@@ -154,10 +127,7 @@ export default function BookingsPage() {
       </div>
 
       {cancelTarget && (
-        <CancelDialog
-          booking={cancelTarget}
-          onClose={() => setCancelTarget(null)}
-        />
+        <CancelDialog booking={cancelTarget} onClose={() => setCancelTarget(null)} />
       )}
       {reviewTarget && (
         <ReviewDialog
@@ -189,10 +159,8 @@ function BookingCard({
   const service = getServiceById(booking.serviceId);
   const salon = getSalonById(booking.salonId);
   const groomer = getGroomerById(booking.groomerId);
-  const cancellable =
-    booking.status === "confirmed" || booking.status === "pending";
-  const isPast =
-    booking.status === "completed" || booking.status === "cancelled";
+  const cancellable = booking.status === "confirmed" || booking.status === "pending";
+  const isPast = booking.status === "completed" || booking.status === "cancelled";
   // 후기는 이용 완료된 예약에서만 쓸 수 있다
   const reviewable = booking.status === "completed" && !booking.reviewed;
   const dDay = cancellable ? dDayLabel(booking.date) : null;
@@ -214,9 +182,7 @@ function BookingCard({
             )}
           </span>
           {/* 금액을 머리줄로 올려 본문(이름·일시·미용실)이 전체 폭을 쓰게 한다 */}
-          <p className="text-base font-extrabold text-ink">
-            {formatWon(booking.total)}
-          </p>
+          <p className="text-base font-extrabold text-ink">{formatWon(booking.total)}</p>
         </div>
 
         <div className="mt-4 flex items-start gap-3.5">
@@ -253,39 +219,21 @@ function BookingCard({
         {open && (
           <dl className="mt-4 space-y-2 rounded-2xl bg-cream-50 p-4 text-sm animate-fade-in">
             <DetailRow label="예약번호" value={booking.bookingNo} />
-            <DetailRow
-              label="서비스"
-              value={`${service?.name} (${service?.shortDesc})`}
-            />
-            <DetailRow
-              label="소요 시간"
-              value={service ? `약 ${service.durationMin}분` : "-"}
-            />
+            <DetailRow label="서비스" value={`${service?.name} (${service?.shortDesc})`} />
+            <DetailRow label="소요 시간" value={service ? `약 ${service.durationMin}분` : "-"} />
             <DetailRow label="미용실 주소" value={salon?.address ?? "-"} />
-            <DetailRow
-              label="기본 가격"
-              value={service ? formatWon(booking.price) : "-"}
-            />
+            <DetailRow label="기본 가격" value={service ? formatWon(booking.price) : "-"} />
             {booking.discount > 0 && (
-              <DetailRow
-                label="할인"
-                value={`- ₩ ${booking.discount.toLocaleString("ko-KR")}`}
-              />
+              <DetailRow label="할인" value={`- ₩ ${booking.discount.toLocaleString("ko-KR")}`} />
             )}
-            <DetailRow
-              label="결제 금액"
-              value={formatWon(booking.total)}
-              bold
-            />
+            <DetailRow label="결제 금액" value={formatWon(booking.total)} bold />
           </dl>
         )}
 
         {booking.status === "completed" && myReview && (
           <div className="mt-3 rounded-2xl border border-cream-200 bg-cream-50 p-4">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-ink-soft">
-                내가 남긴 후기
-              </span>
+              <span className="text-xs font-bold text-ink-soft">내가 남긴 후기</span>
               <StarRow rating={myReview.rating} />
             </div>
             <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-ink-soft">
@@ -371,13 +319,7 @@ function DetailRow({
 
 /* ------------------------------- 취소 다이얼로그 ------------------------------ */
 
-function CancelDialog({
-  booking,
-  onClose,
-}: {
-  booking: Booking;
-  onClose: () => void;
-}) {
+function CancelDialog({ booking, onClose }: { booking: Booking; onClose: () => void }) {
   const { toast } = useToast();
   const service = getServiceById(booking.serviceId);
 
@@ -385,9 +327,7 @@ function CancelDialog({
     <Overlay onClose={onClose} label="예약 취소 확인">
       <div className="text-center">
         <span className="text-5xl">🥺</span>
-        <h2 className="mt-3 text-lg font-extrabold text-ink">
-          예약을 취소할까요?
-        </h2>
+        <h2 className="mt-3 text-lg font-extrabold text-ink">예약을 취소할까요?</h2>
         <p className="mt-2 text-sm leading-relaxed text-ink-muted">
           {formatDateKo(booking.date)} {booking.time} · {service?.name}
           <br />
@@ -465,9 +405,7 @@ function ReviewDialog({
           >
             <Star
               className={`h-9 w-9 transition-colors ${
-                n <= rating
-                  ? "fill-amber-400 text-amber-400"
-                  : "fill-cream-200 text-cream-200"
+                n <= rating ? "fill-amber-400 text-amber-400" : "fill-cream-200 text-cream-200"
               }`}
             />
           </button>

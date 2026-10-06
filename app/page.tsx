@@ -11,12 +11,8 @@ import { GROOMERS, SALONS, SERVICES } from "@/lib/data";
 import { formatWon } from "@/lib/format";
 
 export default function HomePage() {
-  const popularSalons = [...SALONS]
-    .sort((a, b) => b.reviewCount - a.reviewCount)
-    .slice(0, 3);
-  const topGroomers = [...GROOMERS]
-    .sort((a, b) => b.reviewCount - a.reviewCount)
-    .slice(0, 4);
+  const popularSalons = [...SALONS].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 3);
+  const topGroomers = [...GROOMERS].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 4);
 
   return (
     <div>
@@ -113,9 +109,7 @@ export default function HomePage() {
                   {service.emoji}
                 </span>
                 <p className="mt-3 text-sm font-bold text-ink">{service.name}</p>
-                <p className="mt-0.5 text-xs text-ink-faint">
-                  {formatWon(service.price)}~
-                </p>
+                <p className="mt-0.5 text-xs text-ink-faint">{formatWon(service.price)}~</p>
               </Link>
             ))}
           </div>
@@ -123,11 +117,7 @@ export default function HomePage() {
 
         {/* 인기 미용실 */}
         <section className="mt-10 md:mt-14">
-          <SectionHeader
-            title="지금 인기 있는 미용실"
-            moreHref="/salons"
-            moreLabel="전체 보기"
-          />
+          <SectionHeader title="지금 인기 있는 미용실" moreHref="/salons" moreLabel="전체 보기" />
           <div className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 lg:grid-cols-3">
             {popularSalons.map((salon) => (
               <div key={salon.id} className="w-[78%] shrink-0 snap-start sm:w-auto">
@@ -165,10 +155,7 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="mt-3">
-                  <RatingBadge
-                    rating={groomer.rating}
-                    reviewCount={groomer.reviewCount}
-                  />
+                  <RatingBadge rating={groomer.rating} reviewCount={groomer.reviewCount} />
                 </div>
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {groomer.specialties.map((s) => (
@@ -206,9 +193,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-lg font-extrabold tracking-tight text-ink md:text-xl">
-        {title}
-      </h2>
+      <h2 className="text-lg font-extrabold tracking-tight text-ink md:text-xl">{title}</h2>
       {moreHref && moreLabel && (
         <Link
           href={moreHref}

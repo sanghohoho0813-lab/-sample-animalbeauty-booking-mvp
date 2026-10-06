@@ -199,14 +199,14 @@ export default function Calendar({
                   : soldOut
                     ? "text-ink-faint/60 line-through"
                     : disabled
-                    ? "text-ink-faint/50"
-                    : `hover:bg-mint-50 ${
-                        weekday === 0
-                          ? "text-coral-600"
-                          : weekday === 6
-                            ? "text-mint-600"
-                            : "text-ink"
-                      }`
+                      ? "text-ink-faint/50"
+                      : `hover:bg-mint-50 ${
+                          weekday === 0
+                            ? "text-coral-600"
+                            : weekday === 6
+                              ? "text-mint-600"
+                              : "text-ink"
+                        }`
               } ${isToday && !isSelected ? "ring-1 ring-inset ring-mint-300" : ""}`}
               aria-pressed={isSelected}
             >

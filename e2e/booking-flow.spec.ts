@@ -7,7 +7,11 @@ test.describe("예약 전체 흐름", () => {
     await page.goto("/");
 
     // 홈 서비스 카드로 진입하면 서비스가 미리 선택된다
-    await page.locator('a[href^="/booking?service="]').filter({ hasText: "기본 미용" }).first().click();
+    await page
+      .locator('a[href^="/booking?service="]')
+      .filter({ hasText: "기본 미용" })
+      .first()
+      .click();
     await expect(heading(page)).toHaveText("어떤 아이가 미용을 받나요?");
 
     // 하나만 고르는 단계는 고르면 바로 다음 단계로 넘어간다
@@ -28,7 +32,9 @@ test.describe("예약 전체 흐름", () => {
     const dateKey = await pickDate(page, 8);
     const [y, m, d] = dateKey.split("-").map(Number);
     const shownDate = `${y}. ${m}. ${d}`;
-    await expect(page.getByRole("group", { name: /시간$/ }).getByRole("button", { pressed: true })).toHaveCount(0);
+    await expect(
+      page.getByRole("group", { name: /시간$/ }).getByRole("button", { pressed: true })
+    ).toHaveCount(0);
     await pickFirstOpenTime(page);
     await page.getByRole("button", { name: "다음" }).last().click();
 
@@ -59,9 +65,15 @@ test.describe("예약 전체 흐름", () => {
 
     // 취소 → 지난 내역으로 이동, 취소된 예약에는 후기 버튼이 없다
     await card.getByRole("button", { name: "예약 취소" }).click();
-    await page.getByRole("dialog", { name: "예약 취소 확인" }).getByRole("button", { name: "예약 취소" }).click();
+    await page
+      .getByRole("dialog", { name: "예약 취소 확인" })
+      .getByRole("button", { name: "예약 취소" })
+      .click();
     await page.getByRole("button", { name: /지난 내역/ }).click();
-    const cancelled = page.locator("div.overflow-hidden.rounded-3xl").filter({ hasText: "취소됨" }).filter({ hasText: shownDate });
+    const cancelled = page
+      .locator("div.overflow-hidden.rounded-3xl")
+      .filter({ hasText: "취소됨" })
+      .filter({ hasText: shownDate });
     await expect(cancelled).toHaveCount(1);
     await expect(cancelled.getByRole("button", { name: "후기 작성" })).toHaveCount(0);
 

@@ -82,7 +82,12 @@ describe("getMaxStep — 선택값이 서로 맞을 때만 다음 단계로", ()
 
 describe("다시 예약", () => {
   it("아이·서비스·미용실·미용사는 유지하고 일시는 비운다", () => {
-    const next = rebookDraft({ petId: "pet-1", serviceId: "svc-2", salonId: "salon-1", groomerId: "grm-2" });
+    const next = rebookDraft({
+      petId: "pet-1",
+      serviceId: "svc-2",
+      salonId: "salon-1",
+      groomerId: "grm-2",
+    });
     expect(next).toMatchObject({ petId: "pet-1", serviceId: "svc-2", date: null, time: null });
     expect(getMaxStep(draft(next), SEED_PETS)).toBe(REBOOK_STEP);
   });
@@ -92,6 +97,9 @@ describe("petSlotCheck", () => {
   it("아이와 서비스가 정해져야 시간 중복을 검사한다", () => {
     expect(petSlotCheck({ petId: null, serviceId: "svc-1" })).toBeUndefined();
     expect(petSlotCheck({ petId: "pet-1", serviceId: null })).toBeUndefined();
-    expect(petSlotCheck({ petId: "pet-1", serviceId: "svc-2" })).toEqual({ petId: "pet-1", durationMin: 120 });
+    expect(petSlotCheck({ petId: "pet-1", serviceId: "svc-2" })).toEqual({
+      petId: "pet-1",
+      durationMin: 120,
+    });
   });
 });

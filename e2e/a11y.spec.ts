@@ -7,7 +7,9 @@ const scan = async (page: Page) => {
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
   // 실패 시 어떤 규칙·요소인지 바로 보이게
-  expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+  expect(
+    violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)
+  ).toEqual([]);
 };
 
 const PAGES = ["/", "/salons", "/bookings", "/favorites", "/pets", "/my", "/no-such-page"];
@@ -74,7 +76,12 @@ test.describe("키보드 사용", () => {
   });
 
   test("달력은 방향키로 날짜를 옮기고 Enter로 고른다", async ({ page }) => {
-    await openBookingAt(page, 4, { petId: "pet-1", serviceId: "svc-1", salonId: "salon-1", groomerId: "grm-1" });
+    await openBookingAt(page, 4, {
+      petId: "pet-1",
+      serviceId: "svc-1",
+      salonId: "salon-1",
+      groomerId: "grm-1",
+    });
     const first = page.locator("[data-date][tabindex='0']");
     await first.focus();
     const start = await first.getAttribute("data-date");

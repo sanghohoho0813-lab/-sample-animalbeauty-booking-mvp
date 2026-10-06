@@ -1,14 +1,7 @@
 "use client";
 
 import { CheckCircle2, Info, XCircle } from "lucide-react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 
 type ToastKind = "success" | "info" | "error";
 
@@ -44,9 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = idRef.current;
     setItems((prev) => [...prev.slice(-2), { id, kind, message }]);
     setTimeout(() => {
-      setItems((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, leaving: true } : t))
-      );
+      setItems((prev) => prev.map((t) => (t.id === id ? { ...t, leaving: true } : t)));
     }, 2400);
     setTimeout(() => {
       setItems((prev) => prev.filter((t) => t.id !== id));

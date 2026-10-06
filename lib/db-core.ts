@@ -180,7 +180,7 @@ export function isReview(v: unknown): v is Review {
   );
 }
 
-const uniqueBy = <T,>(items: T[], key: (t: T) => string) => {
+const uniqueBy = <T>(items: T[], key: (t: T) => string) => {
   const seen = new Set<string>();
   return items.filter((t) => {
     const k = key(t);
@@ -207,9 +207,7 @@ export function parseStoredDb(raw: unknown): StoredDb | null {
     bookings: uniqueBy(raw.bookings.filter(isBooking), (b) => b.id),
     favorites: [...new Set(favorites)],
     // 후기 저장 이전 버전에서 넘어온 데이터에는 reviews가 없다
-    reviews: Array.isArray(raw.reviews)
-      ? uniqueBy(raw.reviews.filter(isReview), (r) => r.id)
-      : [],
+    reviews: Array.isArray(raw.reviews) ? uniqueBy(raw.reviews.filter(isReview), (r) => r.id) : [],
   };
 }
 

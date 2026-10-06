@@ -27,7 +27,7 @@ export default function SalonsPage() {
         (q === "" ||
           s.name.includes(q) ||
           s.address.includes(q) ||
-          s.tags.some((t) => t.includes(q))),
+          s.tags.some((t) => t.includes(q)))
     );
     list = [...list].sort((a, b) => {
       if (sort === "distance") return a.distanceKm - b.distanceKm;
@@ -39,9 +39,7 @@ export default function SalonsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
-        미용실 찾기
-      </h1>
+      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">미용실 찾기</h1>
 
       {/* 검색 */}
       <div className="relative mt-4">
@@ -76,10 +74,7 @@ export default function SalonsPage() {
 
       {/* 결과 수 + 오늘 예약 가능 필터 */}
       <div className="mt-3 flex items-center justify-between gap-3">
-        <p
-          className="min-w-0 truncate text-sm text-ink-muted"
-          aria-live="polite"
-        >
+        <p className="min-w-0 truncate text-sm text-ink-muted" aria-live="polite">
           <span className="font-bold text-ink">{salons.length}곳</span>
           {query.trim() && ` · '${query.trim()}' 검색 결과`}
         </p>

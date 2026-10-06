@@ -33,7 +33,10 @@ export default function SelectionTrail({
   if (items.length === 0) return null;
 
   return (
-    <ol className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 lg:hidden" aria-label="선택한 항목">
+    <ol
+      className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 lg:hidden"
+      aria-label="선택한 항목"
+    >
       {items.map(({ label, step }, i) => (
         <li key={step} className="flex items-center">
           {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-ink-faint" aria-hidden />}

@@ -18,9 +18,7 @@ export default function GroomerAvatar({
 
   if (groomer.image) {
     return (
-      <span
-        className={`relative block shrink-0 overflow-hidden rounded-full ${bg} ${cls}`}
-      >
+      <span className={`relative block shrink-0 overflow-hidden rounded-full ${bg} ${cls}`}>
         <Image
           src={groomer.image}
           alt={`${groomer.name} 미용사`}

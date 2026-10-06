@@ -18,10 +18,7 @@ export function isServiceForPet(
 }
 
 /** 고양이 전문처럼 특정 종만 받는 미용실인지 */
-export function isSalonForPet(
-  salon: Pick<Salon, "species">,
-  pet: Pick<Pet, "species">
-): boolean {
+export function isSalonForPet(salon: Pick<Salon, "species">, pet: Pick<Pet, "species">): boolean {
   return !salon.species || salon.species === pet.species;
 }
 

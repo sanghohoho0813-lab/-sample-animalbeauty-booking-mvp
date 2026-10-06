@@ -28,7 +28,11 @@ export function RatingBadge({
 
 export function StarRow({ rating }: { rating: number }) {
   return (
-    <span className="inline-flex items-center gap-0.5" role="img" aria-label={`별점 5점 중 ${rating}점`}>
+    <span
+      className="inline-flex items-center gap-0.5"
+      role="img"
+      aria-label={`별점 5점 중 ${rating}점`}
+    >
       {[1, 2, 3, 4, 5].map((n) => (
         <Star
           key={n}

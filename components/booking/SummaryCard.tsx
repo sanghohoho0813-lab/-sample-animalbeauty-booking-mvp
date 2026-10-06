@@ -56,9 +56,7 @@ export default function SummaryCard({
           </div>
         </div>
       ) : (
-        <p className="mt-3 text-sm text-ink-faint">
-          선택한 내용이 여기에 차례로 표시돼요.
-        </p>
+        <p className="mt-3 text-sm text-ink-faint">선택한 내용이 여기에 차례로 표시돼요.</p>
       )}
 
       {rows.length > 0 && (
