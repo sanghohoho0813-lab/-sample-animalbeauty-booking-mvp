@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BookingDraft } from "@/lib/booking-context";
+import { EMPTY_DRAFT, type BookingDraft } from "@/lib/booking-context";
 import {
   getMaxStep,
   isSalonForPet,
@@ -13,16 +13,7 @@ import { getSalonById, getServiceById, SEED_PETS } from "@/lib/data";
 const dog = SEED_PETS.find((p) => p.species === "dog")!;
 const cat = SEED_PETS.find((p) => p.species === "cat")!;
 
-const draft = (patch: Partial<BookingDraft> = {}): BookingDraft => ({
-  petId: null,
-  serviceId: null,
-  salonId: null,
-  groomerId: null,
-  date: null,
-  time: null,
-  useCoupon: true,
-  ...patch,
-});
+const draft = (patch: Partial<BookingDraft> = {}): BookingDraft => ({ ...EMPTY_DRAFT, ...patch });
 
 const complete = draft({
   petId: dog.id,
@@ -87,6 +78,12 @@ describe("다시 예약", () => {
       serviceId: "svc-2",
       salonId: "salon-1",
       groomerId: "grm-2",
+      request: { tags: ["얼굴은 동그랗게"], memo: "곰돌이컷" },
+    });
+    expect(next).toMatchObject({
+      requestTags: ["얼굴은 동그랗게"],
+      requestMemo: "곰돌이컷",
+      requestPetId: "pet-1",
     });
     expect(next).toMatchObject({ petId: "pet-1", serviceId: "svc-2", date: null, time: null });
     expect(getMaxStep(draft(next), SEED_PETS)).toBe(REBOOK_STEP);

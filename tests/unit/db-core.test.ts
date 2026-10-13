@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getSalonById, getServiceById, SEED_PETS } from "@/lib/data";
+import { discountOf } from "@/lib/coupons";
+import { COUPONS, getSalonById, getServiceById, SEED_PETS } from "@/lib/data";
+import { isClosedDay, startTimesFor } from "@/lib/slots";
 import {
   loadDb,
   mergeSeedPets,
@@ -84,24 +86,46 @@ describe("loadDb", () => {
     }
   });
 
-  it("사용자가 등록한 아이는 유지하고 데모 아이는 최신 정의로 갱신한다", () => {
-    const stalePet = { ...SEED_PETS[0], image: "/old.png" };
+  it("데모 아이는 사진만 최신으로, 사용자가 고친 이름은 유지하고 등록한 아이도 그대로", () => {
+    const edited = { ...SEED_PETS[0], name: "콩이콩이", image: "/old.png" };
     const db = loadDb(
-      JSON.stringify({ pets: [stalePet, customPet], bookings: [], favorites: [] }),
+      JSON.stringify({ pets: [edited, customPet], bookings: [], favorites: [] }),
       NOW
     );
-    expect(db.pets[0].image).toBe(SEED_PETS[0].image);
+    expect(db.pets[0]).toMatchObject({ name: "콩이콩이", image: SEED_PETS[0].image });
     expect(db.pets.at(-1)).toEqual(customPet);
+  });
+
+  it("예약의 깨진 선택 필드(요청사항·쿠폰)만 버리고 예약은 살린다", () => {
+    const broken = { ...validBooking, request: { tags: "x" }, couponId: "cpn-없음" };
+    const db = loadDb(JSON.stringify({ pets: [], bookings: [broken], favorites: [] }), NOW);
+    expect(db.bookings).toHaveLength(1);
+    expect(db.bookings[0].request).toBeUndefined();
+    expect(db.bookings[0].couponId).toBeUndefined();
   });
 });
 
 describe("시드 예약", () => {
   const bookings = seedBookings(NOW);
 
-  it("가격이 실제 가격 규칙(미용실별 가격)과 일치한다", () => {
+  it("가격·할인이 실제 규칙(미용실별 가격·쿠폰)과 일치한다", () => {
     for (const b of bookings) {
       expect(b.price).toBe(priceAt(getServiceById(b.serviceId)!, getSalonById(b.salonId)));
+      const coupon = COUPONS.find((c) => c.id === b.couponId);
+      expect(b.discount).toBe(coupon ? discountOf(coupon, b.price) : 0);
       expect(b.total).toBe(b.price - b.discount);
+    }
+  });
+
+  it("어느 요일에 열어도 예약은 매장 영업일·영업시간 안에 있다", () => {
+    for (let d = 0; d < 7; d += 1) {
+      const now = new Date(2030, 0, 6 + d, 12, 0); // 일~토
+      for (const b of seedBookings(now)) {
+        const salon = getSalonById(b.salonId)!;
+        expect(isClosedDay(b.date, salon)).toBe(false);
+        const duration = getServiceById(b.serviceId)!.durationMin;
+        expect(startTimesFor(salon, duration)).toContain(b.time);
+      }
     }
   });
 
@@ -146,11 +170,8 @@ describe("settlePastBookings", () => {
 });
 
 describe("mergeSeedPets / newId", () => {
-  it("시드 아이가 지워졌어도 다시 채운다", () => {
-    expect(mergeSeedPets([customPet]).map((p) => p.id)).toEqual([
-      ...SEED_PETS.map((p) => p.id),
-      "pet-custom",
-    ]);
+  it("사용자가 지운 데모 아이는 다시 살리지 않는다", () => {
+    expect(mergeSeedPets([customPet]).map((p) => p.id)).toEqual(["pet-custom"]);
   });
 
   it("연속으로 만들어도 id가 겹치지 않는다", () => {

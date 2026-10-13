@@ -6,3 +6,13 @@
 export function isBookingFlow(pathname: string): boolean {
   return pathname === "/booking";
 }
+
+/** 미용실 상세 (/salons/[id]) — 하단에 '예약하기' 고정 버튼이 있다 */
+export function isSalonDetail(pathname: string): boolean {
+  return /^\/salons\/[^/]+$/.test(pathname);
+}
+
+/** 자체 하단 고정 버튼이 있어 하단 탭 메뉴를 숨기는 화면 */
+export function hidesTabBar(pathname: string): boolean {
+  return isBookingFlow(pathname) || isSalonDetail(pathname);
+}

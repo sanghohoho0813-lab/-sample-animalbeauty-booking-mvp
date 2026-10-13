@@ -3,7 +3,7 @@
 import { CalendarCheck, Heart, Home, Search, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isBookingFlow } from "@/lib/routes";
+import { hidesTabBar } from "@/lib/routes";
 
 const ITEMS = [
   { href: "/", label: "홈", icon: Home },
@@ -16,8 +16,8 @@ const ITEMS = [
 export default function BottomNav() {
   const pathname = usePathname();
 
-  // 예약 진행 중에는 하단 고정 CTA와 겹치지 않도록 숨긴다 (완료 화면에서는 다시 보인다)
-  if (isBookingFlow(pathname)) return null;
+  // 예약 진행·미용실 상세는 자체 하단 고정 버튼과 겹치지 않도록 숨긴다
+  if (hidesTabBar(pathname)) return null;
 
   return (
     <nav

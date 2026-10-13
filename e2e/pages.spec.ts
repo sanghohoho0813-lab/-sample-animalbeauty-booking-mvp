@@ -18,8 +18,15 @@ test.describe("미용실 찾기", () => {
       "true"
     );
 
+    // '오늘 예약 가능'은 실제 남은 시간으로 거른다 — 남은 매장은 모두 '오늘'로 표시된다
     await page.getByLabel("오늘 예약 가능").check();
-    await expect(count).not.toContainText("6곳");
+    const empty = page.getByText("조건에 맞는 미용실이 없어요");
+    const labels = page
+      .locator("main")
+      .getByText(/예약 가능$/)
+      .locator("visible=true");
+    await expect(empty.or(labels.first())).toBeVisible();
+    for (const label of await labels.allTextContents()) expect(label).toContain("오늘");
   });
 
   test("찜은 새로고침 후에도 유지된다", async ({ page }) => {
@@ -72,10 +79,13 @@ test.describe("반려동물 등록", () => {
 });
 
 test.describe("마이페이지", () => {
-  test("쿠폰 기한은 오늘 이후이고, 알림 설정은 새로고침 후에도 유지된다", async ({ page }) => {
+  test("쿠폰은 기한·사용 예정 상태를 보여주고, 알림 설정은 새로고침 후에도 유지된다", async ({
+    page,
+  }) => {
     await page.goto("/my");
-    const deadlines = await page.getByText(/\d+월 \d+일까지/).allTextContents();
-    expect(deadlines).toHaveLength(3);
+    await expect(page.getByText(/\d+월 \d+일까지/).first()).toBeVisible();
+    // 시드 예약(몽이 스파)에 쓴 1회용 쿠폰은 '사용 예정'
+    await expect(page.getByText(/예약에 사용 예정/)).toBeVisible();
 
     const toggle = page.getByRole("switch", { name: /혜택 알림/ });
     const was = await toggle.getAttribute("aria-checked");

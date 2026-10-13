@@ -28,7 +28,7 @@ export default function FavoritesPage() {
             actionLabel="미용실 둘러보기"
           />
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 divide-y divide-cream-200 sm:grid-cols-2 sm:gap-4 sm:divide-y-0 lg:grid-cols-3">
             {liked.map((salon) => (
               <SalonCard key={salon.id} salon={salon} compactOnMobile />
             ))}

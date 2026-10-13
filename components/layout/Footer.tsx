@@ -1,11 +1,18 @@
 import { PawPrint } from "lucide-react";
 import Link from "next/link";
 import MiraeLogo from "@/components/brand/MiraeLogo";
+import { MIRAE_LINKS } from "@/lib/mirae";
 
 const SERVICE_LINKS = [
   { href: "/booking", label: "미용 예약" },
   { href: "/salons", label: "미용실 찾기" },
-  { href: "/my", label: "멤버십 & 쿠폰" },
+  { href: "/my", label: "쿠폰·알림 설정" },
+];
+
+const HELP_LINKS = [
+  { href: "/help#policy", label: "예약 변경·취소 규정" },
+  { href: "/help#visit", label: "방문 전 준비" },
+  { href: "/help#faq", label: "자주 묻는 질문" },
 ];
 
 export default function Footer() {
@@ -43,18 +50,43 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <p className="font-bold text-ink">고객지원</p>
+              <p className="font-bold text-ink">이용 안내</p>
               <ul className="mt-3 space-y-2 text-ink-muted">
-                <li>공지사항</li>
-                <li>자주 묻는 질문</li>
-                <li>1:1 문의</li>
+                {HELP_LINKS.map(({ href, label }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className="transition-colors hover:text-mint-700 hover:underline"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="col-span-2 md:col-span-1">
-              <p className="font-bold text-ink">문의</p>
+              <p className="font-bold text-ink">서비스 도입 문의</p>
               <ul className="mt-3 space-y-2 text-ink-muted">
-                <li>평일 09:00 - 18:00</li>
-                <li>hello@pawbeauty.demo</li>
+                <li>
+                  <a
+                    href={MIRAE_LINKS.consult}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-colors hover:text-mint-700 hover:underline"
+                  >
+                    우리 회사도 만들어보기<span className="sr-only"> (새 창)</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={MIRAE_LINKS.home}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-colors hover:text-mint-700 hover:underline"
+                  >
+                    미래에이아이랩 홈페이지<span className="sr-only"> (새 창)</span>
+                  </a>
+                </li>
               </ul>
             </div>
           </div>

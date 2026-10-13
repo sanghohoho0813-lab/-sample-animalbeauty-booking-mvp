@@ -52,6 +52,7 @@ export const SERVICES: Service[] = [
     desc: "목욕, 기본 클리핑, 발톱·귀 정리까지 포함된 기본 케어예요.",
     price: 45000,
     durationMin: 90,
+    cycleWeeks: 6,
     emoji: "✂️",
     popular: true,
   },
@@ -62,6 +63,7 @@ export const SERVICES: Service[] = [
     desc: "곰돌이컷, 브로콜리컷 등 원하는 스타일로 가위컷을 진행해요.",
     price: 65000,
     durationMin: 120,
+    cycleWeeks: 6,
     emoji: "🎀",
     popular: true,
   },
@@ -72,6 +74,7 @@ export const SERVICES: Service[] = [
     desc: "탄산 스파와 아로마 마사지로 피부와 모질을 깊이 케어해요.",
     price: 80000,
     durationMin: 150,
+    cycleWeeks: 4,
     emoji: "🛁",
   },
   {
@@ -81,6 +84,7 @@ export const SERVICES: Service[] = [
     desc: "발톱, 귀 청소, 위생 부위 정리만 빠르게 받아보세요.",
     price: 20000,
     durationMin: 30,
+    cycleWeeks: 3,
     emoji: "🐾",
   },
   {
@@ -90,6 +94,7 @@ export const SERVICES: Service[] = [
     desc: "고양이 전문 미용사가 스트레스를 최소화하며 케어해요.",
     price: 60000,
     durationMin: 100,
+    cycleWeeks: 8,
     emoji: "🐈",
     species: "cat",
   },
@@ -100,6 +105,7 @@ export const SERVICES: Service[] = [
     desc: "피부가 예민한 아이를 위한 저자극 약욕 프로그램이에요.",
     price: 50000,
     durationMin: 70,
+    cycleWeeks: 2,
     emoji: "🌿",
   },
 ];
@@ -108,14 +114,28 @@ export const SALONS: Salon[] = [
   {
     id: "salon-1",
     name: "살롱 드 포우",
+    headline: "겁 많은 소형견을 위한 1:1 예약제 살롱",
     rating: 4.9,
     reviewCount: 324,
     distanceKm: 0.4,
     priceFrom: 45000,
-    availableToday: true,
     tags: ["소형견 전문", "1:1 케어", "예약제"],
+    breeds: ["푸들", "말티즈", "비숑", "포메라니안"],
+    amenities: ["private_room", "low_noise_dryer", "cctv", "photo_report"],
+    notices: [
+      "1:1 예약제라 보호자 대기 공간이 따로 없어요. 픽업 시간에 맞춰 와주세요.",
+      "최근 1년 안의 광견병·종합백신 접종 기록을 확인해요.",
+    ],
+    reviewKeywords: [
+      { label: "꼼꼼해요", count: 241 },
+      { label: "겁 많은 아이도 편안해해요", count: 198 },
+      { label: "스타일이 사진과 같아요", count: 167 },
+      { label: "미용 후 사진을 보내줘요", count: 122 },
+    ],
+    weeklyBookings: 46,
     address: "서울 강남구 청담동 12-3",
     openHours: "09:00 - 19:00",
+    closedWeekdays: [1],
     emoji: "🐩",
     gradient: "from-mint-100 to-mint-200",
     image: "/images/salons/salon-01-salon-de-paw-interior.png",
@@ -123,14 +143,28 @@ export const SALONS: Salon[] = [
   {
     id: "salon-2",
     name: "멍뭉살롱",
+    headline: "대형견도 여유 있게 받는 넓은 미용 공간",
     rating: 4.8,
     reviewCount: 218,
     distanceKm: 0.9,
     priceFrom: 40000,
-    availableToday: true,
     tags: ["대형견 가능", "주차 편리"],
+    breeds: ["골든 리트리버", "웰시코기", "시바견", "진돗개"],
+    amenities: ["large_dog", "parking", "cctv", "photo_report"],
+    notices: [
+      "20kg 이상 대형견은 미용 시간이 30분 정도 더 걸릴 수 있어요.",
+      "건물 지하 주차장을 2시간 무료로 이용할 수 있어요.",
+    ],
+    reviewKeywords: [
+      { label: "대형견도 정성껏 해줘요", count: 152 },
+      { label: "주차가 편해요", count: 131 },
+      { label: "친절해요", count: 118 },
+      { label: "미용 후 사진을 보내줘요", count: 74 },
+    ],
+    weeklyBookings: 38,
     address: "서울 서초구 서초동 45-1",
     openHours: "10:00 - 20:00",
+    closedWeekdays: [2],
     emoji: "🐕",
     gradient: "from-cream-200 to-cream-300",
     image: "/images/salons/salon-02-meongmong-salon-interior.png",
@@ -138,14 +172,28 @@ export const SALONS: Salon[] = [
   {
     id: "salon-3",
     name: "포근포근 펫살롱",
+    headline: "노령견·예민한 아이를 위한 저자극 케어",
     rating: 4.7,
     reviewCount: 156,
     distanceKm: 1.2,
     priceFrom: 38000,
-    availableToday: false,
     tags: ["노령견 케어", "저소음 드라이"],
+    breeds: ["노령견", "시츄", "요크셔테리어", "말티즈"],
+    amenities: ["low_noise_dryer", "private_room", "cctv"],
+    notices: [
+      "10살 이상 아이는 미용 중간에 쉬는 시간을 가지며 진행해요.",
+      "심장·관절 질환이 있다면 예약 요청사항에 꼭 적어주세요.",
+    ],
+    reviewKeywords: [
+      { label: "노령견도 안심이에요", count: 109 },
+      { label: "천천히 해줘요", count: 96 },
+      { label: "드라이어 소리가 작아요", count: 71 },
+      { label: "친절해요", count: 64 },
+    ],
+    weeklyBookings: 21,
     address: "서울 서초구 잠원동 8-2",
     openHours: "09:30 - 18:30",
+    closedWeekdays: [0],
     emoji: "🧸",
     gradient: "from-coral-100 to-coral-200",
     image: "/images/salons/salon-03-pogeunpogeun-pet-salon-interior.png",
@@ -153,14 +201,28 @@ export const SALONS: Salon[] = [
   {
     id: "salon-4",
     name: "코코 펫뷰티",
+    headline: "탄산 스파와 아로마로 피부·모질까지 관리",
     rating: 4.9,
     reviewCount: 287,
     distanceKm: 1.6,
     priceFrom: 50000,
-    availableToday: true,
     tags: ["스파 전문", "프리미엄"],
+    breeds: ["비숑", "포메라니안", "푸들", "스피츠"],
+    amenities: ["spa_equipment", "private_room", "parking", "photo_report"],
+    notices: [
+      "스파는 피부 상태를 먼저 확인한 뒤 진행해요. 상처가 있다면 미리 알려주세요.",
+      "스파 당일에는 집에서 다시 목욕하지 않는 것이 좋아요.",
+    ],
+    reviewKeywords: [
+      { label: "털이 부드러워졌어요", count: 201 },
+      { label: "피부가 좋아졌어요", count: 143 },
+      { label: "향이 은은해요", count: 97 },
+      { label: "꼼꼼해요", count: 88 },
+    ],
+    weeklyBookings: 41,
     address: "서울 서초구 방배동 77-5",
     openHours: "10:00 - 19:00",
+    closedWeekdays: [3],
     emoji: "💆",
     gradient: "from-mint-100 to-cream-200",
     image: "/images/salons/salon-04-coco-pet-beauty-interior.png",
@@ -168,14 +230,28 @@ export const SALONS: Salon[] = [
   {
     id: "salon-5",
     name: "해피테일",
+    headline: "합리적인 가격, 당일 예약도 빠르게",
     rating: 4.6,
     reviewCount: 132,
     distanceKm: 2.1,
     priceFrom: 35000,
-    availableToday: true,
     tags: ["가성비", "당일 예약"],
+    breeds: ["말티즈", "푸들", "치와와", "믹스견"],
+    amenities: ["pickup", "cctv"],
+    notices: [
+      "부분 관리는 30분 안팎으로 빠르게 끝나요.",
+      "근처 1km 안은 픽업·드롭 서비스를 요청할 수 있어요.",
+    ],
+    reviewKeywords: [
+      { label: "가성비가 좋아요", count: 88 },
+      { label: "빠르게 끝나요", count: 79 },
+      { label: "친절해요", count: 61 },
+      { label: "예약이 쉬워요", count: 40 },
+    ],
+    weeklyBookings: 52,
     address: "서울 강남구 논현동 31-9",
     openHours: "09:00 - 18:00",
+    closedWeekdays: [],
     emoji: "🐾",
     gradient: "from-cream-100 to-mint-100",
     image: "/images/salons/salon-05-happy-tail-interior.png",
@@ -183,15 +259,29 @@ export const SALONS: Salon[] = [
   {
     id: "salon-6",
     name: "캣살롱 모모",
+    headline: "고양이만 받는 조용한 무마취 미용",
     rating: 4.8,
     reviewCount: 194,
     distanceKm: 2.8,
     priceFrom: 55000,
-    availableToday: false,
     species: "cat",
     tags: ["고양이 전문", "무마취 미용"],
+    breeds: ["코리안숏헤어", "페르시안", "러시안블루", "랙돌"],
+    amenities: ["cat_room", "no_anesthesia", "low_noise_dryer", "cctv"],
+    notices: [
+      "이동장에 넣어서 데려와주세요.",
+      "스트레스 신호가 보이면 미용을 멈추고 보호자께 먼저 연락드려요.",
+    ],
+    reviewKeywords: [
+      { label: "고양이가 편안해해요", count: 123 },
+      { label: "무마취인데도 깔끔해요", count: 101 },
+      { label: "엉킨 털도 잘 풀어줘요", count: 77 },
+      { label: "친절해요", count: 58 },
+    ],
+    weeklyBookings: 24,
     address: "서울 강남구 역삼동 102-4",
     openHours: "11:00 - 20:00",
+    closedWeekdays: [1],
     emoji: "🐱",
     gradient: "from-coral-50 to-cream-200",
     image: "/images/salons/salon-06-cat-salon-momo-interior.png",
@@ -353,26 +443,36 @@ export const GROOMERS: Groomer[] = [
   },
 ];
 
-export const REVIEWS: Review[] = [
+/**
+ * 공개 후기 샘플. 날짜는 '며칠 전'으로 두고 화면에서 오늘 기준으로 계산한다
+ * (데모를 언제 열어도 최근 후기로 보이고, 예약 이력과 날짜가 어긋나지 않게).
+ */
+type SeedReview = Omit<Review, "date"> & { daysAgo: number };
+
+const SEED_REVIEWS: SeedReview[] = [
   {
     id: "rev-1",
     salonId: "salon-1",
-    author: "김팀장",
-    petName: "콩이",
+    groomerId: "grm-1",
+    author: "정하은",
+    petName: "두리",
     rating: 5,
-    content: "겁 많은 콩이가 처음으로 안 떨고 미용을 받았어요. 이수진 선생님 최고예요!",
-    date: "2026-08-18",
+    content: "겁 많은 두리가 처음으로 안 떨고 미용을 받았어요. 이수진 선생님 최고예요!",
+    daysAgo: 2,
     serviceName: "기본 미용",
+    keywords: ["겁 많은 아이도 편안해해요", "꼼꼼해요"],
   },
   {
     id: "rev-2",
     salonId: "salon-1",
+    groomerId: "grm-2",
     author: "박서준",
     petName: "두부",
     rating: 5,
     content: "곰돌이컷 요청했는데 사진보다 더 귀엽게 나왔어요. 재방문 의사 100%!",
-    date: "2026-08-15",
+    daysAgo: 6,
     serviceName: "스페셜 미용",
+    keywords: ["스타일이 사진과 같아요"],
   },
   {
     id: "rev-3",
@@ -381,18 +481,21 @@ export const REVIEWS: Review[] = [
     petName: "라떼",
     rating: 4,
     content: "예약제라 대기 없이 바로 진행돼서 좋았어요. 마무리도 깔끔합니다.",
-    date: "2026-08-11",
+    daysAgo: 11,
     serviceName: "기본 미용",
+    keywords: ["꼼꼼해요"],
   },
   {
     id: "rev-4",
     salonId: "salon-2",
+    groomerId: "grm-4",
     author: "최민준",
     petName: "초코",
     rating: 5,
     content: "리트리버라 미용실 찾기 힘들었는데 대형견도 정성껏 해주셔서 감동했어요.",
-    date: "2026-08-17",
+    daysAgo: 3,
     serviceName: "기본 미용",
+    keywords: ["대형견도 정성껏 해줘요", "친절해요"],
   },
   {
     id: "rev-5",
@@ -401,18 +504,21 @@ export const REVIEWS: Review[] = [
     petName: "봄이",
     rating: 4,
     content: "주차가 편해서 좋아요. 미용 후 사진도 찍어서 보내주셨어요.",
-    date: "2026-08-12",
+    daysAgo: 9,
     serviceName: "스페셜 미용",
+    keywords: ["주차가 편해요", "미용 후 사진을 보내줘요"],
   },
   {
     id: "rev-6",
     salonId: "salon-3",
+    groomerId: "grm-6",
     author: "한소희",
     petName: "구름",
     rating: 5,
     content: "15살 노령견인데 중간중간 쉬어가며 해주셔서 마음 놓고 맡겼어요.",
-    date: "2026-08-16",
+    daysAgo: 5,
     serviceName: "약욕 & 피부 케어",
+    keywords: ["노령견도 안심이에요", "천천히 해줘요"],
   },
   {
     id: "rev-7",
@@ -421,18 +527,21 @@ export const REVIEWS: Review[] = [
     petName: "탄이",
     rating: 4,
     content: "저소음 드라이어라 그런지 아이가 훨씬 덜 무서워했어요.",
-    date: "2026-08-09",
+    daysAgo: 13,
     serviceName: "기본 미용",
+    keywords: ["드라이어 소리가 작아요"],
   },
   {
     id: "rev-8",
     salonId: "salon-4",
-    author: "김팀장",
-    petName: "몽이",
+    groomerId: "grm-8",
+    author: "송민아",
+    petName: "솜이",
     rating: 5,
-    content: "탄산 스파 받고 나서 털이 정말 부드러워졌어요. 몽이도 기분 좋아 보여요.",
-    date: "2026-08-14",
+    content: "탄산 스파 받고 나서 털이 정말 부드러워졌어요. 솜이도 기분 좋아 보여요.",
+    daysAgo: 1,
     serviceName: "프리미엄 스파",
+    keywords: ["털이 부드러워졌어요", "향이 은은해요"],
   },
   {
     id: "rev-9",
@@ -441,8 +550,9 @@ export const REVIEWS: Review[] = [
     petName: "심바",
     rating: 5,
     content: "피부 트러블이 있었는데 스파 두 번 받고 많이 좋아졌습니다.",
-    date: "2026-08-08",
+    daysAgo: 8,
     serviceName: "프리미엄 스파",
+    keywords: ["피부가 좋아졌어요"],
   },
   {
     id: "rev-10",
@@ -451,8 +561,9 @@ export const REVIEWS: Review[] = [
     petName: "코코",
     rating: 4,
     content: "가격대가 있지만 그만큼 케어가 확실해요. 향도 은은하고 좋아요.",
-    date: "2026-08-05",
+    daysAgo: 16,
     serviceName: "약욕 & 피부 케어",
+    keywords: ["향이 은은해요", "꼼꼼해요"],
   },
   {
     id: "rev-11",
@@ -461,8 +572,9 @@ export const REVIEWS: Review[] = [
     petName: "감자",
     rating: 4,
     content: "당일 예약으로 급하게 갔는데 친절하게 잘해주셨어요. 가성비 좋아요.",
-    date: "2026-08-13",
+    daysAgo: 4,
     serviceName: "부분 관리",
+    keywords: ["가성비가 좋아요", "예약이 쉬워요"],
   },
   {
     id: "rev-12",
@@ -471,8 +583,9 @@ export const REVIEWS: Review[] = [
     petName: "달이",
     rating: 4,
     content: "발톱이랑 귀청소만 받았는데 금방 끝나서 좋았어요.",
-    date: "2026-08-07",
+    daysAgo: 12,
     serviceName: "부분 관리",
+    keywords: ["빠르게 끝나요"],
   },
   {
     id: "rev-13",
@@ -483,18 +596,21 @@ export const REVIEWS: Review[] = [
     petName: "보리",
     rating: 5,
     content: "무마취인데도 보리가 얌전히 있었다니 신기해요. 고양이 전문은 다르네요.",
-    date: "2026-08-19",
+    daysAgo: 4,
     serviceName: "고양이 미용",
+    keywords: ["무마취인데도 깔끔해요", "고양이가 편안해해요"],
   },
   {
     id: "rev-14",
     salonId: "salon-6",
+    groomerId: "grm-13",
     author: "황인엽",
     petName: "치즈",
     rating: 5,
     content: "장모종이라 엉킨 털이 많았는데 아프지 않게 잘 풀어주셨어요. 감사합니다.",
-    date: "2026-08-10",
+    daysAgo: 10,
     serviceName: "고양이 미용",
+    keywords: ["엉킨 털도 잘 풀어줘요"],
   },
   {
     id: "rev-15",
@@ -503,8 +619,9 @@ export const REVIEWS: Review[] = [
     petName: "나비",
     rating: 4,
     content: "낯가림 심한 아이인데 천천히 적응시켜 주셔서 좋았어요.",
-    date: "2026-08-04",
+    daysAgo: 18,
     serviceName: "고양이 미용",
+    keywords: ["고양이가 편안해해요"],
   },
   {
     id: "rev-16",
@@ -513,8 +630,9 @@ export const REVIEWS: Review[] = [
     petName: "마루",
     rating: 5,
     content: "매번 여기만 와요. 아이 컨디션까지 체크해주는 세심함이 좋아요.",
-    date: "2026-08-02",
+    daysAgo: 20,
     serviceName: "스페셜 미용",
+    keywords: ["꼼꼼해요"],
   },
   {
     id: "rev-17",
@@ -525,36 +643,72 @@ export const REVIEWS: Review[] = [
     petName: "몽이",
     rating: 4,
     content: "발 만지는 걸 싫어하는 몽이인데 빠르게 끝내주셔서 힘들어하지 않았어요.",
-    date: "2026-08-01",
+    daysAgo: 33,
     serviceName: "부분 관리",
+    keywords: ["빠르게 끝나요"],
   },
+];
+
+/** 오늘 기준 날짜를 붙인 공개 후기 (최신순) */
+export function getSeedReviews(now: Date): Review[] {
+  return [...SEED_REVIEWS]
+    .sort((a, b) => a.daysAgo - b.daysAgo)
+    .map(({ daysAgo, ...review }) => {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysAgo);
+      const date = `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, "0")}-${`${d.getDate()}`.padStart(2, "0")}`;
+      return { ...review, date };
+    });
+}
+
+/** 후기를 쓸 때 고를 수 있는 키워드 (매장 후기 요약과 같은 표현) */
+export const REVIEW_KEYWORD_OPTIONS = [
+  "꼼꼼해요",
+  "친절해요",
+  "스타일이 마음에 들어요",
+  "아이가 편안해했어요",
+  "미용 후 사진을 보내줘요",
+  "시간을 잘 지켜요",
+];
+
+/** 예약할 때 고르는 요청사항 */
+export const REQUEST_OPTIONS = [
+  "짧게 잘라주세요",
+  "길이는 최대한 유지해주세요",
+  "얼굴은 동그랗게",
+  "발톱은 짧게",
+  "드라이어 소리에 예민해요",
+  "미용 후 사진 받고 싶어요",
 ];
 
 export const COUPONS: Coupon[] = [
   {
     id: "cpn-1",
-    name: "10% 할인 쿠폰",
-    desc: "전체 서비스 10% 할인",
+    name: "멤버 10% 할인",
+    desc: "모든 서비스 · 횟수 제한 없음",
     discountRate: 0.1,
-    expiresInMonths: 0,
+    reusable: true,
+    expiresInMonths: 2,
   },
   {
     id: "cpn-2",
     name: "첫 방문 5,000원 할인",
-    desc: "신규 미용실 첫 예약 시",
-    discountRate: 0,
+    desc: "처음 가는 미용실에서 1회",
+    amount: 5000,
+    firstVisitOnly: true,
     expiresInMonths: 1,
   },
   {
     id: "cpn-3",
     name: "스파 15% 할인",
-    desc: "프리미엄 스파 전용",
+    desc: "프리미엄 스파 1회",
     discountRate: 0.15,
-    expiresInMonths: 2,
+    serviceIds: ["svc-3"],
+    expiresInMonths: 0,
   },
 ];
 
-export const TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+/** 점심시간 — 이 시간에 시작하는 예약은 받지 않는다 */
+export const LUNCH_HOUR = 12;
 
 export function getServiceById(id: string | null) {
   return SERVICES.find((s) => s.id === id) ?? null;
@@ -568,6 +722,11 @@ export function getGroomerById(id: string | null) {
 export function getGroomersBySalon(salonId: string) {
   return GROOMERS.filter((g) => g.salonId === salonId);
 }
-export function getReviewsBySalon(salonId: string) {
-  return REVIEWS.filter((r) => r.salonId === salonId);
+/** 매장 정보의 영업시간 "HH:mm - HH:mm" → 분 단위 [여는 시각, 닫는 시각] */
+export function parseOpenHours(openHours: string): [number, number] {
+  const [open, close] = openHours.split("-").map((t) => {
+    const [h, m] = t.trim().split(":").map(Number);
+    return h * 60 + m;
+  });
+  return [open, close];
 }

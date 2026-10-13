@@ -1,6 +1,17 @@
 import { expect, test } from "@playwright/test";
 
-const PAGES = ["/", "/salons", "/booking", "/bookings", "/favorites", "/pets", "/my"];
+const PAGES = [
+  "/",
+  "/salons",
+  "/salons/salon-6",
+  "/booking",
+  "/bookings",
+  "/bookings/bk-seed-2",
+  "/favorites",
+  "/pets",
+  "/my",
+  "/help",
+];
 const WIDTHS = [360, 390, 430, 768, 1024, 1280];
 
 test.describe("반응형 — 가로 넘침·콘솔 오류 없음", () => {

@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { dateKeyFromToday, openBookingAt } from "./helpers";
+import { openBookingAt, pickDate, pickFirstOpenTime } from "./helpers";
 
 const scan = async (page: Page) => {
   const { violations } = await new AxeBuilder({ page })
@@ -12,7 +12,19 @@ const scan = async (page: Page) => {
   ).toEqual([]);
 };
 
-const PAGES = ["/", "/salons", "/bookings", "/favorites", "/pets", "/my", "/no-such-page"];
+const PAGES = [
+  "/",
+  "/salons",
+  "/salons/salon-1",
+  "/bookings",
+  "/bookings/bk-seed-1",
+  "/bookings/bk-seed-4",
+  "/favorites",
+  "/pets",
+  "/my",
+  "/help",
+  "/no-such-page",
+];
 
 test.describe("접근성 (axe · WCAG 2.1 AA)", () => {
   for (const path of PAGES) {
@@ -29,22 +41,40 @@ test.describe("접근성 (axe · WCAG 2.1 AA)", () => {
       serviceId: "svc-1",
       salonId: "salon-1",
       groomerId: "grm-1",
-      date: dateKeyFromToday(6),
+      date: null,
       time: null,
     };
     for (const step of [0, 1, 2, 3, 4]) {
       await openBookingAt(page, step, draft);
       await scan(page);
     }
+    // 시간까지 고른 뒤 확인 단계(요청사항·쿠폰)
+    await pickDate(page, 3);
+    await pickFirstOpenTime(page);
+    await scan(page);
+    await page.getByRole("button", { name: "다음" }).last().click();
+    await expect(page.getByRole("heading", { name: "쿠폰" })).toBeVisible();
+    await scan(page);
   });
 
-  test("대화상자 (반려동물 등록 · 예약 취소)", async ({ page }) => {
+  test("대화상자 (반려동물 등록 · 예약 취소 · 일정 변경 · 후기)", async ({ page }) => {
     await page.goto("/pets?add=1");
     await expect(page.getByRole("dialog")).toBeVisible();
     await scan(page);
 
-    await page.goto("/bookings");
-    await page.getByRole("button", { name: "예약 취소" }).first().click();
+    await page.goto("/bookings/bk-seed-1");
+    await page.getByRole("button", { name: "예약 취소" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await scan(page);
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: "일정 변경" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await scan(page);
+    await page.keyboard.press("Escape");
+
+    await page.goto("/bookings/bk-seed-4");
+    await page.getByRole("button", { name: "후기 작성" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
     await scan(page);
   });

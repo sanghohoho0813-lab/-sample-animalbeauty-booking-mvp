@@ -1,54 +1,30 @@
 "use client";
 
-import { CalendarDays, ChevronDown, MapPin, PenLine, RotateCcw, Star, X } from "lucide-react";
+import { ChevronRight, PenLine, RotateCcw } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
+import { ReviewSheet } from "@/components/bookings/BookingSheets";
+import { STAGE_LABEL, STAGE_STYLE, useMyReview } from "@/components/bookings/BookingDetail";
 import EmptyState from "@/components/ui/EmptyState";
 import PetAvatar from "@/components/ui/PetAvatar";
-import { StarRow } from "@/components/ui/Stars";
 import { useBookingDraft } from "@/lib/booking-context";
 import { REBOOK_STEP, rebookDraft } from "@/lib/booking-rules";
-import { getGroomerById, getSalonById, getServiceById, REVIEWS } from "@/lib/data";
-import { addReview, cancelBooking, useDb } from "@/lib/db";
-import { dDayLabel, formatDateKo, formatWon } from "@/lib/format";
-import { useToast } from "@/lib/toast";
-import type { Booking, BookingStatus, Pet, Review } from "@/lib/types";
-import { useModal } from "@/lib/use-modal";
-
-const REVIEW_MAX = 300;
-
-const STATUS_LABEL: Record<BookingStatus, string> = {
-  pending: "확정 대기",
-  confirmed: "예약 확정",
-  completed: "이용 완료",
-  cancelled: "취소됨",
-};
-
-const STATUS_STYLE: Record<BookingStatus, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  confirmed: "bg-mint-100 text-mint-700",
-  completed: "bg-cream-200 text-ink-soft",
-  cancelled: "bg-coral-100 text-coral-600",
-};
+import { getGroomerById, getSalonById, getServiceById } from "@/lib/data";
+import { useDb } from "@/lib/db";
+import { formatDateShortKo, formatWon } from "@/lib/format";
+import { bookingStage, daysUntil, isActive } from "@/lib/lifecycle";
+import type { Booking, Pet } from "@/lib/types";
+import { useNow } from "@/lib/use-now";
 
 type Tab = "upcoming" | "past";
 
 export default function BookingsPage() {
-  const { bookings, pets, reviews, hydrated } = useDb();
+  const { bookings, pets, hydrated } = useDb();
   const { setDraft } = useBookingDraft();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("upcoming");
-  const [cancelTarget, setCancelTarget] = useState<Booking | null>(null);
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
-
-  // 예약별 내 후기 (방금 작성한 후기 + 샘플 계정의 기존 후기)
-  const reviewByBooking = useMemo(() => {
-    const map = new Map<string, Review>();
-    [...REVIEWS, ...reviews].forEach((r) => {
-      if (r.bookingId) map.set(r.bookingId, r);
-    });
-    return map;
-  }, [reviews]);
 
   const rebook = (booking: Booking) => {
     setDraft(rebookDraft(booking));
@@ -56,12 +32,11 @@ export default function BookingsPage() {
   };
 
   const { upcoming, past } = useMemo(() => {
-    const sorted = [...bookings].sort((a, b) =>
-      `${a.date}${a.time}` < `${b.date}${b.time}` ? 1 : -1
-    );
+    const byDate = (a: Booking, b: Booking) =>
+      `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`);
     return {
-      upcoming: sorted.filter((b) => b.status === "confirmed" || b.status === "pending").reverse(),
-      past: sorted.filter((b) => b.status === "completed" || b.status === "cancelled"),
+      upcoming: bookings.filter(isActive).sort(byDate),
+      past: bookings.filter((b) => !isActive(b)).sort((a, b) => byDate(b, a)),
     };
   }, [bookings]);
 
@@ -72,7 +47,7 @@ export default function BookingsPage() {
       <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">예약 내역</h1>
 
       {/* 탭 */}
-      <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1 md:max-w-md">
+      <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1 md:max-w-md" role="tablist">
         {(
           [
             ["upcoming", `예정된 예약${hydrated ? ` ${upcoming.length}` : ""}`],
@@ -82,6 +57,8 @@ export default function BookingsPage() {
           <button
             key={key}
             type="button"
+            role="tab"
+            aria-selected={tab === key}
             onClick={() => setTab(key)}
             className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all duration-200 ${
               tab === key ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"
@@ -92,9 +69,12 @@ export default function BookingsPage() {
         ))}
       </div>
 
-      <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+      <div
+        className="mt-5 grid grid-cols-1 items-start gap-3 lg:grid-cols-2 lg:gap-4"
+        role="tabpanel"
+      >
         {!hydrated &&
-          [0, 1].map((i) => <div key={i} className="skeleton h-[15.75rem] rounded-3xl" />)}
+          [0, 1].map((i) => <div key={i} className="skeleton h-[9.5rem] rounded-3xl" />)}
 
         {hydrated && list.length === 0 && (
           <div className="lg:col-span-2">
@@ -103,7 +83,9 @@ export default function BookingsPage() {
               title={tab === "upcoming" ? "예정된 예약이 없어요" : "지난 이용 내역이 없어요"}
               desc={
                 tab === "upcoming"
-                  ? "우리 아이를 위한 첫 미용을 예약해보세요."
+                  ? past.length > 0
+                    ? "지난 내역에서 같은 조건으로 바로 다시 예약할 수 있어요."
+                    : "우리 아이를 위한 첫 미용을 예약해보세요."
                   : "미용을 받고 나면 이곳에서 후기를 남길 수 있어요."
               }
               actionHref="/booking"
@@ -118,19 +100,14 @@ export default function BookingsPage() {
               key={booking.id}
               booking={booking}
               pet={pets.find((p) => p.id === booking.petId)}
-              myReview={reviewByBooking.get(booking.id)}
-              onCancel={() => setCancelTarget(booking)}
               onReview={() => setReviewTarget(booking)}
               onRebook={() => rebook(booking)}
             />
           ))}
       </div>
 
-      {cancelTarget && (
-        <CancelDialog booking={cancelTarget} onClose={() => setCancelTarget(null)} />
-      )}
       {reviewTarget && (
-        <ReviewDialog
+        <ReviewSheet
           booking={reviewTarget}
           petName={pets.find((p) => p.id === reviewTarget.petId)?.name ?? ""}
           onClose={() => setReviewTarget(null)}
@@ -140,341 +117,96 @@ export default function BookingsPage() {
   );
 }
 
+/** 예약 한 건 요약 — 누르면 예약 상세. 지난 예약은 후기·다시 예약을 바로 할 수 있다. */
 function BookingCard({
   booking,
   pet,
-  myReview,
-  onCancel,
   onReview,
   onRebook,
 }: {
   booking: Booking;
   pet?: Pet;
-  myReview?: Review;
-  onCancel: () => void;
   onReview: () => void;
   onRebook: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const now = useNow();
+  const myReview = useMyReview(booking.id);
   const service = getServiceById(booking.serviceId);
   const salon = getSalonById(booking.salonId);
   const groomer = getGroomerById(booking.groomerId);
-  const cancellable = booking.status === "confirmed" || booking.status === "pending";
-  const isPast = booking.status === "completed" || booking.status === "cancelled";
-  // 후기는 이용 완료된 예약에서만 쓸 수 있다
-  const reviewable = booking.status === "completed" && !booking.reviewed;
-  const dDay = cancellable ? dDayLabel(booking.date) : null;
+  const stage = now ? bookingStage(booking, now) : null;
+  const days = now ? daysUntil(booking.date, now) : null;
+  const reviewable = booking.status === "completed" && !booking.reviewed && !myReview;
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-cream-200 bg-white shadow-card animate-fade-in-up">
-      <div className="p-5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1.5">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_STYLE[booking.status]}`}
-            >
-              {STATUS_LABEL[booking.status]}
-            </span>
-            {dDay && (
-              <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-bold text-white">
-                {dDay}
+    <article className="overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200 animate-fade-in-up">
+      <Link
+        href={`/bookings/${booking.id}`}
+        className="flex items-center gap-3.5 p-4 transition-colors hover:bg-cream-50 md:p-5"
+      >
+        {pet ? (
+          <PetAvatar pet={pet} size="md" />
+        ) : (
+          <span className="h-14 w-14 shrink-0 rounded-full bg-cream-200" aria-hidden />
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {stage ? (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STAGE_STYLE[stage]}`}
+              >
+                {STAGE_LABEL[stage]}
+              </span>
+            ) : (
+              <span className="inline-block h-5 w-16 rounded-full bg-cream-200" />
+            )}
+            {stage === "upcoming" && days !== null && (
+              <span className="rounded-full bg-ink px-2 py-0.5 text-xs font-bold text-white">
+                D-{days}
               </span>
             )}
-          </span>
-          {/* 금액을 머리줄로 올려 본문(이름·일시·미용실)이 전체 폭을 쓰게 한다 */}
-          <p className="text-base font-extrabold text-ink">{formatWon(booking.total)}</p>
-        </div>
-
-        <div className="mt-4 flex items-start gap-3.5">
-          {pet && <PetAvatar pet={pet} size="md" />}
-          <div className="min-w-0 flex-1">
-            {/* 다가오는 예약은 '언제'가 가장 중요하므로 일시를 제목으로 올린다 */}
-            {cancellable ? (
-              <>
-                <p className="text-lg font-extrabold leading-snug text-ink">
-                  {formatDateKo(booking.date)} {booking.time}
-                </p>
-                <p className="mt-0.5 text-base font-semibold text-ink-soft">
-                  {pet?.name ?? "반려동물"} · {service?.name}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-base font-bold text-ink">
-                  {pet?.name ?? "반려동물"} · {service?.name}
-                </p>
-                <p className="mt-1 flex items-start gap-1.5 text-sm text-ink-muted">
-                  <CalendarDays className="mt-0.5 h-4 w-4 shrink-0" />
-                  {formatDateKo(booking.date)} {booking.time}
-                </p>
-              </>
+            {booking.previous && isActive(booking) && (
+              <span className="text-xs font-semibold text-ink-muted">일정 변경됨</span>
             )}
-            <p className="mt-0.5 flex items-start gap-1.5 text-sm text-ink-muted">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-              {salon?.name} · {groomer?.name} 미용사
-            </p>
           </div>
+          <p className="mt-1.5 text-lg font-extrabold leading-snug text-ink">
+            {formatDateShortKo(booking.date)} {booking.time}
+          </p>
+          <p className="truncate text-base text-ink-soft">
+            {pet?.name ?? "반려동물"} · {service?.name}
+          </p>
+          <p className="truncate text-sm text-ink-muted">
+            {salon?.name} · {groomer?.name} 미용사
+          </p>
         </div>
+        <div className="flex shrink-0 flex-col items-end justify-between gap-1 self-stretch">
+          <span className="text-sm font-bold text-ink">{formatWon(booking.total)}</span>
+          <ChevronRight className="h-5 w-5 text-ink-faint" aria-hidden />
+        </div>
+      </Link>
 
-        {open && (
-          <dl className="mt-4 space-y-2 rounded-2xl bg-cream-50 p-4 text-sm animate-fade-in">
-            <DetailRow label="예약번호" value={booking.bookingNo} />
-            <DetailRow label="서비스" value={`${service?.name} (${service?.shortDesc})`} />
-            <DetailRow label="소요 시간" value={service ? `약 ${service.durationMin}분` : "-"} />
-            <DetailRow label="미용실 주소" value={salon?.address ?? "-"} />
-            <DetailRow label="기본 가격" value={service ? formatWon(booking.price) : "-"} />
-            {booking.discount > 0 && (
-              <DetailRow label="할인" value={`- ₩ ${booking.discount.toLocaleString("ko-KR")}`} />
-            )}
-            <DetailRow label="결제 금액" value={formatWon(booking.total)} bold />
-          </dl>
-        )}
-
-        {booking.status === "completed" && myReview && (
-          <div className="mt-3 rounded-2xl border border-cream-200 bg-cream-50 p-4">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold text-ink-soft">내가 남긴 후기</span>
-              <StarRow rating={myReview.rating} />
-            </div>
-            <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-ink-soft">
-              {myReview.content}
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex gap-2 border-t border-cream-200 bg-cream-50/60 px-5 py-3">
-        {/* 상세 정보는 자주 보지 않으므로 행동 버튼 줄의 작은 토글로 둔다 */}
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex min-h-11 shrink-0 items-center justify-center gap-0.5 rounded-xl px-2.5 text-sm font-bold text-ink-muted transition-colors hover:bg-cream-100 hover:text-ink"
-          aria-expanded={open}
-        >
-          상세
-          <ChevronDown
-            className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          />
-        </button>
-        {cancellable && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex min-h-11 flex-1 items-center justify-center rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-muted transition-colors hover:border-coral-300 hover:text-coral-600 tap"
-          >
-            예약 취소
-          </button>
-        )}
-        {isPast && (
+      {!isActive(booking) && (
+        <div className="flex gap-2 border-t border-cream-200 px-4 py-3 md:px-5">
+          {reviewable && (
+            <button
+              type="button"
+              onClick={onReview}
+              className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-500 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+            >
+              <PenLine className="h-4 w-4" aria-hidden />
+              후기 작성
+            </button>
+          )}
           <button
             type="button"
             onClick={onRebook}
-            className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border border-cream-300 bg-white py-2.5 text-sm font-bold text-ink-soft transition-colors hover:border-mint-300 hover:text-mint-700 tap"
+            className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-white text-sm font-bold text-ink-soft ring-1 ring-cream-300 transition-colors hover:ring-mint-400 tap"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-4 w-4" aria-hidden />
             다시 예약
           </button>
-        )}
-        {reviewable && (
-          <button
-            type="button"
-            onClick={onReview}
-            className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-mint-500 py-2.5 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
-          >
-            <PenLine className="h-4 w-4" />
-            후기 작성
-          </button>
-        )}
-        {booking.status === "completed" && booking.reviewed && !myReview && (
-          <span className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-cream-100 py-2.5 text-sm font-bold text-ink-faint">
-            <Star className="h-4 w-4" />
-            후기 작성 완료
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DetailRow({
-  label,
-  value,
-  bold = false,
-}: {
-  label: string;
-  value: string;
-  bold?: boolean;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-3">
-      <dt className="shrink-0 text-ink-muted">{label}</dt>
-      <dd
-        className={`text-right ${bold ? "font-extrabold text-ink" : "font-semibold text-ink-soft"}`}
-      >
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-/* ------------------------------- 취소 다이얼로그 ------------------------------ */
-
-function CancelDialog({ booking, onClose }: { booking: Booking; onClose: () => void }) {
-  const { toast } = useToast();
-  const service = getServiceById(booking.serviceId);
-
-  return (
-    <Overlay onClose={onClose} label="예약 취소 확인">
-      <div className="text-center">
-        <span className="text-5xl">🥺</span>
-        <h2 className="mt-3 text-lg font-extrabold text-ink">예약을 취소할까요?</h2>
-        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-          {formatDateKo(booking.date)} {booking.time} · {service?.name}
-          <br />
-          취소 후에는 되돌릴 수 없어요.
-        </p>
-      </div>
-      <div className="mt-6 flex gap-2.5">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 rounded-2xl border border-cream-300 bg-white py-3.5 text-sm font-bold text-ink-soft transition-colors hover:bg-cream-100 tap"
-        >
-          유지하기
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            toast(
-              cancelBooking(booking.id)
-                ? "예약이 취소되었어요"
-                : "이미 취소되었거나 이용이 끝난 예약이에요",
-              "info"
-            );
-            onClose();
-          }}
-          className="flex-1 rounded-2xl bg-coral-600 py-3.5 text-sm font-bold text-white transition-colors hover:bg-coral-700 tap"
-        >
-          예약 취소
-        </button>
-      </div>
-    </Overlay>
-  );
-}
-
-/* ------------------------------- 후기 다이얼로그 ------------------------------ */
-
-function ReviewDialog({
-  booking,
-  petName,
-  onClose,
-}: {
-  booking: Booking;
-  petName: string;
-  onClose: () => void;
-}) {
-  const { toast } = useToast();
-  const [rating, setRating] = useState(5);
-  const [content, setContent] = useState("");
-  const salon = getSalonById(booking.salonId);
-  const groomer = getGroomerById(booking.groomerId);
-  const trimmed = content.trim();
-
-  const submit = () => {
-    if (!trimmed) return;
-    const saved = addReview(booking, { rating, content: trimmed, petName });
-    if (saved) toast("소중한 후기가 등록되었어요 💚");
-    onClose();
-  };
-
-  return (
-    <Overlay onClose={onClose} label="후기 작성" keepOnBackdrop={trimmed !== ""}>
-      <h2 className="text-lg font-extrabold text-ink">후기 작성</h2>
-      <p className="mt-1 text-sm text-ink-muted">
-        {salon?.name} · {groomer?.name} 미용사
-      </p>
-
-      <div className="mt-5 flex justify-center gap-1.5">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            type="button"
-            onClick={() => setRating(n)}
-            className="p-1 tap"
-            aria-label={`별점 ${n}점`}
-          >
-            <Star
-              className={`h-9 w-9 transition-colors ${
-                n <= rating ? "fill-amber-400 text-amber-400" : "fill-cream-200 text-cream-200"
-              }`}
-            />
-          </button>
-        ))}
-      </div>
-
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={4}
-        maxLength={REVIEW_MAX}
-        placeholder="우리 아이의 미용은 어땠나요? 솔직한 후기를 남겨주세요."
-        aria-label="후기 내용"
-        className="mt-4 w-full resize-none rounded-2xl border border-cream-300 bg-cream-50 p-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100"
-      />
-      <p className="mt-1 text-right text-xs text-ink-faint">
-        {content.length} / {REVIEW_MAX}
-      </p>
-
-      <button
-        type="button"
-        disabled={!trimmed}
-        onClick={submit}
-        className="mt-3 w-full rounded-2xl bg-mint-500 py-4 text-base font-bold text-white shadow-cta transition-colors hover:bg-mint-600 disabled:opacity-40 disabled:shadow-none tap"
-      >
-        후기 등록하기
-      </button>
-    </Overlay>
-  );
-}
-
-function Overlay({
-  children,
-  onClose,
-  label,
-  keepOnBackdrop = false,
-}: {
-  children: ReactNode;
-  onClose: () => void;
-  /** 대화상자 이름 (스크린리더) */
-  label: string;
-  /** 작성 중인 내용이 있을 때 바깥을 눌러도 닫히지 않게 한다 */
-  keepOnBackdrop?: boolean;
-}) {
-  const dialogRef = useModal(onClose);
-  return (
-    <div
-      ref={dialogRef}
-      tabIndex={-1}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 outline-none backdrop-blur-sm animate-fade-in sm:items-center"
-      onClick={() => !keepOnBackdrop && onClose()}
-      role="dialog"
-      aria-modal="true"
-      aria-label={label}
-    >
-      <div
-        className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-card-hover animate-slide-up sm:rounded-3xl sm:animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-cream-100"
-          aria-label="닫기"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <div className="pt-2 safe-bottom">{children}</div>
-      </div>
-    </div>
+        </div>
+      )}
+    </article>
   );
 }

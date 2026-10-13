@@ -47,7 +47,7 @@ export function getMaxStep(draft: BookingDraft, pets: Pet[]): number {
 
 /** 지난 예약과 같은 조건(아이·서비스·미용실·미용사)으로 새 예약을 시작할 선택값 */
 export function rebookDraft(
-  booking: Pick<Booking, "petId" | "serviceId" | "salonId" | "groomerId">
+  booking: Pick<Booking, "petId" | "serviceId" | "salonId" | "groomerId" | "request">
 ): Partial<BookingDraft> {
   return {
     petId: booking.petId,
@@ -56,7 +56,11 @@ export function rebookDraft(
     groomerId: booking.groomerId,
     date: null,
     time: null,
-    useCoupon: true,
+    couponId: "auto",
+    // 지난번 요청사항도 그대로 가져온다 (확인 단계에서 고칠 수 있다)
+    requestTags: booking.request?.tags ?? [],
+    requestMemo: booking.request?.memo ?? "",
+    requestPetId: booking.petId,
   };
 }
 

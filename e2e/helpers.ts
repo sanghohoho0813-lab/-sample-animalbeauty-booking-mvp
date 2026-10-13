@@ -19,7 +19,10 @@ export interface Draft {
   groomerId: string | null;
   date: string | null;
   time: string | null;
-  useCoupon: boolean;
+  couponId: string;
+  requestTags: string[];
+  requestMemo: string;
+  requestPetId: string | null;
 }
 
 export const EMPTY_DRAFT: Draft = {
@@ -29,7 +32,10 @@ export const EMPTY_DRAFT: Draft = {
   groomerId: null,
   date: null,
   time: null,
-  useCoupon: true,
+  couponId: "auto",
+  requestTags: [],
+  requestMemo: "",
+  requestPetId: null,
 };
 
 /** 예약 선택값을 미리 넣어 특정 단계부터 시작한다 */
@@ -63,14 +69,39 @@ export const readDb = async (page: Page) => {
   }>;
 };
 
-/** 달력에서 오늘로부터 n일 뒤 날짜를 고른다 (필요하면 다음 달로 넘김) */
+/**
+ * 달력에서 오늘로부터 n일 뒤부터 처음으로 고를 수 있는 날짜를 고른다
+ * (정기 휴무·마감일은 건너뛰고, 필요하면 다음 달로 넘긴다)
+ */
 export async function pickDate(page: Page, offset: number) {
-  const key = dateKeyFromToday(offset);
-  const day = page.locator(`[data-date="${key}"]`);
-  if (!(await day.count())) await page.getByRole("button", { name: "다음 달" }).click();
-  await day.click();
-  return key;
+  for (let i = offset; i < offset + 14; i += 1) {
+    const key = dateKeyFromToday(i);
+    let day = page.locator(`[data-date="${key}"]`);
+    if (!(await day.count())) {
+      await page.getByRole("button", { name: "다음 달" }).click();
+      day = page.locator(`[data-date="${key}"]`);
+    }
+    if (await day.isEnabled()) {
+      await day.click();
+      return key;
+    }
+  }
+  throw new Error("고를 수 있는 날짜가 없어요");
 }
+
+/** 오늘로부터 며칠 뒤인지 */
+export const offsetOf = (key: string) => {
+  const [y, m, d] = key.split("-").map(Number);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  return Math.round((new Date(y, m - 1, d).getTime() - today) / 86_400_000);
+};
+
+/** 'YYYY-MM-DD' → 화면 표기 'M월 D일' */
+export const shortDate = (key: string) => {
+  const [, m, d] = key.split("-").map(Number);
+  return `${m}월 ${d}일`;
+};
 
 /** 열려 있는 첫 시간을 고른다 */
 export async function pickFirstOpenTime(page: Page) {

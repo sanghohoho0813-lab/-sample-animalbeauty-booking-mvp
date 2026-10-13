@@ -18,6 +18,7 @@ export default function Calendar({
   today,
   maxDays = 60,
   isFullyBooked,
+  isClosed,
 }: {
   selected: string | null;
   onSelect: (dateKey: string) => void;
@@ -25,6 +26,8 @@ export default function Calendar({
   maxDays?: number;
   /** 예약 가능한 시간이 하나도 없는 날 — 선택할 수 없게 표시한다 */
   isFullyBooked?: (dateKey: string) => boolean;
+  /** 매장 정기 휴무일 */
+  isClosed?: (dateKey: string) => boolean;
 }) {
   const [viewYear, setViewYear] = useState(
     selected ? Number(selected.slice(0, 4)) : today.getFullYear()
@@ -61,7 +64,7 @@ export default function Calendar({
   };
 
   const isDisabled = (key: string) =>
-    key < todayKey || key > maxKey || Boolean(isFullyBooked?.(key));
+    key < todayKey || key > maxKey || Boolean(isClosed?.(key)) || Boolean(isFullyBooked?.(key));
 
   /* ---- 키보드 이동 (roving tabindex) ----
    * 날짜 칸 중 하나만 Tab으로 들어오고, 그 안에서는 방향키로 움직인다.
@@ -174,8 +177,9 @@ export default function Calendar({
           }
           const key = `${viewYear}-${`${viewMonth + 1}`.padStart(2, "0")}-${`${day}`.padStart(2, "0")}`;
           const outOfRange = key < todayKey || key > maxKey;
-          const soldOut = !outOfRange && Boolean(isFullyBooked?.(key));
-          const disabled = outOfRange || soldOut;
+          const closed = !outOfRange && Boolean(isClosed?.(key));
+          const soldOut = !outOfRange && !closed && Boolean(isFullyBooked?.(key));
+          const disabled = outOfRange || closed || soldOut;
           const isSelected = key === selected;
           const isToday = key === todayKey;
           const weekday = (startWeekday + day - 1) % 7;
@@ -192,7 +196,7 @@ export default function Calendar({
               }}
               aria-label={`${viewMonth + 1}월 ${day}일 ${WEEKDAYS[weekday]}요일${
                 isToday ? ", 오늘" : ""
-              }${soldOut ? ", 예약 마감" : ""}`}
+              }${closed ? ", 정기 휴무" : ""}${soldOut ? ", 예약 마감" : ""}`}
               className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 tap ${
                 isSelected
                   ? "bg-mint-500 text-white shadow-cta"

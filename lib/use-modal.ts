@@ -11,6 +11,8 @@ const FOCUSABLE =
  * - 열려 있는 동안 뒤 페이지 스크롤 잠금
  * - 포커스를 모달 안으로 옮기고 Tab/Shift+Tab이 모달 밖으로 나가지 않게 가둔다
  * - 닫히면 모달을 열었던 요소로 포커스를 되돌린다
+ * - 열려 있는 동안 <html data-modal-open> — 화면 위에 떠 있는 공용 요소(미래AI랩 뒤로·앞으로 버튼)가
+ *   시트의 버튼을 가리지 않게 globals.css 에서 숨긴다
  *
  * 반환한 ref를 role="dialog" 요소에 붙인다. onClose가 렌더마다 새로 만들어져도
  * 잠금·포커스 처리는 열릴 때 한 번, 닫힐 때 한 번만 일어난다.
@@ -62,9 +64,15 @@ export function useModal<T extends HTMLElement = HTMLDivElement>(onClose: () => 
 
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const html = document.documentElement;
+    const depth = Number(html.dataset.modalOpen ?? 0) + 1;
+    html.dataset.modalOpen = String(depth);
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = previous;
+      const left = Number(html.dataset.modalOpen ?? 1) - 1;
+      if (left > 0) html.dataset.modalOpen = String(left);
+      else delete html.dataset.modalOpen;
       // 연 요소가 아직 화면에 있으면 그곳으로 포커스 복귀
       if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
     };

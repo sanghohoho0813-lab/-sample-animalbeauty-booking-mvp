@@ -4,7 +4,9 @@ import { Bell, CalendarDays, ChevronRight, Crown, Dog, Heart, Plus, Ticket } fro
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PetAvatar from "@/components/ui/PetAvatar";
+import { isCouponUsed } from "@/lib/coupons";
 import { COUPONS, DEMO_USER } from "@/lib/data";
+import { formatDateShortKo } from "@/lib/format";
 import { useDb } from "@/lib/db";
 import { useToast } from "@/lib/toast";
 import type { Coupon } from "@/lib/types";
@@ -129,28 +131,46 @@ export default function MyPage() {
         </div>
 
         <div className="space-y-4">
-          {/* 보유 쿠폰 */}
-          <SectionCard title={`보유 쿠폰 ${COUPONS.length}장`}>
-            <div className="space-y-3">
-              {COUPONS.map((coupon) => (
-                <div
-                  key={coupon.id}
-                  className="flex items-center gap-3.5 rounded-2xl border border-dashed border-coral-200 bg-coral-50/60 p-4"
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-coral-500 shadow-card">
-                    <Ticket className="h-5 w-5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-base font-extrabold text-coral-600">{coupon.name}</p>
-                    <p className="mt-0.5 text-sm text-ink-muted">{coupon.desc}</p>
-                    {/* 날짜는 브라우저 시각 기준이라 마운트 후 채우되, 줄 높이는 미리 잡아 둔다 */}
-                    <p className="mt-0.5 min-h-[1.5em] text-sm font-semibold text-ink-soft">
-                      {hydrated && couponDeadline(coupon, new Date())}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* 쿠폰 — 사용 예정·사용 완료까지 실제 예약과 연결해 보여준다 */}
+          <SectionCard
+            title={`쓸 수 있는 쿠폰 ${hydrated ? COUPONS.filter((c) => !isCouponUsed(c, { bookings })).length : COUPONS.length}장`}
+          >
+            <ul className="divide-y divide-cream-200">
+              {COUPONS.map((coupon) => {
+                const usedBy = coupon.reusable
+                  ? undefined
+                  : bookings.find((b) => b.couponId === coupon.id && b.status !== "cancelled");
+                return (
+                  <li key={coupon.id} className="flex items-center gap-3.5 py-3.5">
+                    {/* 다 쓴 쿠폰은 흐리게 하는 대신 회색 아이콘·취소선으로 (글자 대비는 그대로) */}
+                    <span
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+                        usedBy ? "bg-cream-100 text-ink-faint" : "bg-coral-50 text-coral-500"
+                      }`}
+                    >
+                      <Ticket className="h-5 w-5" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`text-base font-extrabold ${usedBy ? "text-ink-muted line-through decoration-1" : "text-ink"}`}
+                      >
+                        {coupon.name}
+                      </p>
+                      <p className="text-sm text-ink-muted">{coupon.desc}</p>
+                      {/* 날짜는 브라우저 시각 기준이라 마운트 후 채우되, 줄 높이는 미리 잡아 둔다 */}
+                      <p className="min-h-[1.5em] text-sm font-semibold text-ink-soft">
+                        {hydrated &&
+                          (usedBy
+                            ? usedBy.status === "completed"
+                              ? "사용 완료"
+                              : `${formatDateShortKo(usedBy.date)} 예약에 사용 예정`
+                            : couponDeadline(coupon, new Date()))}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           </SectionCard>
 
           {/* 알림 설정 */}

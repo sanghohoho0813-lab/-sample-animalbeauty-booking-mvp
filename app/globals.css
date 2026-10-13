@@ -23,6 +23,11 @@
   }
 }
 
+/* 시트·대화상자가 열린 동안에는 미래AI랩 공용 뒤로·앞으로 버튼이 시트 버튼을 가리지 않게 숨긴다 */
+html[data-modal-open] [data-mirae-history-nav] {
+  display: none;
+}
+
 /* 움직임 줄이기 설정을 켠 사용자에게는 장식 애니메이션을 끈다 */
 @media (prefers-reduced-motion: reduce) {
   *,

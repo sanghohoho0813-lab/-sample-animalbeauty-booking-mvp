@@ -1,55 +1,51 @@
 "use client";
 
 import { StarRow } from "@/components/ui/Stars";
-import { REVIEWS, SALONS } from "@/lib/data";
+import { getSeedReviews, SALONS } from "@/lib/data";
 import { useDb } from "@/lib/db";
-import type { Review } from "@/lib/types";
+import { maskName, relativeDay } from "@/lib/reviews";
+import { useNow } from "@/lib/use-now";
 
 /**
- * 홈 '최근 후기' — 샘플 후기와 사용자가 방금 남긴 후기를 날짜순으로 합쳐 보여준다.
- * 서버 렌더 시점에는 샘플 후기만 그리고, 저장소를 읽은 뒤 사용자 후기를 더한다.
+ * 홈 '최근 후기' — 공개 후기와 내가 방금 남긴 후기를 최신순으로.
+ * 날짜를 오늘 기준으로 계산하므로 마운트 후에 그린다.
  */
 export default function RecentReviews({ limit = 3 }: { limit?: number }) {
   const { reviews } = useDb();
-  const recent: Review[] = [...reviews, ...REVIEWS]
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-    .slice(0, limit);
+  const now = useNow();
+  const recent = now
+    ? [...reviews, ...getSeedReviews(now)]
+        .filter((r) => r.content)
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, limit)
+    : [];
 
   return (
-    // 링크가 없는 가로 스크롤 영역이라 키보드로도 스크롤할 수 있게 포커스를 받는다
-    <div
-      role="region"
-      aria-label="최근 후기 목록"
-      tabIndex={0}
-      className="-mx-4 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide md:mx-0 md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0"
-    >
+    <ul className="mt-4 grid grid-cols-1 divide-y divide-cream-200 rounded-3xl bg-white px-5 ring-1 ring-cream-200 md:grid-cols-3 md:divide-x md:divide-y-0 md:px-0">
+      {!now &&
+        Array.from({ length: limit }, (_, i) => (
+          <li key={i} className="py-5 md:px-6" aria-hidden>
+            <div className="skeleton h-24 rounded-2xl" />
+          </li>
+        ))}
       {recent.map((review) => {
         const salon = SALONS.find((s) => s.id === review.salonId);
         return (
-          <div
-            key={review.id}
-            className="flex w-[82%] shrink-0 snap-start flex-col rounded-3xl border border-cream-200 bg-white p-5 shadow-card sm:w-[60%] md:w-auto"
-          >
-            <div className="flex items-center justify-between">
+          <li key={review.id} className="flex flex-col py-5 md:px-6">
+            <div className="flex items-center justify-between gap-2">
               <StarRow rating={review.rating} />
-              <span className="text-xs text-ink-faint">
-                {Number(review.date.slice(5, 7))}월 {Number(review.date.slice(8, 10))}일
-              </span>
+              <span className="text-sm text-ink-muted">{relativeDay(review.date, now!)}</span>
             </div>
-            <p className="mt-3 line-clamp-4 break-words text-sm leading-relaxed text-ink-soft">
+            <p className="mt-2.5 line-clamp-3 break-words text-base leading-relaxed text-ink-soft">
               {review.content}
             </p>
-            <div className="mt-auto pt-4">
-              <p className="text-xs font-semibold text-ink-muted">
-                {review.author} · {review.petName} 보호자
-              </p>
-              <p className="mt-0.5 text-xs text-ink-faint">
-                {salon?.name} · {review.serviceName}
-              </p>
-            </div>
-          </div>
+            <p className="mt-auto pt-3 text-sm text-ink-muted">
+              <span className="font-semibold text-ink-soft">{maskName(review.author)}</span> ·{" "}
+              {review.petName} · {salon?.name} {review.serviceName}
+            </p>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

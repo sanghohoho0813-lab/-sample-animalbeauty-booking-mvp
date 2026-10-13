@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarClock, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import StepIndicator, { BOOKING_STEPS } from "@/components/booking/StepIndicator";
 import SelectionTrail from "@/components/booking/SelectionTrail";
-import SummaryCard, { computePrice } from "@/components/booking/SummaryCard";
+import SummaryCard from "@/components/booking/SummaryCard";
+import Sheet from "@/components/ui/Sheet";
 import {
   ConfirmStep,
   DateTimeStep,
@@ -14,13 +15,20 @@ import {
   SalonStep,
   ServiceStep,
 } from "@/components/booking/steps";
-import { useBookingDraft, type BookingDraft } from "@/lib/booking-context";
-import { getMaxStep, isServiceForPet, petSlotCheck } from "@/lib/booking-rules";
+import { EMPTY_DRAFT, useBookingDraft, type BookingDraft } from "@/lib/booking-context";
+import {
+  getMaxStep,
+  isServiceForPet,
+  petSlotCheck,
+  REBOOK_STEP,
+  rebookDraft,
+} from "@/lib/booking-rules";
+import { quote } from "@/lib/checkout";
 import { getGroomerById, getSalonById, getServiceById } from "@/lib/data";
 import { addBooking, useDb } from "@/lib/db";
-import { formatWon, toDateKey } from "@/lib/format";
-import { isSlotBookable } from "@/lib/slots";
-import { useToast } from "@/lib/toast";
+import { formatDateShortKo, formatWon, toDateKey } from "@/lib/format";
+import { isSlotBookable, suggestAlternatives, type OpenSlot } from "@/lib/slots";
+import type { Booking } from "@/lib/types";
 
 export default function BookingPage() {
   return (
@@ -48,8 +56,13 @@ function BookingFlow() {
   const searchParams = useSearchParams();
   const { draft, ready, setDraft, resetDraft } = useBookingDraft();
   const db = useDb();
-  const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  // 확정 직전에 시간이 막혔을 때 보여줄 대안 시간
+  const [conflict, setConflict] = useState<OpenSlot[] | null>(null);
+  // 주소로 미리 정해져 들어온 단계(서비스·미용실·미용사) — 앞 단계를 고르면 건너뛴다
+  const presetSteps = useRef(new Set<number>());
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
   // 상태 반영 전에 들어오는 연속 클릭까지 막기 위한 동기 잠금
   const submitLock = useRef(false);
   const appliedPreset = useRef(false);
@@ -68,12 +81,15 @@ function BookingFlow() {
   useEffect(() => {
     if (!ready || !db.hydrated || appliedPreset.current) return;
     appliedPreset.current = true;
-    const patch: Partial<BookingDraft> = {};
+    // 그새 삭제된 아이로 고르던 예약이면 처음부터 — 그 아이에 맞춰 고른 서비스·미용실·시간도 의미가 없다
+    const stale = draft.petId !== null && !db.pets.some((p) => p.id === draft.petId);
+    const base: BookingDraft = stale ? EMPTY_DRAFT : draft;
+    const patch: Partial<BookingDraft> = stale ? { ...EMPTY_DRAFT } : {};
 
     const presetPet = db.pets.find((p) => p.id === searchParams.get("pet"));
     if (presetPet) {
       patch.petId = presetPet.id;
-      const current = getServiceById(draft.serviceId);
+      const current = getServiceById(base.serviceId);
       if (current && !isServiceForPet(current, presetPet)) patch.serviceId = null;
     }
     const salonParam = searchParams.get("salon");
@@ -82,41 +98,37 @@ function BookingFlow() {
 
     if (salonParam && getSalonById(salonParam)) {
       patch.salonId = salonParam;
+      presetSteps.current.add(2);
       // 다른 미용실로 바뀌면 이전 미용실의 미용사·시간은 무효
-      if (salonParam !== draft.salonId) {
+      if (salonParam !== base.salonId) {
         patch.groomerId = null;
         patch.time = null;
       }
       if (groomer && groomer.salonId === salonParam) {
-        if (groomer.id !== draft.groomerId) patch.time = null;
+        if (groomer.id !== base.groomerId) patch.time = null;
         patch.groomerId = groomer.id;
+        presetSteps.current.add(3);
       }
     }
 
     const service = getServiceById(serviceParam);
     if (service) {
+      const decided = patch.serviceId; // 위에서 아이 기준으로 정한 값 (없으면 undefined)
       patch.serviceId = service.id;
+      presetSteps.current.add(1);
       // 선택돼 있던 아이가 받을 수 없는 서비스라면 아이를 다시 고르게 한다
-      const pet = presetPet ?? db.pets.find((p) => p.id === draft.petId);
+      const pet = presetPet ?? db.pets.find((p) => p.id === base.petId);
       if (pet && !isServiceForPet(service, pet)) {
-        if (presetPet) delete patch.serviceId;
-        else patch.petId = null;
+        if (presetPet) {
+          if (decided === undefined) delete patch.serviceId;
+          else patch.serviceId = decided;
+        } else patch.petId = null;
       }
     }
 
     if (Object.keys(patch).length > 0) setDraft(patch);
     setPresetReady(true);
-  }, [
-    ready,
-    db.hydrated,
-    db.pets,
-    searchParams,
-    setDraft,
-    draft.salonId,
-    draft.groomerId,
-    draft.petId,
-    draft.serviceId,
-  ]);
+  }, [ready, db.hydrated, db.pets, searchParams, setDraft, draft]);
 
   // 선택값이 서로 맞는지를 기준으로 진입 가능한 최대 단계
   const maxStep = useMemo(() => getMaxStep(draft, db.pets), [draft, db.pets]);
@@ -132,10 +144,21 @@ function BookingFlow() {
     router.push(`/booking?step=${next}`, { scroll: true });
   };
 
-  // 하나만 고르는 단계(반려동물·서비스·미용실·미용사)는 선택하면 잠깐 선택 표시를 보여준 뒤 다음으로 넘어간다
+  // 하나만 고르는 단계(반려동물·서비스·미용실·미용사)는 선택하면 잠깐 선택 표시를 보여준 뒤 다음으로 넘어간다.
+  // 미용실 상세·홈에서 미리 정하고 들어온 단계는 값이 맞으면 건너뛴다.
   const advanceFrom = (from: number) => {
     if (advanceTimer.current) clearTimeout(advanceTimer.current);
-    advanceTimer.current = setTimeout(() => goTo(from + 1), 260);
+    advanceTimer.current = setTimeout(() => {
+      const reachable = getMaxStep(draftRef.current, db.pets);
+      let next = from + 1;
+      while (next < 4 && presetSteps.current.has(next) && reachable > next) next += 1;
+      goTo(Math.min(next, reachable));
+    }, 260);
+  };
+
+  const rebook = (booking: Booking) => {
+    setDraft(rebookDraft(booking));
+    goTo(REBOOK_STEP);
   };
 
   const canProceed = step === BOOKING_STEPS.length - 1 || maxStep > step;
@@ -150,7 +173,7 @@ function BookingFlow() {
     "예약 내용을 확인해주세요",
   ];
 
-  const { total } = computePrice(draft);
+  const { total } = quote(draft, db.bookings);
   const isLast = step === BOOKING_STEPS.length - 1;
 
   const handleNext = () => {
@@ -171,27 +194,26 @@ function BookingFlow() {
       return;
     }
 
-    // 확정 직전 재검증 — 그 사이 지나간 시간, 오래된 선택값, 이미 잡힌 시간 차단
+    // 확정 직전 재검증 — 그 사이 지나간 시간, 다른 탭·다른 고객이 잡은 시간 차단.
+    // 막혔으면 같은 날 가까운 대안 시간을 바로 고를 수 있게 보여준다.
     const now = new Date();
-    if (
-      !isSlotBookable(
-        draft.date,
-        draft.time,
-        draft.groomerId,
-        db.bookings,
-        now,
-        petSlotCheck(draft)
-      )
-    ) {
-      setDraft(draft.date < toDateKey(now) ? { date: null, time: null } : { time: null });
-      toast("선택한 시간은 지금 예약할 수 없어요. 다른 시간을 골라주세요.", "error");
-      goTo(4);
+    const check = petSlotCheck(draft);
+    if (!isSlotBookable(draft.date, draft.time, draft.groomerId, db.bookings, now, check)) {
+      if (draft.date < toDateKey(now)) {
+        setDraft({ date: null, time: null });
+        goTo(4);
+        return;
+      }
+      setConflict(
+        suggestAlternatives(draft.date, draft.time, draft.groomerId, db.bookings, now, check)
+      );
       return;
     }
 
     submitLock.current = true;
     setSubmitting(true);
-    const { price, discount, total: finalTotal } = computePrice(draft);
+    const { price, discount, total: finalTotal, coupon } = quote(draft, db.bookings);
+    const memo = draft.requestMemo.trim();
     const payload = {
       petId: draft.petId,
       serviceId: draft.serviceId,
@@ -202,6 +224,10 @@ function BookingFlow() {
       price,
       discount,
       total: finalTotal,
+      ...(coupon ? { couponId: coupon.id } : {}),
+      ...(draft.requestTags.length > 0 || memo
+        ? { request: { tags: draft.requestTags, memo } }
+        : {}),
     };
     // 실제 결제 대신 짧은 지연으로 처리감을 준다
     setTimeout(() => {
@@ -242,7 +268,14 @@ function BookingFlow() {
               />
             )}
             {step === 1 && (
-              <ServiceStep draft={draft} setDraft={setDraft} pets={db.pets} onChosen={onChosen} />
+              <ServiceStep
+                draft={draft}
+                setDraft={setDraft}
+                pets={db.pets}
+                bookings={db.bookings}
+                onChosen={onChosen}
+                onRebook={rebook}
+              />
             )}
             {step === 2 && <SalonStep draft={draft} setDraft={setDraft} onChosen={onChosen} />}
             {step === 3 && <GroomerStep draft={draft} setDraft={setDraft} onChosen={onChosen} />}
@@ -250,7 +283,13 @@ function BookingFlow() {
               <DateTimeStep draft={draft} setDraft={setDraft} bookings={db.bookings} />
             )}
             {step === 5 && (
-              <ConfirmStep draft={draft} setDraft={setDraft} pets={db.pets} onEdit={goTo} />
+              <ConfirmStep
+                draft={draft}
+                setDraft={setDraft}
+                pets={db.pets}
+                bookings={db.bookings}
+                onEdit={goTo}
+              />
             )}
           </div>
 
@@ -275,13 +314,54 @@ function BookingFlow() {
 
         {/* 데스크톱 예약 요약 */}
         <aside className="hidden lg:sticky lg:top-24 lg:block">
-          <SummaryCard
-            draft={draft}
-            pets={db.pets}
-            onToggleCoupon={isLast ? (useCoupon) => setDraft({ useCoupon }) : undefined}
-          />
+          <SummaryCard draft={draft} pets={db.pets} bookings={db.bookings} />
         </aside>
       </div>
+
+      {conflict && (
+        <Sheet label="예약 시간 다시 고르기" onClose={() => setConflict(null)}>
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-coral-100 text-coral-600">
+            <CalendarClock className="h-6 w-6" aria-hidden />
+          </span>
+          <h2 className="mt-3 text-lg font-extrabold text-ink">방금 그 시간이 마감됐어요</h2>
+          <p className="mt-1 text-sm leading-relaxed text-ink-muted">
+            다른 보호자가 먼저 예약했거나, 지금 시각 기준으로 예약할 수 없게 됐어요.
+            {conflict.length > 0 && " 가까운 시간으로 바로 바꿀 수 있어요."}
+          </p>
+          {conflict.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {conflict.map((slot) => (
+                <li key={`${slot.date}${slot.time}`}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDraft({ date: slot.date, time: slot.time });
+                      setConflict(null);
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3.5 text-left ring-1 ring-cream-200 transition-colors hover:ring-mint-400 tap"
+                  >
+                    <span className="text-base font-bold text-ink">
+                      {formatDateShortKo(slot.date)} {slot.time}
+                    </span>
+                    <span className="text-sm font-semibold text-mint-700">이 시간으로</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setConflict(null);
+              setDraft({ time: null });
+              goTo(4);
+            }}
+            className="mt-3 w-full rounded-2xl py-3 text-sm font-bold text-ink-soft transition-colors hover:bg-cream-100"
+          >
+            달력에서 다시 고르기
+          </button>
+        </Sheet>
+      )}
 
       {/* 모바일 하단 고정 CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200 bg-white/95 shadow-float backdrop-blur-md safe-bottom lg:hidden">

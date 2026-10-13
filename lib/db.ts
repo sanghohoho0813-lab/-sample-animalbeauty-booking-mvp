@@ -3,6 +3,8 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { DEMO_USER, getServiceById } from "./data";
 import { loadDb, makeBookingNo, newId } from "./db-core";
+import { canModify, isActive } from "./lifecycle";
+import { isSlotBookable } from "./slots";
 import { toDateKey } from "./format";
 import type { Booking, BookingStatus, Pet, Review } from "./types";
 
@@ -107,6 +109,20 @@ export function addPet(pet: Omit<Pet, "id">): Pet {
   return newPet;
 }
 
+export function updatePet(id: string, patch: Partial<Omit<Pet, "id" | "image">>): void {
+  update({ pets: state.pets.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+}
+
+/**
+ * 반려동물 삭제 — 예정된 예약이 있으면 지우지 않는다 (예약을 먼저 취소해야 한다).
+ * 지난 예약 기록은 남겨둔다.
+ */
+export function removePet(id: string): "ok" | "has-upcoming" {
+  if (state.bookings.some((b) => b.petId === id && isActive(b))) return "has-upcoming";
+  update({ pets: state.pets.filter((p) => p.id !== id) });
+  return "ok";
+}
+
 export function addBooking(
   input: Omit<Booking, "id" | "bookingNo" | "createdAt" | "status">
 ): Booking {
@@ -125,17 +141,62 @@ export function addBooking(
 
 export function setBookingStatus(id: string, status: BookingStatus) {
   update({
-    bookings: state.bookings.map((b) => (b.id === id ? { ...b, status } : b)),
+    bookings: state.bookings.map((b) =>
+      b.id === id
+        ? {
+            ...b,
+            status,
+            ...(status === "cancelled" ? { cancelledAt: new Date().toISOString() } : {}),
+          }
+        : b
+    ),
   });
 }
 
+export type RescheduleResult = "ok" | "not-allowed" | "unavailable";
+
 /**
- * 예약 취소 — 저장소의 최신 상태가 '예정'일 때만 취소한다.
- * (다른 탭에서 이미 취소했거나, 그 사이 이용 완료로 넘어간 예약은 그대로 두고 false)
+ * 일정 변경 — 같은 미용사의 다른 시간으로 옮긴다.
+ * 저장소의 최신 상태로 다시 확인한다: 방문 전날까지만, 자기 자신을 뺀 나머지 예약과 겹치지 않을 때만.
+ */
+export function rescheduleBooking(id: string, date: string, time: string): RescheduleResult {
+  const now = new Date();
+  const current = state.bookings.find((b) => b.id === id);
+  if (!current || !canModify(current, now)) return "not-allowed";
+  if (current.date === date && current.time === time) return "ok";
+  const others = state.bookings.filter((b) => b.id !== id);
+  const duration = getServiceById(current.serviceId)?.durationMin ?? 60;
+  if (
+    !isSlotBookable(date, time, current.groomerId, others, now, {
+      petId: current.petId,
+      durationMin: duration,
+    })
+  ) {
+    return "unavailable";
+  }
+  update({
+    bookings: state.bookings.map((b) =>
+      b.id === id
+        ? {
+            ...b,
+            date,
+            time,
+            previous: { date: current.date, time: current.time },
+            rescheduledAt: now.toISOString(),
+          }
+        : b
+    ),
+  });
+  return "ok";
+}
+
+/**
+ * 예약 취소 — 저장소의 최신 상태로 판단해 방문 전날까지의 '예정' 예약만 취소한다.
+ * (다른 탭에서 이미 취소했거나, 이용 완료로 넘어갔거나, 당일인 예약은 그대로 두고 false)
  */
 export function cancelBooking(id: string): boolean {
   const current = state.bookings.find((b) => b.id === id);
-  if (!current || (current.status !== "confirmed" && current.status !== "pending")) {
+  if (!current || !canModify(current, new Date())) {
     return false;
   }
   setBookingStatus(id, "cancelled");
@@ -145,7 +206,7 @@ export function cancelBooking(id: string): boolean {
 /** 이용 완료된 예약에 후기를 남기고, 예약을 '후기 작성 완료'로 표시한다 */
 export function addReview(
   booking: Booking,
-  input: { rating: number; content: string; petName: string }
+  input: { rating: number; content: string; petName: string; keywords?: string[] }
 ): Review | null {
   // 화면이 들고 있던 예약 객체가 아니라 저장소의 최신 상태로 판단한다 (연속 클릭 중복 방지)
   const current = state.bookings.find((b) => b.id === booking.id);
@@ -161,6 +222,7 @@ export function addReview(
     petName: input.petName,
     rating: input.rating,
     content: input.content,
+    keywords: input.keywords ?? [],
     date: toDateKey(new Date()),
     serviceName: getServiceById(booking.serviceId)?.name ?? "",
   };

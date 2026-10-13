@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, Expand, Plus, X } from "lucide-react";
+import { CalendarCheck, Expand, Pencil, Plus, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -8,19 +8,24 @@ import PhotoViewer from "@/components/ui/PhotoViewer";
 import { useBookingDraft } from "@/lib/booking-context";
 import { isSalonForPet, isServiceForPet } from "@/lib/booking-rules";
 import { getSalonById, getServiceById } from "@/lib/data";
-import { addPet, useDb } from "@/lib/db";
+import EmptyState from "@/components/ui/EmptyState";
+import { addPet, removePet, updatePet, useDb } from "@/lib/db";
+import { formatDateShortKo } from "@/lib/format";
+import { josa } from "@/lib/josa";
+import { nextGroomingDate, petHistory } from "@/lib/lifecycle";
 import { useToast } from "@/lib/toast";
-import type { Pet, Species } from "@/lib/types";
+import type { Booking, Pet, Species } from "@/lib/types";
 import { useModal } from "@/lib/use-modal";
 
 const DOG_EMOJIS = ["🐶", "🐩", "🦮", "🐕"];
 const CAT_EMOJIS = ["🐱", "🐈", "🐈‍⬛"];
 
 export default function PetsPage() {
-  const { pets, hydrated } = useDb();
+  const { pets, bookings, hydrated } = useDb();
   const { draft, setDraft } = useBookingDraft();
   const router = useRouter();
   const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState<Pet | null>(null);
   const [fromBooking, setFromBooking] = useState(false);
   const [viewing, setViewing] = useState<Pet | null>(null);
 
@@ -67,6 +72,24 @@ export default function PetsPage() {
         </button>
       </div>
 
+      {hydrated && pets.length === 0 && (
+        <div className="mt-5">
+          <EmptyState
+            emoji="🐶"
+            title="등록된 반려동물이 없어요"
+            desc="아이 정보를 등록하면 맞는 서비스와 미용 시기를 챙겨드려요."
+          >
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              className="mt-5 rounded-full bg-mint-500 px-6 py-3 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+            >
+              반려동물 등록하기
+            </button>
+          </EmptyState>
+        </div>
+      )}
+
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {!hydrated &&
           [0, 1, 2].map((i) => <div key={i} className="skeleton h-[37rem] rounded-3xl" />)}
@@ -112,7 +135,7 @@ export default function PetsPage() {
               <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xl font-extrabold text-ink">{pet.name}</p>
+                    <p className="break-all text-xl font-extrabold text-ink">{pet.name}</p>
                     <p className="mt-1 text-sm text-ink-muted">
                       {pet.breed} · {pet.age}살 · {pet.weight}kg
                     </p>
@@ -122,21 +145,31 @@ export default function PetsPage() {
                   </span>
                 </div>
                 {pet.note && (
-                  <p className="mt-3.5 rounded-2xl bg-cream-50 px-4 py-3 text-xs leading-relaxed text-ink-muted">
-                    💬 {pet.note}
-                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-ink-soft">“{pet.note}”</p>
                 )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDraft({ petId: pet.id });
-                    router.push("/booking?step=1");
-                  }}
-                  className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-2xl bg-mint-50 py-3.5 text-sm font-bold text-mint-700 transition-colors hover:bg-mint-100 tap"
-                >
-                  <CalendarCheck className="h-4 w-4" />
-                  {pet.name} 미용 예약하기
-                </button>
+                <PetHistoryLine petId={pet.id} bookings={bookings} />
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDraft({ petId: pet.id });
+                      router.push("/booking?step=1");
+                    }}
+                    className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-mint-500 py-3.5 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+                  >
+                    <CalendarCheck className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="truncate">{pet.name} 미용 예약하기</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(pet)}
+                    className="flex shrink-0 items-center justify-center gap-1 rounded-2xl bg-white px-4 text-sm font-bold text-ink-soft ring-1 ring-cream-300 transition-colors hover:ring-mint-400 tap"
+                    aria-label={`${pet.name} 정보 수정`}
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden />
+                    수정
+                  </button>
+                </div>
               </div>
             </article>
           ))}
@@ -159,22 +192,54 @@ export default function PetsPage() {
           onAdded={handleAdded}
         />
       )}
+      {editing && <AddPetDialog initial={editing} onClose={() => setEditing(null)} />}
     </div>
+  );
+}
+
+/** 아이별 이용 기록 한 줄 — 몇 번 왔는지, 다가오는 예약 또는 다음 미용 추천일 */
+function PetHistoryLine({ petId, bookings }: { petId: string; bookings: Booking[] }) {
+  const { last, upcoming, visits } = petHistory(petId, bookings);
+  if (!last && !upcoming) {
+    return <p className="mt-3 text-sm text-ink-muted">아직 미용 기록이 없어요</p>;
+  }
+  return (
+    <p className="mt-3 text-sm text-ink-muted">
+      {visits > 0 && <>미용 {visits}회 · </>}
+      {upcoming ? (
+        <span className="font-semibold text-mint-700">
+          {formatDateShortKo(upcoming.date)} 예약 있음
+        </span>
+      ) : (
+        last && <>다음 미용 추천 {formatDateShortKo(nextGroomingDate(last))}</>
+      )}
+    </p>
   );
 }
 
 type PetField = "name" | "breed" | "age" | "weight";
 
-function AddPetDialog({ onClose, onAdded }: { onClose: () => void; onAdded?: (pet: Pet) => void }) {
+function AddPetDialog({
+  onClose,
+  onAdded,
+  initial,
+}: {
+  onClose: () => void;
+  onAdded?: (pet: Pet) => void;
+  /** 있으면 정보 수정 */
+  initial?: Pet;
+}) {
   const dialogRef = useModal(onClose);
   const { toast } = useToast();
-  const [species, setSpecies] = useState<Species>("dog");
-  const [emoji, setEmoji] = useState("🐶");
-  const [name, setName] = useState("");
-  const [breed, setBreed] = useState("");
-  const [age, setAge] = useState("");
-  const [weight, setWeight] = useState("");
-  const [note, setNote] = useState("");
+  const editMode = Boolean(initial);
+  const [species, setSpecies] = useState<Species>(initial?.species ?? "dog");
+  const [emoji, setEmoji] = useState(initial?.emoji ?? "🐶");
+  const [name, setName] = useState(initial?.name ?? "");
+  const [breed, setBreed] = useState(initial?.breed ?? "");
+  const [age, setAge] = useState(initial ? String(initial.age) : "");
+  const [weight, setWeight] = useState(initial ? String(initial.weight) : "");
+  const [note, setNote] = useState(initial?.note ?? "");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const [touched, setTouched] = useState<Partial<Record<PetField, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -212,22 +277,48 @@ function AddPetDialog({ onClose, onAdded }: { onClose: () => void; onAdded?: (pe
       formRef.current?.querySelector<HTMLInputElement>(`[name="${first}"]`)?.focus();
       return;
     }
-    const pet = addPet({
+    const values = {
       name: name.trim(),
-      species,
       breed: breed.trim(),
       age: Number(age),
       weight: Number(weight),
       emoji,
       note: note.trim() || undefined,
-    });
-    toast(`${name.trim()} 정보가 등록되었어요 🐾`);
+    };
+    if (initial) {
+      updatePet(initial.id, values);
+      toast(`${values.name} 정보를 저장했어요`);
+      onClose();
+      return;
+    }
+    const pet = addPet({ ...values, species });
+    toast(`${values.name} 정보가 등록되었어요 🐾`);
     onClose();
     onAdded?.(pet);
   };
 
+  const remove = () => {
+    if (!initial) return;
+    if (removePet(initial.id) === "has-upcoming") {
+      toast(
+        `${josa(initial.name, "은는")} 예정된 예약이 있어요. 예약을 먼저 취소해주세요`,
+        "error"
+      );
+      setConfirmDelete(false);
+      return;
+    }
+    toast(`${initial.name} 정보를 삭제했어요`, "info");
+    onClose();
+  };
+
   // 입력하던 중에 바깥을 눌러 창이 닫히며 내용이 사라지지 않게 한다 (닫기 버튼·Esc는 그대로)
-  const dirty = [name, breed, age, weight, note].some((v) => v.trim() !== "");
+  const dirty = initial
+    ? name !== initial.name ||
+      breed !== initial.breed ||
+      age !== String(initial.age) ||
+      weight !== String(initial.weight) ||
+      note !== (initial.note ?? "")
+    : [name, breed, age, weight, note].some((v) => v.trim() !== "");
 
   return (
     <div
@@ -256,11 +347,11 @@ function AddPetDialog({ onClose, onAdded }: { onClose: () => void; onAdded?: (pe
         </button>
 
         <h2 id="add-pet-title" className="text-lg font-extrabold text-ink">
-          새 가족 등록하기
+          {editMode ? `${initial?.name} 정보 수정` : "새 가족 등록하기"}
         </h2>
 
-        {/* 종 선택 */}
-        <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1">
+        {/* 종 선택 — 등록할 때만 (예약 이력과 맞지 않게 바뀌지 않도록) */}
+        <div className={`mt-5 flex rounded-2xl bg-cream-200/70 p-1 ${editMode ? "hidden" : ""}`}>
           {(
             [
               ["dog", "🐕 강아지"],
@@ -375,10 +466,43 @@ function AddPetDialog({ onClose, onAdded }: { onClose: () => void; onAdded?: (pe
 
         <button
           type="submit"
-          className="mt-5 w-full rounded-2xl bg-mint-500 py-4 text-base font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap safe-bottom"
+          className="mt-5 w-full rounded-2xl bg-mint-500 py-4 text-base font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
         >
-          등록하기
+          {editMode ? "저장하기" : "등록하기"}
         </button>
+        {editMode &&
+          (confirmDelete ? (
+            <div className="mt-3 rounded-2xl bg-coral-50 p-4 text-center">
+              <p className="text-sm font-semibold text-ink">
+                {initial?.name} 정보를 삭제할까요? 지난 예약 기록은 남아요.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  className="flex-1 rounded-xl bg-white py-2.5 text-sm font-bold text-ink-soft ring-1 ring-cream-300"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={remove}
+                  className="flex-1 rounded-xl bg-coral-600 py-2.5 text-sm font-bold text-white"
+                >
+                  삭제
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="mt-2 w-full rounded-2xl py-3 text-sm font-semibold text-coral-700 transition-colors hover:bg-coral-50"
+            >
+              이 반려동물 삭제
+            </button>
+          ))}
+        <div className="safe-bottom" />
       </form>
     </div>
   );
