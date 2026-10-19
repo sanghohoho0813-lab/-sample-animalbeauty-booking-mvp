@@ -1,7 +1,9 @@
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 export default function EmptyState({
+  icon: Icon,
   emoji,
   title,
   desc,
@@ -10,7 +12,10 @@ export default function EmptyState({
   titleAs: Title = "p",
   children,
 }: {
-  emoji: string;
+  /** 화면 톤에 맞춘 라인 아이콘 (권장) */
+  icon?: LucideIcon;
+  /** 아이콘이 없을 때만 쓰는 이모지 */
+  emoji?: string;
   title: string;
   desc?: string;
   actionHref?: string;
@@ -20,16 +25,25 @@ export default function EmptyState({
   children?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-cream-300 bg-white/60 px-6 py-14 text-center">
-      <span className="text-5xl" aria-hidden>
-        {emoji}
-      </span>
+    <div className="flex flex-col items-center justify-center rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-cream-200">
+      {Icon ? (
+        <span
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-mint-50 text-mint-700"
+          aria-hidden
+        >
+          <Icon className="h-7 w-7" strokeWidth={1.7} />
+        </span>
+      ) : (
+        <span className="text-5xl" aria-hidden>
+          {emoji}
+        </span>
+      )}
       <Title className="mt-4 text-base font-bold text-ink">{title}</Title>
-      {desc && <p className="mt-1.5 text-sm text-ink-muted">{desc}</p>}
+      {desc && <p className="mt-1.5 max-w-xs text-sm text-ink-muted">{desc}</p>}
       {actionHref && actionLabel && (
         <Link
           href={actionHref}
-          className="mt-5 rounded-full bg-mint-500 px-6 py-3 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+          className="mt-6 rounded-full bg-mint-500 px-6 py-3 text-sm font-bold text-white shadow-cta transition-colors hover:bg-mint-600 tap"
         >
           {actionLabel}
         </Link>

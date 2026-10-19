@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Info, Plus, RotateCcw, Sparkles, Ticket } from "lucide-react";
+import { Check, Info, PawPrint, Plus, RotateCcw, Sparkles, Ticket } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
@@ -10,6 +10,7 @@ import SalonAvailability from "@/components/salon/SalonAvailability";
 import GroomerAvatar from "@/components/ui/GroomerAvatar";
 import PetAvatar from "@/components/ui/PetAvatar";
 import SalonRow from "@/components/ui/SalonRow";
+import ServiceIcon from "@/components/ui/ServiceIcon";
 import type { BookingDraft } from "@/lib/booking-context";
 import { isSalonForPet, isServiceForPet, petSlotCheck } from "@/lib/booking-rules";
 import { couponBlocker, discountOf } from "@/lib/coupons";
@@ -93,10 +94,13 @@ export function PetStep({
   if (pets.length === 0) {
     return (
       <div className="rounded-3xl bg-white px-6 py-10 text-center ring-1 ring-cream-200">
-        <p className="text-4xl" aria-hidden>
-          🐶
-        </p>
-        <p className="mt-3 text-base font-bold text-ink">먼저 반려동물을 등록해주세요</p>
+        <span
+          className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-mint-50 text-mint-700"
+          aria-hidden
+        >
+          <PawPrint className="h-7 w-7" strokeWidth={1.7} />
+        </span>
+        <p className="mt-4 text-base font-bold text-ink">먼저 반려동물을 등록해주세요</p>
         <p className="mt-1 text-sm text-ink-muted">
           이름·견종·몸무게만 있으면 돼요. 등록하면 바로 예약을 이어갈 수 있어요.
         </p>
@@ -279,12 +283,7 @@ export function ServiceStep({
               className={`flex items-center gap-3.5 rounded-2xl p-4 text-left transition-all duration-200 ${choiceClass(selected, unavailable)}`}
               aria-pressed={selected}
             >
-              <span
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-mint-50 text-2xl"
-                aria-hidden
-              >
-                {service.emoji}
-              </span>
+              <ServiceIcon serviceId={service.id} />
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-base font-bold text-ink">
                   {service.name}
@@ -304,7 +303,7 @@ export function ServiceStep({
                 <p className="mt-0.5 truncate text-sm text-ink-muted">{service.shortDesc}</p>
               </div>
               <span className="flex shrink-0 flex-col items-end">
-                <span className="text-base font-extrabold text-ink">
+                <span className="text-base font-bold text-ink">
                   {formatWon(priceAt(service, salon))}
                 </span>
                 <span className="text-sm text-ink-muted">약 {service.durationMin}분</span>
@@ -586,14 +585,37 @@ export function ConfirmStep({
           )}
         </ConfirmRow>
         <ConfirmRow label="서비스" onEdit={() => onEdit(1)}>
-          {service?.name}
-          <span className="font-normal text-ink-muted"> · 약 {service?.durationMin}분</span>
+          {service && (
+            <span className="flex min-w-0 items-center gap-2.5">
+              <ServiceIcon serviceId={service.id} size="sm" />
+              <span className="min-w-0">
+                <span className="block truncate">{service.name}</span>
+                <span className="block text-sm font-normal text-ink-muted">
+                  약 {service.durationMin}분
+                </span>
+              </span>
+            </span>
+          )}
         </ConfirmRow>
         <ConfirmRow label="미용실" onEdit={() => onEdit(2)}>
-          <span className="block truncate">{salon?.name}</span>
+          {salon && (
+            <span className="flex min-w-0 items-center gap-2.5">
+              <span
+                className={`relative h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${salon.gradient}`}
+              >
+                <Image src={salon.image} alt="" fill sizes="40px" className="object-cover" />
+              </span>
+              <span className="truncate">{salon.name}</span>
+            </span>
+          )}
         </ConfirmRow>
         <ConfirmRow label="미용사" onEdit={() => onEdit(3)}>
-          {groomer?.name}
+          {groomer && (
+            <span className="flex min-w-0 items-center gap-2.5">
+              <GroomerAvatar groomer={groomer} size="xs" />
+              <span className="truncate">{groomer.name}</span>
+            </span>
+          )}
         </ConfirmRow>
         <ConfirmRow label="일시" onEdit={() => onEdit(4)}>
           {draft.date && draft.time && (
@@ -612,7 +634,7 @@ export function ConfirmStep({
       {/* 요청사항 — 고르기 + 짧은 메모 */}
       <section aria-labelledby="request-title">
         <div className="flex items-baseline justify-between gap-2">
-          <h2 id="request-title" className="text-base font-extrabold text-ink">
+          <h2 id="request-title" className="text-base font-bold text-ink">
             요청사항 <span className="text-sm font-semibold text-ink-muted">(선택)</span>
           </h2>
           {prefilled && <p className="text-sm text-mint-700">지난번 요청사항을 불러왔어요</p>}
@@ -689,7 +711,7 @@ function CouponPicker({ draft, setDraft, bookings }: StepProps & { bookings: Boo
 
   return (
     <section aria-labelledby="coupon-title">
-      <h2 id="coupon-title" className="text-base font-extrabold text-ink">
+      <h2 id="coupon-title" className="text-base font-bold text-ink">
         쿠폰
       </h2>
       <div

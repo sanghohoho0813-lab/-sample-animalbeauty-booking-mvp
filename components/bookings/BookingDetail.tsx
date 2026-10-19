@@ -123,207 +123,257 @@ export default function BookingDetail({
   }
 
   return (
-    <div className="space-y-6">
-      {/* 머리말 — 상태와 일시 (예약 완료 화면에서는 위의 성공 안내가 대신한다) */}
-      {!embedded && (
-        <header>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-3 py-1 text-sm font-bold ${STAGE_STYLE[stage]}`}>
-              {STAGE_LABEL[stage]}
-            </span>
-            {stage === "upcoming" && days !== null && (
-              <span className="rounded-full bg-ink px-2.5 py-1 text-sm font-bold text-white">
-                D-{days}
-              </span>
-            )}
-          </div>
-          <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-ink md:text-3xl">
-            {formatDateKo(booking.date)} {booking.time}
-          </h1>
-          <p className="mt-1 text-base text-ink-soft">
-            {petName} · {service?.name} · {endTime}쯤 끝나요
-          </p>
-          {booking.previous && booking.status !== "cancelled" && (
-            <p className="mt-1 text-sm text-ink-muted">
-              {formatDateShortKo(booking.previous.date)} {booking.previous.time}에서 변경된
-              예약이에요
-            </p>
-          )}
-        </header>
-      )}
-
-      {/* 지금 할 일 */}
-      <NextAction
-        stage={stage}
-        petName={petName}
-        booking={booking}
-        hasReview={Boolean(myReview) || Boolean(booking.reviewed)}
-        onReview={() => setSheet("review")}
-        onRebook={rebook}
-        salonNotices={salon?.notices ?? []}
-        endTime={endTime}
-      />
-
-      {/* 매장·미용사 */}
-      <section className="overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200">
-        {salon && (
-          <Link
-            href={`/salons/${salon.id}`}
-            className="flex items-center gap-3.5 p-4 transition-colors hover:bg-cream-50"
-          >
-            <span
-              className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br ${salon.gradient}`}
+    // 모바일은 한 줄로(할 일 → 매장 → 요청 → 결제 → 진행 → 후기 → 관리),
+    // 넓은 화면은 왼쪽에 예약 이야기, 오른쪽에 매장·결제·관리를 고정한다.
+    // (오른쪽 묶음은 모바일에서 display: contents 로 풀려 위 순서에 끼어든다)
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
+      <div className="contents lg:flex lg:flex-col lg:gap-6">
+        {/* 머리말 — 매장 사진 위에 상태, 아래에 일시 (예약 완료 화면에서는 위의 성공 안내가 대신한다) */}
+        {!embedded && (
+          <header className="order-1 lg:order-none overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-ink/[0.04]">
+            <div
+              className={`relative h-28 bg-gradient-to-br md:h-36 ${salon?.gradient ?? "from-mint-100 to-mint-200"}`}
             >
-              <Image src={salon.image} alt="" fill sizes="56px" className="object-cover" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-base font-bold text-ink">{salon.name}</span>
-              <span className="block truncate text-sm text-ink-muted">{salon.address}</span>
-            </span>
-            <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint" aria-hidden />
-          </Link>
-        )}
-        <div className="flex items-center gap-3.5 border-t border-cream-200 p-4">
-          {groomer && <GroomerAvatar groomer={groomer} size="md" />}
-          <div className="min-w-0 flex-1">
-            <p className="text-base font-bold text-ink">{groomer?.name} 미용사</p>
-            <p className="truncate text-sm text-ink-muted">{groomer?.specialties.join(", ")}</p>
-          </div>
-        </div>
-        {pet && (
-          <div className="flex items-center gap-3.5 border-t border-cream-200 p-4">
-            <PetAvatar pet={pet} size="md" />
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-bold text-ink">{pet.name}</p>
-              <p className="truncate text-sm text-ink-muted">
-                {pet.breed} · {pet.age}살 · {pet.weight}kg
-              </p>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* 요청사항 */}
-      {(booking.request || pet?.note) && (
-        <DetailSection title="미용사에게 전달한 내용">
-          {booking.request && booking.request.tags.length > 0 && (
-            <ul className="flex flex-wrap gap-1.5">
-              {booking.request.tags.map((t) => (
-                <li
-                  key={t}
-                  className="rounded-full bg-cream-200 px-3 py-1 text-sm font-semibold text-ink-soft"
+              {salon && (
+                <Image
+                  src={salon.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 768px) 42rem, 100vw"
+                  className="object-cover"
+                />
+              )}
+              <span className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent" />
+              <div className="absolute left-4 top-3.5 flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-sm font-bold ${
+                    stage === "upcoming" || stage === "done" || stage === "cancelled"
+                      ? "bg-white text-ink"
+                      : STAGE_STYLE[stage]
+                  }`}
                 >
-                  {t}
-                </li>
-              ))}
-            </ul>
-          )}
-          {booking.request?.memo && (
-            <p className="mt-2 text-base text-ink-soft">“{booking.request.memo}”</p>
-          )}
-          {pet?.note && <p className="mt-2 text-sm text-ink-muted">특이사항 · {pet.note}</p>}
-        </DetailSection>
-      )}
-
-      {/* 결제 */}
-      <DetailSection title="결제 정보">
-        <dl className="space-y-2 text-sm">
-          <Row label="서비스 금액" value={formatWon(booking.price)} />
-          {booking.discount > 0 && (
-            <Row
-              label={
-                <span className="flex items-center gap-1.5 text-coral-600">
-                  <Ticket className="h-4 w-4" aria-hidden />
-                  {coupon?.name ?? "할인"}
+                  {STAGE_LABEL[stage]}
                 </span>
-              }
-              value={
-                <span className="text-coral-600">
-                  - {booking.discount.toLocaleString("ko-KR")}원
+                {stage === "upcoming" && days !== null && (
+                  <span className="rounded-full bg-ink/80 px-2.5 py-0.5 text-sm font-bold text-white backdrop-blur">
+                    D-{days}
+                  </span>
+                )}
+              </div>
+              {salon && (
+                <p className="absolute bottom-3 left-4 right-24 truncate text-sm font-semibold text-white">
+                  {salon.name} · {groomer?.name} 미용사
+                </p>
+              )}
+            </div>
+            <div className="relative px-5 pb-5 pt-4">
+              {pet && (
+                <span className="absolute -top-12 right-4 rounded-full ring-4 ring-white">
+                  <PetAvatar pet={pet} size="md" />
                 </span>
-              }
-            />
-          )}
-          <div className="flex items-center justify-between border-t border-cream-200 pt-2.5">
-            <dt className="font-bold text-ink">
-              {booking.status === "cancelled" ? "취소된 금액" : "결제 금액"}
-            </dt>
-            <dd className="text-lg font-extrabold text-ink">{formatWon(booking.total)}</dd>
-          </div>
-        </dl>
-        <p className="mt-3 text-sm text-ink-muted">예약번호 {booking.bookingNo}</p>
-      </DetailSection>
-
-      {/* 진행 상황 */}
-      <DetailSection title="진행 상황">
-        <Timeline
-          booking={booking}
-          stage={stage}
-          reviewed={Boolean(myReview) || Boolean(booking.reviewed)}
-        />
-      </DetailSection>
-
-      {/* 내 후기 */}
-      {myReview && (
-        <DetailSection title="내가 남긴 후기">
-          <StarRow rating={myReview.rating} />
-          {myReview.keywords && myReview.keywords.length > 0 && (
-            <p className="mt-2 text-sm font-semibold text-mint-800">
-              {myReview.keywords.join(" · ")}
-            </p>
-          )}
-          {myReview.content && (
-            <p className="mt-1.5 whitespace-pre-line break-words text-base leading-relaxed text-ink-soft">
-              {myReview.content}
-            </p>
-          )}
-        </DetailSection>
-      )}
-
-      {/* 예약 관리 */}
-      {active && (
-        <div className="grid grid-cols-2 gap-2.5">
-          {modifiable ? (
-            <>
-              <ActionButton
-                icon={<CalendarClock className="h-4 w-4" />}
-                onClick={() => setSheet("reschedule")}
-              >
-                일정 변경
-              </ActionButton>
-              <ActionButton
-                icon={<XCircle className="h-4 w-4" />}
-                onClick={() => setSheet("cancel")}
-                tone="danger"
-              >
-                예약 취소
-              </ActionButton>
-            </>
-          ) : (
-            <p className="col-span-2 rounded-2xl bg-cream-100 px-4 py-3 text-sm text-ink-muted">
-              방문 당일에는 앱에서 변경·취소할 수 없어요. 매장에 직접 연락해주세요.
-            </p>
-          )}
-          <ActionButton
-            icon={<CalendarPlus className="h-4 w-4" />}
-            onClick={() => downloadIcs(booking)}
-          >
-            캘린더에 추가
-          </ActionButton>
-          {salon && (
-            <a
-              href={mapUrl(salon.name, salon.address)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-h-12 items-center justify-center gap-1.5 rounded-2xl bg-white text-sm font-bold text-ink-soft ring-1 ring-cream-300 transition-colors hover:ring-mint-400 tap"
-            >
-              <Navigation className="h-4 w-4" aria-hidden />
-              길찾기
-              <span className="sr-only">(새 창)</span>
-            </a>
+              )}
+              <h1 className="text-xl font-bold tracking-[-0.02em] text-ink sm:text-2xl md:text-3xl">
+                {formatDateKo(booking.date)} {booking.time}
+              </h1>
+              <p className="mt-1 text-base text-ink-soft">
+                {petName} · {service?.name} · {endTime}쯤 끝나요
+              </p>
+              {booking.previous && booking.status !== "cancelled" && (
+                <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
+                  <CalendarClock className="h-4 w-4 shrink-0" aria-hidden />
+                  {formatDateShortKo(booking.previous.date)} {booking.previous.time}에서 변경된
+                  예약이에요
+                </p>
+              )}
+            </div>
+          </header>
+        )}
+        <div className="order-2 lg:order-none">
+          {/* 지금 할 일 */}
+          <NextAction
+            stage={stage}
+            petName={petName}
+            booking={booking}
+            hasReview={Boolean(myReview) || Boolean(booking.reviewed)}
+            onReview={() => setSheet("review")}
+            onRebook={rebook}
+            salonNotices={salon?.notices ?? []}
+            endTime={endTime}
+          />
+        </div>
+        <div className="order-4 lg:order-none">
+          {/* 요청사항 */}
+          {(booking.request || pet?.note) && (
+            <DetailSection title="미용사에게 전달한 내용">
+              {booking.request && booking.request.tags.length > 0 && (
+                <ul className="flex flex-wrap gap-1.5">
+                  {booking.request.tags.map((t) => (
+                    <li
+                      key={t}
+                      className="rounded-full bg-cream-200 px-3 py-1 text-sm font-semibold text-ink-soft"
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {booking.request?.memo && (
+                <p className="mt-2 text-base text-ink-soft">“{booking.request.memo}”</p>
+              )}
+              {pet?.note && <p className="mt-2 text-sm text-ink-muted">특이사항 · {pet.note}</p>}
+            </DetailSection>
           )}
         </div>
-      )}
+        <div className="order-6 lg:order-none">
+          {/* 진행 상황 */}
+          <DetailSection title="진행 상황">
+            <Timeline
+              booking={booking}
+              stage={stage}
+              reviewed={Boolean(myReview) || Boolean(booking.reviewed)}
+            />
+          </DetailSection>
+        </div>
+        <div className="order-7 lg:order-none">
+          {/* 내 후기 */}
+          {myReview && (
+            <DetailSection title="내가 남긴 후기">
+              <StarRow rating={myReview.rating} />
+              {myReview.keywords && myReview.keywords.length > 0 && (
+                <p className="mt-2 text-sm font-semibold text-mint-800">
+                  {myReview.keywords.join(" · ")}
+                </p>
+              )}
+              {myReview.content && (
+                <p className="mt-1.5 whitespace-pre-line break-words text-base leading-relaxed text-ink-soft">
+                  {myReview.content}
+                </p>
+              )}
+            </DetailSection>
+          )}
+        </div>
+      </div>
+
+      <div className="contents lg:sticky lg:top-24 lg:flex lg:flex-col lg:gap-6">
+        <div className="order-3 lg:order-none">
+          {/* 매장·미용사 */}
+          <section className="overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200">
+            {salon && (
+              <Link
+                href={`/salons/${salon.id}`}
+                className="flex items-center gap-3.5 p-4 transition-colors hover:bg-cream-50"
+              >
+                <span
+                  className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br ${salon.gradient}`}
+                >
+                  <Image src={salon.image} alt="" fill sizes="56px" className="object-cover" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-base font-bold text-ink">{salon.name}</span>
+                  <span className="block truncate text-sm text-ink-muted">{salon.address}</span>
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint" aria-hidden />
+              </Link>
+            )}
+            <div className="flex items-center gap-3.5 border-t border-cream-200 p-4">
+              {groomer && <GroomerAvatar groomer={groomer} size="md" />}
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-bold text-ink">{groomer?.name} 미용사</p>
+                <p className="truncate text-sm text-ink-muted">{groomer?.specialties.join(", ")}</p>
+              </div>
+            </div>
+            {pet && (
+              <div className="flex items-center gap-3.5 border-t border-cream-200 p-4">
+                <PetAvatar pet={pet} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-bold text-ink">{pet.name}</p>
+                  <p className="truncate text-sm text-ink-muted">
+                    {pet.breed} · {pet.age}살 · {pet.weight}kg
+                  </p>
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+        <div className="order-5 lg:order-none">
+          {/* 결제 */}
+          <DetailSection title="결제 정보">
+            <dl className="space-y-2 text-sm">
+              <Row label="서비스 금액" value={formatWon(booking.price)} />
+              {booking.discount > 0 && (
+                <Row
+                  label={
+                    <span className="flex items-center gap-1.5 text-coral-600">
+                      <Ticket className="h-4 w-4" aria-hidden />
+                      {coupon?.name ?? "할인"}
+                    </span>
+                  }
+                  value={
+                    <span className="text-coral-600">
+                      - {booking.discount.toLocaleString("ko-KR")}원
+                    </span>
+                  }
+                />
+              )}
+              <div className="flex items-center justify-between border-t border-cream-200 pt-2.5">
+                <dt className="font-bold text-ink">
+                  {booking.status === "cancelled" ? "취소된 금액" : "결제 금액"}
+                </dt>
+                <dd className="text-lg font-bold tracking-tight text-ink">
+                  {formatWon(booking.total)}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-3 text-sm text-ink-muted">예약번호 {booking.bookingNo}</p>
+          </DetailSection>
+        </div>
+        <div className="order-8 lg:order-none">
+          {/* 예약 관리 */}
+          {active && (
+            <div className="grid grid-cols-2 gap-2.5">
+              {modifiable ? (
+                <>
+                  <ActionButton
+                    icon={<CalendarClock className="h-4 w-4" />}
+                    onClick={() => setSheet("reschedule")}
+                  >
+                    일정 변경
+                  </ActionButton>
+                  <ActionButton
+                    icon={<XCircle className="h-4 w-4" />}
+                    onClick={() => setSheet("cancel")}
+                    tone="danger"
+                  >
+                    예약 취소
+                  </ActionButton>
+                </>
+              ) : (
+                <p className="col-span-2 rounded-2xl bg-cream-100 px-4 py-3 text-sm text-ink-muted">
+                  방문 당일에는 앱에서 변경·취소할 수 없어요. 매장에 직접 연락해주세요.
+                </p>
+              )}
+              <ActionButton
+                icon={<CalendarPlus className="h-4 w-4" />}
+                onClick={() => downloadIcs(booking)}
+              >
+                캘린더에 추가
+              </ActionButton>
+              {salon && (
+                <a
+                  href={mapUrl(salon.name, salon.address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-12 items-center justify-center gap-1.5 rounded-2xl bg-white text-sm font-bold text-ink-soft ring-1 ring-cream-300 transition-colors hover:ring-mint-400 tap"
+                >
+                  <Navigation className="h-4 w-4" aria-hidden />
+                  길찾기
+                  <span className="sr-only">(새 창)</span>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {sheet === "cancel" && <CancelSheet booking={booking} onClose={() => setSheet(null)} />}
       {sheet === "reschedule" && (
@@ -359,7 +409,7 @@ function NextAction({
   if (stage === "upcoming" || stage === "tomorrow" || stage === "today") {
     return (
       <section className="rounded-3xl bg-mint-50 p-5" aria-labelledby="prep-title">
-        <h2 id="prep-title" className="text-base font-extrabold text-mint-900">
+        <h2 id="prep-title" className="text-base font-bold text-mint-900">
           {stage === "today"
             ? `오늘 ${booking.time} 방문이에요`
             : stage === "tomorrow"
@@ -387,7 +437,7 @@ function NextAction({
     const next = nextGroomingDate(booking);
     return (
       <section className="rounded-3xl bg-mint-50 p-5">
-        <h2 className="text-base font-extrabold text-mint-900">
+        <h2 className="text-base font-bold text-mint-900">
           {hasReview
             ? `${petName}의 다음 미용은 ${formatDateShortKo(next)}쯤이 좋아요`
             : `${petName}의 미용은 어땠나요?`}
@@ -428,7 +478,7 @@ function NextAction({
   // 취소됨
   return (
     <section className="rounded-3xl bg-cream-100 p-5">
-      <h2 className="text-base font-extrabold text-ink">취소된 예약이에요</h2>
+      <h2 className="text-base font-bold text-ink">취소된 예약이에요</h2>
       <p className="mt-1 text-sm text-ink-muted">
         같은 미용실·미용사로 날짜만 다시 고를 수 있어요.
       </p>
@@ -525,7 +575,7 @@ function Timeline({
 function DetailSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-3xl bg-white p-5 ring-1 ring-cream-200">
-      <h2 className="mb-3 text-base font-extrabold text-ink">{title}</h2>
+      <h2 className="mb-3 text-base font-bold text-ink">{title}</h2>
       {children}
     </section>
   );

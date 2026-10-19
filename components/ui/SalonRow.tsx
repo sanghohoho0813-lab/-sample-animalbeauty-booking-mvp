@@ -31,9 +31,9 @@ export default function SalonRow({
   return (
     <div className="flex min-w-0 items-center gap-3.5">
       <div
-        className={`relative h-[5.75rem] w-[5.75rem] shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br ${salon.gradient}`}
+        className={`relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br ${salon.gradient}`}
       >
-        <Image src={salon.image} alt="" fill sizes="92px" className="object-cover" />
+        <Image src={salon.image} alt="" fill sizes="96px" className="object-cover" />
         {badge && <span className="absolute inset-x-1 bottom-1 flex justify-center">{badge}</span>}
       </div>
       <div className="min-w-0 flex-1">
@@ -56,7 +56,7 @@ export default function SalonRow({
         {availability && <p className="mt-1 truncate text-sm">{availability}</p>}
         <p className="mt-0.5 truncate text-sm text-ink-muted">
           <span className="mr-1">{shown.label}</span>
-          <span className="font-extrabold text-ink">{formatWon(shown.amount)}</span>
+          <span className="font-bold text-ink">{formatWon(shown.amount)}</span>
           {shown.note && <span className="ml-1">{shown.note}</span>}
         </p>
       </div>

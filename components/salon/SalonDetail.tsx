@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronLeft, Clock, Heart, MapPin, Navigation, Star } from "lucide-react";
+import { ChevronLeft, Clock, Clock3, Heart, MapPin, Navigation, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import GroomerAvatar from "@/components/ui/GroomerAvatar";
+import ServiceIcon from "@/components/ui/ServiceIcon";
 import { areaOf } from "@/components/ui/SalonRow";
 import { StarRow } from "@/components/ui/Stars";
 import { getGroomersBySalon, getSalonById, getSeedReviews, SERVICES } from "@/lib/data";
@@ -63,10 +64,10 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
 
   return (
     <div className="pb-28 lg:pb-0">
-      {/* 사진 */}
+      {/* 사진 — 모바일은 화면 끝까지, 위에 뒤로 버튼 */}
       <div className="relative mx-auto max-w-6xl md:px-6 md:pt-6">
         <div
-          className={`relative aspect-[16/10] overflow-hidden bg-gradient-to-br md:aspect-[21/8] md:rounded-3xl ${salon.gradient}`}
+          className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br sm:aspect-[16/9] md:aspect-[21/8] md:rounded-3xl ${salon.gradient}`}
         >
           <Image
             src={salon.image}
@@ -76,32 +77,38 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
             sizes="(min-width: 1152px) 72rem, 100vw"
             className="object-cover"
           />
+          <span
+            className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-ink/25 to-transparent md:hidden"
+            aria-hidden
+          />
         </div>
         <Link
           href="/salons"
-          className="absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-card backdrop-blur md:left-9 md:top-9"
+          className="absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-ink shadow-card backdrop-blur transition-transform tap md:left-9 md:top-9"
           aria-label="미용실 목록으로"
         >
           <ChevronLeft className="h-5 w-5" />
         </Link>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 md:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-10">
+      <div className="relative mx-auto -mt-6 max-w-6xl rounded-t-[1.75rem] bg-white px-4 md:mt-0 md:rounded-none md:bg-transparent md:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-10">
         <div className="min-w-0">
           {/* 머리말 */}
-          <header className="pt-5 md:pt-7">
+          <header className="pt-6 md:pt-8">
             <p className="text-sm font-semibold text-mint-700">{salon.tags.join(" · ")}</p>
-            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink md:text-3xl">
+            <h1 className="mt-1 text-2xl font-bold tracking-[-0.02em] text-ink md:text-3xl">
               {salon.name}
             </h1>
-            <p className="mt-1.5 text-base text-ink-soft">{salon.headline}</p>
-            <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-muted">
+            <p className="mt-1 text-base text-ink-soft">{salon.headline}</p>
+            <p className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-muted">
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
               <span className="font-bold text-ink">{salon.rating.toFixed(1)}</span>
               <a href="#reviews" className="underline-offset-2 hover:underline">
                 후기 {reviewCount.toLocaleString("ko-KR")}개
               </a>
-              <span aria-hidden>·</span>
+              <span aria-hidden className="text-cream-300">
+                |
+              </span>
               <span>
                 {salon.distanceKm}km · {areaOf(salon.address)}
               </span>
@@ -109,22 +116,26 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
           </header>
 
           {/* 결정에 바로 쓰는 세 가지 */}
-          <dl className="mt-5 grid grid-cols-3 divide-x divide-cream-200 rounded-2xl bg-white py-3.5 text-center ring-1 ring-cream-200">
-            <Fact label="가장 빠른 예약">
+          <dl className="mt-5 grid grid-cols-3 divide-x divide-cream-200 rounded-2xl bg-cream-50 py-3.5 text-center ring-1 ring-cream-200 md:bg-white">
+            <Fact label="가장 빠른 예약" highlight>
               {earliestText ?? <span className="inline-block h-5 w-16 rounded bg-cream-200/70" />}
             </Fact>
             <Fact label="기본 미용">{formatWon(salon.priceFrom)}</Fact>
             <Fact label="최근 7일 예약">{salon.weeklyBookings}건</Fact>
           </dl>
 
+          <SectionTabs />
+
           {/* 가격 */}
-          <Section title="가격" note="소요 시간은 아이 크기·털 상태에 따라 달라질 수 있어요">
+          <Section
+            id="prices"
+            title="가격"
+            note="소요 시간은 아이 크기·털 상태에 따라 달라질 수 있어요"
+          >
             <ul className="divide-y divide-cream-200">
               {services.map((service) => (
-                <li key={service.id} className="flex items-center gap-3 py-3">
-                  <span className="text-2xl" aria-hidden>
-                    {service.emoji}
-                  </span>
+                <li key={service.id} className="flex items-center gap-3.5 py-3.5">
+                  <ServiceIcon serviceId={service.id} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 text-base font-semibold text-ink">
                       {service.name}
@@ -157,7 +168,7 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
               <>
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
                   <div className="flex items-center gap-3 sm:flex-col sm:items-start sm:gap-1">
-                    <p className="text-4xl font-extrabold tracking-tight text-ink">
+                    <p className="text-4xl font-bold tracking-tight text-ink">
                       {salon.rating.toFixed(1)}
                     </p>
                     <StarRow rating={Math.round(salon.rating)} />
@@ -204,7 +215,7 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
           </Section>
 
           {/* 미용사 */}
-          <Section title="미용사">
+          <Section id="groomers" title="미용사">
             <ul className="divide-y divide-cream-200">
               {groomers.map((groomer) => {
                 const slot = ready ? earliestSlot([groomer.id], bookings, now!) : null;
@@ -225,7 +236,8 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
                         {groomer.specialties.join(", ")}
                       </p>
                       {ready && (
-                        <p className="mt-0.5 text-sm font-semibold text-mint-700">
+                        <p className="mt-0.5 flex items-center gap-1 text-sm font-semibold text-mint-700">
+                          <Clock3 className="h-3.5 w-3.5" aria-hidden />
                           {slot ? `${slotLabel(slot, now!)} 가능` : "2주 안 마감"}
                         </p>
                       )}
@@ -233,7 +245,7 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
                     <button
                       type="button"
                       onClick={() => book(groomer.id)}
-                      className="shrink-0 rounded-xl border border-cream-300 bg-white px-3.5 py-2 text-sm font-bold text-ink-soft transition-colors hover:border-mint-400 hover:text-mint-700 tap"
+                      className="shrink-0 rounded-full bg-mint-50 px-4 py-2 text-sm font-bold text-mint-700 transition-colors hover:bg-mint-100 tap"
                       aria-label={`${groomer.name} 미용사로 예약하기`}
                     >
                       예약
@@ -245,7 +257,7 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
           </Section>
 
           {/* 시설·편의 */}
-          <Section title="시설·편의">
+          <Section id="info" title="시설·편의">
             <ul className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
               {salon.amenities.map((key) => {
                 const { label, icon: Icon } = AMENITIES[key];
@@ -310,9 +322,9 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
         </div>
 
         {/* 데스크톱 예약 패널 */}
-        <aside className="sticky top-24 mt-7 hidden rounded-3xl bg-white p-6 shadow-card ring-1 ring-cream-200 lg:block">
+        <aside className="sticky top-24 mt-8 hidden rounded-3xl bg-white p-6 shadow-card ring-1 ring-cream-200 lg:block">
           <p className="text-sm font-semibold text-ink-muted">가장 빠른 예약</p>
-          <p className="mt-0.5 text-xl font-extrabold text-ink">
+          <p className="mt-0.5 text-xl font-bold text-ink">
             {earliestText ?? <span className="inline-block h-6 w-28 rounded bg-cream-200/70" />}
           </p>
           <p className="mt-3 text-sm text-ink-muted">
@@ -342,14 +354,14 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
       </div>
 
       {/* 모바일 하단 고정 예약 버튼 */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200 bg-white/95 shadow-float backdrop-blur-md safe-bottom lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200/80 bg-white/90 shadow-float backdrop-blur-xl safe-bottom lg:hidden">
         <div className="mx-auto flex max-w-lg items-center gap-3 px-4 py-3">
           <button
             type="button"
             onClick={toggleLike}
             aria-pressed={liked}
             aria-label={liked ? `${salon.name} 찜 해제` : `${salon.name} 찜하기`}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cream-300 bg-white tap"
+            className="flex h-[3.25rem] w-[3.25rem] shrink-0 items-center justify-center rounded-2xl border border-cream-300 bg-white tap"
           >
             <Heart
               className={`h-5 w-5 ${liked ? "fill-coral-500 text-coral-500" : "text-ink-soft"}`}
@@ -358,7 +370,7 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
           <button
             type="button"
             onClick={() => book()}
-            className="flex h-12 min-w-0 flex-1 flex-col items-center justify-center rounded-2xl bg-mint-500 text-white shadow-cta transition-colors hover:bg-mint-600 tap"
+            className="flex h-[3.25rem] min-w-0 flex-1 flex-col items-center justify-center rounded-2xl bg-mint-500 text-white shadow-cta transition-colors hover:bg-mint-600 tap"
           >
             <span className="text-base font-bold leading-tight">예약하기</span>
             {earliestText && (
@@ -373,15 +385,90 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
   );
 }
 
-function Fact({ label, children }: { label: string; children: ReactNode }) {
+function Fact({
+  label,
+  highlight = false,
+  children,
+}: {
+  label: string;
+  highlight?: boolean;
+  children: ReactNode;
+}) {
   return (
     <div className="min-w-0 px-2">
-      <dt className="text-xs font-semibold text-ink-muted">{label}</dt>
-      <dd className="mt-1 truncate text-sm font-extrabold text-ink sm:text-base">{children}</dd>
+      <dt className="text-xs font-medium text-ink-muted">{label}</dt>
+      <dd
+        className={`mt-1 truncate text-sm font-bold sm:text-base ${
+          highlight ? "text-mint-700" : "text-ink"
+        }`}
+      >
+        {children}
+      </dd>
     </div>
   );
 }
 
+const TABS = [
+  { id: "prices", label: "가격" },
+  { id: "reviews", label: "후기" },
+  { id: "groomers", label: "미용사" },
+  { id: "info", label: "매장 정보" },
+];
+
+/** 섹션 바로가기 — 스크롤하면 상단에 붙고, 지금 보고 있는 섹션을 표시한다 */
+function SectionTabs() {
+  const [active, setActive] = useState(TABS[0].id);
+
+  useEffect(() => {
+    const targets = TABS.map((t) => document.getElementById(t.id)).filter(
+      (el): el is HTMLElement => el !== null
+    );
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (visible) setActive(visible.target.id);
+      },
+      { rootMargin: "-130px 0px -55% 0px" }
+    );
+    targets.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <nav
+      aria-label="섹션 바로가기"
+      className="sticky top-14 z-30 -mx-4 mt-5 border-b border-cream-200 bg-white/95 px-4 backdrop-blur-xl md:top-16 md:mx-0 md:bg-cream-50/95 md:px-0"
+    >
+      <ul className="flex gap-1">
+        {TABS.map((tab) => (
+          <li key={tab.id} className="flex-1 sm:flex-none">
+            <a
+              href={`#${tab.id}`}
+              aria-current={active === tab.id ? "location" : undefined}
+              className={`relative block whitespace-nowrap px-2 py-3 text-center text-sm transition-colors sm:px-4 ${
+                active === tab.id
+                  ? "font-bold text-ink"
+                  : "font-medium text-ink-muted hover:text-ink"
+              }`}
+            >
+              {tab.label}
+              {active === tab.id && (
+                <span
+                  className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-ink"
+                  aria-hidden
+                />
+              )}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+/** 모바일은 섹션 사이를 두꺼운 띠로, 데스크톱은 얇은 선으로 나눈다 */
 function Section({
   id,
   title,
@@ -394,8 +481,11 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 border-t border-cream-200 py-7 first-of-type:mt-7">
-      <h2 className="text-lg font-extrabold tracking-tight text-ink">{title}</h2>
+    <section
+      id={id}
+      className="-mx-4 scroll-mt-28 border-t-8 border-cream-100 px-4 py-7 first-of-type:border-t-0 md:mx-0 md:scroll-mt-32 md:border-t md:border-cream-200 md:px-0 md:first-of-type:border-t-0"
+    >
+      <h2 className="text-lg font-bold tracking-tight text-ink">{title}</h2>
       {note && <p className="mt-0.5 text-sm text-ink-muted">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Heart } from "lucide-react";
 import EmptyState from "@/components/ui/EmptyState";
 import SalonCard from "@/components/ui/SalonCard";
 import { SALONS } from "@/lib/data";
@@ -11,7 +12,10 @@ export default function FavoritesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">찜한 미용실</h1>
+      <h1 className="text-xl font-bold tracking-tight text-ink md:text-2xl">찜한 미용실</h1>
+      {hydrated && liked.length > 0 && (
+        <p className="mt-0.5 text-sm text-ink-muted">{liked.length}곳을 찜했어요</p>
+      )}
       <div className="mt-5">
         {!hydrated ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
@@ -21,7 +25,7 @@ export default function FavoritesPage() {
           </div>
         ) : liked.length === 0 ? (
           <EmptyState
-            emoji="💚"
+            icon={Heart}
             title="아직 찜한 미용실이 없어요"
             desc="미용실 카드의 하트를 눌러 찜해보세요."
             actionHref="/salons"

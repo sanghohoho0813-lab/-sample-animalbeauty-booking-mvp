@@ -1,6 +1,7 @@
 "use client";
 
 import { Ticket } from "lucide-react";
+import Image from "next/image";
 import PetAvatar from "@/components/ui/PetAvatar";
 import type { BookingDraft } from "@/lib/booking-context";
 import { quote } from "@/lib/checkout";
@@ -35,39 +36,53 @@ export default function SummaryCard({
   ].filter(Boolean) as { label: string; value: string }[];
 
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-card ring-1 ring-cream-200">
-      <h2 className="text-base font-extrabold text-ink">예약 요약</h2>
-
-      {pet ? (
-        <div className="mt-4 flex items-center gap-3">
-          <PetAvatar pet={pet} size="md" />
-          <div className="min-w-0">
-            <p className="truncate text-base font-bold text-ink">{pet.name}</p>
-            <p className="truncate text-sm text-ink-muted">
-              {pet.breed} · {pet.age}살 · {pet.weight}kg
-            </p>
-          </div>
+    <div className="overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-cream-200">
+      {/* 미용실을 고르면 매장 사진이 요약 위에 깔린다 */}
+      {salon && (
+        <div className={`relative h-24 bg-gradient-to-br ${salon.gradient}`}>
+          <Image src={salon.image} alt="" fill sizes="21rem" className="object-cover" />
+          <span className="absolute inset-0 bg-gradient-to-t from-ink/60 to-transparent" />
+          <p className="absolute bottom-2.5 left-5 right-5 truncate text-sm font-bold text-white">
+            {salon.name}
+          </p>
         </div>
-      ) : (
-        <p className="mt-3 text-sm text-ink-muted">선택한 내용이 여기에 차례로 표시돼요.</p>
       )}
+      <div className="p-5">
+        <h2 className="text-base font-bold text-ink">예약 요약</h2>
 
-      {rows.length > 0 && (
-        <dl className="mt-4 space-y-2.5 border-t border-cream-200 pt-4 text-sm">
-          {rows.map((row) => (
-            <div key={row.label} className="flex items-start justify-between gap-3">
-              <dt className="shrink-0 text-ink-muted">{row.label}</dt>
-              <dd className="min-w-0 break-words text-right font-semibold text-ink">{row.value}</dd>
+        {pet ? (
+          <div className="mt-4 flex items-center gap-3">
+            <PetAvatar pet={pet} size="md" />
+            <div className="min-w-0">
+              <p className="truncate text-base font-bold text-ink">{pet.name}</p>
+              <p className="truncate text-sm text-ink-muted">
+                {pet.breed} · {pet.age}살 · {pet.weight}kg
+              </p>
             </div>
-          ))}
-        </dl>
-      )}
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-ink-muted">선택한 내용이 여기에 차례로 표시돼요.</p>
+        )}
 
-      {service && (
-        <div className="mt-4 border-t border-dashed border-cream-300 pt-4">
-          <PriceSummary draft={draft} bookings={bookings} />
-        </div>
-      )}
+        {rows.length > 0 && (
+          <dl className="mt-4 space-y-2.5 border-t border-cream-200 pt-4 text-sm">
+            {rows.map((row) => (
+              <div key={row.label} className="flex items-start justify-between gap-3">
+                <dt className="shrink-0 text-ink-muted">{row.label}</dt>
+                <dd className="min-w-0 break-words text-right font-semibold text-ink">
+                  {row.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {service && (
+          <div className="mt-4 border-t border-dashed border-cream-300 pt-4">
+            <PriceSummary draft={draft} bookings={bookings} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -95,7 +110,7 @@ export function PriceSummary({ draft, bookings }: { draft: BookingDraft; booking
       )}
       <div className="mt-4 flex items-center justify-between">
         <span className="text-sm font-bold text-ink">총 결제 금액</span>
-        <span className="text-xl font-extrabold text-ink">{formatWon(total)}</span>
+        <span className="text-xl font-bold tracking-tight text-ink">{formatWon(total)}</span>
       </div>
     </div>
   );

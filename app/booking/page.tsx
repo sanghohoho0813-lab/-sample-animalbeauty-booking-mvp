@@ -249,7 +249,7 @@ function BookingFlow() {
 
       <div className="mt-5 grid gap-6 md:mt-7 lg:grid-cols-[1fr_21rem] lg:items-start">
         <section key={step} className="min-w-0 animate-fade-in-up">
-          <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
+          <h1 className="text-xl font-bold tracking-tight text-ink md:text-2xl">
             {STEP_TITLES[step]}
           </h1>
           {/* 모바일에는 요약 카드가 없으므로, 지금까지 고른 것을 한 줄로 보여주고 눌러서 바로 고칠 수 있게 한다 */}
@@ -323,7 +323,7 @@ function BookingFlow() {
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-coral-100 text-coral-600">
             <CalendarClock className="h-6 w-6" aria-hidden />
           </span>
-          <h2 className="mt-3 text-lg font-extrabold text-ink">방금 그 시간이 마감됐어요</h2>
+          <h2 className="mt-3 text-lg font-bold text-ink">방금 그 시간이 마감됐어요</h2>
           <p className="mt-1 text-sm leading-relaxed text-ink-muted">
             다른 보호자가 먼저 예약했거나, 지금 시각 기준으로 예약할 수 없게 됐어요.
             {conflict.length > 0 && " 가까운 시간으로 바로 바꿀 수 있어요."}
@@ -381,7 +381,9 @@ function BookingFlow() {
                 <p className="whitespace-nowrap text-xs font-semibold text-ink-faint">
                   예상 결제 금액
                 </p>
-                <p className="truncate text-lg font-extrabold text-ink">{formatWon(total)}</p>
+                <p className="truncate text-lg font-bold tracking-tight text-ink">
+                  {formatWon(total)}
+                </p>
               </>
             ) : (
               // '다음'이 왜 비활성인지 알려준다 — 고르면 자동으로 넘어간다

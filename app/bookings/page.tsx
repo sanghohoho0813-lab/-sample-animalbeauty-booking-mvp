@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, PenLine, RotateCcw } from "lucide-react";
+import { CalendarDays, ChevronRight, History, PenLine, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -44,7 +44,7 @@ export default function BookingsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">예약 내역</h1>
+      <h1 className="text-xl font-bold tracking-tight text-ink md:text-2xl">예약 내역</h1>
 
       {/* 탭 */}
       <div className="mt-5 flex rounded-2xl bg-cream-200/70 p-1 md:max-w-md" role="tablist">
@@ -79,7 +79,7 @@ export default function BookingsPage() {
         {hydrated && list.length === 0 && (
           <div className="lg:col-span-2">
             <EmptyState
-              emoji={tab === "upcoming" ? "🗓️" : "🐾"}
+              icon={tab === "upcoming" ? CalendarDays : History}
               title={tab === "upcoming" ? "예정된 예약이 없어요" : "지난 이용 내역이 없어요"}
               desc={
                 tab === "upcoming"
@@ -139,10 +139,10 @@ function BookingCard({
   const reviewable = booking.status === "completed" && !booking.reviewed && !myReview;
 
   return (
-    <article className="overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200 animate-fade-in-up">
+    <article className="overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200 transition-shadow animate-fade-in-up hover:shadow-card">
       <Link
         href={`/bookings/${booking.id}`}
-        className="flex items-center gap-3.5 p-4 transition-colors hover:bg-cream-50 md:p-5"
+        className="flex gap-3.5 p-4 transition-colors hover:bg-cream-50 md:p-5"
       >
         {pet ? (
           <PetAvatar pet={pet} size="md" />
@@ -150,38 +150,46 @@ function BookingCard({
           <span className="h-14 w-14 shrink-0 rounded-full bg-cream-200" aria-hidden />
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {stage ? (
-              <span
-                className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STAGE_STYLE[stage]}`}
-              >
-                {STAGE_LABEL[stage]}
-              </span>
-            ) : (
-              <span className="inline-block h-5 w-16 rounded-full bg-cream-200" />
-            )}
-            {stage === "upcoming" && days !== null && (
-              <span className="rounded-full bg-ink px-2 py-0.5 text-xs font-bold text-white">
-                D-{days}
-              </span>
-            )}
-            {booking.previous && isActive(booking) && (
-              <span className="text-xs font-semibold text-ink-muted">일정 변경됨</span>
-            )}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+              {stage ? (
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${STAGE_STYLE[stage]}`}
+                >
+                  {STAGE_LABEL[stage]}
+                </span>
+              ) : (
+                <span className="inline-block h-5 w-16 rounded-full bg-cream-200" />
+              )}
+              {stage === "upcoming" && days !== null && (
+                <span className="rounded-full bg-ink px-2 py-0.5 text-xs font-bold text-white">
+                  D-{days}
+                </span>
+              )}
+              {booking.previous && isActive(booking) && (
+                <span className="text-xs font-semibold text-ink-muted">일정 변경됨</span>
+              )}
+            </div>
+            <span
+              className={`shrink-0 text-sm font-bold ${
+                booking.status === "cancelled" ? "text-ink-faint line-through" : "text-ink"
+              }`}
+            >
+              {formatWon(booking.total)}
+            </span>
           </div>
-          <p className="mt-1.5 text-lg font-extrabold leading-snug text-ink">
+          <p className="mt-2 text-base font-bold leading-snug text-ink">
             {formatDateShortKo(booking.date)} {booking.time}
           </p>
-          <p className="truncate text-base text-ink-soft">
+          <p className="mt-0.5 truncate text-sm text-ink-soft">
             {pet?.name ?? "반려동물"} · {service?.name}
           </p>
-          <p className="truncate text-sm text-ink-muted">
-            {salon?.name} · {groomer?.name} 미용사
+          <p className="flex items-center gap-1 truncate text-sm text-ink-muted">
+            <span className="truncate">
+              {salon?.name} · {groomer?.name} 미용사
+            </span>
+            <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-ink-faint" aria-hidden />
           </p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end justify-between gap-1 self-stretch">
-          <span className="text-sm font-bold text-ink">{formatWon(booking.total)}</span>
-          <ChevronRight className="h-5 w-5 text-ink-faint" aria-hidden />
         </div>
       </Link>
 

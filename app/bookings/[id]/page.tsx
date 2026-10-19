@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, SearchX } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
 import BookingDetail from "@/components/bookings/BookingDetail";
@@ -13,7 +13,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const booking = bookings.find((b) => b.id === id) ?? null;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-5 md:px-6 md:py-10">
+    <div className="mx-auto max-w-2xl px-4 py-5 md:px-6 md:py-10 lg:max-w-5xl">
       <Link
         href="/bookings"
         className="-ml-2 mb-3 inline-flex items-center gap-0.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-muted transition-colors hover:bg-cream-100 hover:text-ink"
@@ -27,7 +27,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
         <BookingDetail booking={booking} />
       ) : (
         <EmptyState
-          emoji="🐾"
+          icon={SearchX}
           title="예약 정보를 찾을 수 없어요"
           desc="이미 정리되었거나 잘못된 링크일 수 있어요."
           actionHref="/bookings"

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, Expand, Pencil, Plus, X } from "lucide-react";
+import { CalendarCheck, Expand, PawPrint, Pencil, Plus, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -58,9 +58,7 @@ export default function PetsPage() {
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">
-            내 반려동물
-          </h1>
+          <h1 className="text-xl font-bold tracking-tight text-ink md:text-2xl">내 반려동물</h1>
         </div>
         <button
           type="button"
@@ -75,7 +73,7 @@ export default function PetsPage() {
       {hydrated && pets.length === 0 && (
         <div className="mt-5">
           <EmptyState
-            emoji="🐶"
+            icon={PawPrint}
             title="등록된 반려동물이 없어요"
             desc="아이 정보를 등록하면 맞는 서비스와 미용 시기를 챙겨드려요."
           >
@@ -135,7 +133,9 @@ export default function PetsPage() {
               <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="break-all text-xl font-extrabold text-ink">{pet.name}</p>
+                    <p className="break-all text-xl font-bold tracking-tight text-ink">
+                      {pet.name}
+                    </p>
                     <p className="mt-1 text-sm text-ink-muted">
                       {pet.breed} · {pet.age}살 · {pet.weight}kg
                     </p>
@@ -346,7 +346,7 @@ function AddPetDialog({
           <X className="h-5 w-5" />
         </button>
 
-        <h2 id="add-pet-title" className="text-lg font-extrabold text-ink">
+        <h2 id="add-pet-title" className="text-lg font-bold text-ink">
           {editMode ? `${initial?.name} 정보 수정` : "새 가족 등록하기"}
         </h2>
 

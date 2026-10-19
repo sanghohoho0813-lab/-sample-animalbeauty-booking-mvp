@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchX } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
 import BookingDetail from "@/components/bookings/BookingDetail";
@@ -30,7 +31,7 @@ export default function BookingCompletePage({ params }: { params: Promise<{ id: 
     return (
       <div className="mx-auto max-w-lg px-4 py-10">
         <EmptyState
-          emoji="🐾"
+          icon={SearchX}
           title="예약 정보를 찾을 수 없어요"
           desc="이미 만료되었거나 잘못된 링크일 수 있어요."
           actionHref="/booking"
@@ -44,7 +45,7 @@ export default function BookingCompletePage({ params }: { params: Promise<{ id: 
   const isActive = booking.status === "confirmed" || booking.status === "pending";
   if (!isActive) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-6 md:px-6 md:py-10">
+      <div className="mx-auto max-w-2xl px-4 py-6 md:px-6 md:py-10 lg:max-w-5xl">
         <BookingDetail booking={booking} />
       </div>
     );
@@ -70,7 +71,7 @@ export default function BookingCompletePage({ params }: { params: Promise<{ id: 
               <path d="M10 21 L17 28 L30 13" className="check-draw" />
             </svg>
           </span>
-          <h1 className="mt-5 text-2xl font-extrabold text-ink animate-fade-in-up">
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-ink animate-fade-in-up">
             예약이 확정되었어요
           </h1>
           <p className="mt-2 text-base text-ink-soft">
@@ -92,7 +93,7 @@ export default function BookingCompletePage({ params }: { params: Promise<{ id: 
           </div>
         </div>
       </div>
-      <div className="mx-auto max-w-2xl px-4 pb-16 md:px-6">
+      <div className="mx-auto max-w-2xl px-4 pb-16 md:px-6 lg:max-w-5xl">
         <BookingDetail booking={booking} embedded />
       </div>
     </div>

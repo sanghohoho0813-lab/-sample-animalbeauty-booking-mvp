@@ -25,7 +25,9 @@ export default function Footer() {
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-mint-500 text-white">
                 <PawPrint className="h-4 w-4" strokeWidth={2.2} />
               </span>
-              <span className="text-base font-extrabold text-mint-700">PawBeauty</span>
+              <span className="text-base font-extrabold tracking-[-0.02em] text-ink">
+                Paw<span className="text-mint-600">Beauty</span>
+              </span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-muted">
               우리 아이의 특별한 하루를 위한

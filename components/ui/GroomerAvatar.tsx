@@ -2,8 +2,10 @@ import Image from "next/image";
 import type { Groomer } from "@/lib/types";
 
 const SIZES = {
-  md: { cls: "h-14 w-14 text-3xl", px: 56 },
-  lg: { cls: "h-16 w-16 text-3xl", px: 64 },
+  xs: { cls: "h-10 w-10 text-sm", px: 40 },
+  sm: { cls: "h-11 w-11 text-base", px: 44 },
+  md: { cls: "h-14 w-14 text-lg", px: 56 },
+  lg: { cls: "h-16 w-16 text-xl", px: 64 },
 } as const;
 
 export default function GroomerAvatar({
@@ -31,13 +33,14 @@ export default function GroomerAvatar({
     );
   }
 
+  // 사진이 없는 미용사는 이모지 대신 성(姓) 모노그램 — 사진 있는 미용사와 나란히 있어도 톤이 맞는다
   return (
     <span
-      className={`flex shrink-0 items-center justify-center rounded-full ${bg} ${cls}`}
+      className={`flex shrink-0 items-center justify-center rounded-full bg-mint-50 font-bold text-mint-700 ring-1 ring-inset ring-mint-100 ${cls}`}
       role="img"
       aria-label={groomer.name}
     >
-      {groomer.emoji}
+      {groomer.name.slice(0, 1)}
     </span>
   );
 }

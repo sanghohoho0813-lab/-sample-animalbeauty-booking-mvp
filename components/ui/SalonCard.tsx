@@ -49,7 +49,7 @@ export default function SalonCard({
   return (
     <>
       {compactOnMobile && (
-        <div className="relative py-3 pr-10 sm:hidden">
+        <div className="relative py-3.5 pr-10 sm:hidden">
           <Link href={href} className="block" aria-label={`${salon.name} 자세히 보기`}>
             <SalonRow
               salon={salon}
@@ -61,7 +61,7 @@ export default function SalonCard({
         </div>
       )}
       <div
-        className={`group relative overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-cream-200 transition-shadow duration-300 hover:shadow-card-hover ${
+        className={`group relative overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover ${
           compactOnMobile ? "hidden sm:block" : ""
         }`}
       >
@@ -77,7 +77,7 @@ export default function SalonCard({
               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
             {salon.species === "cat" && (
-              <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-ink-soft">
+              <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-coral-700">
                 고양이 전용
               </span>
             )}
@@ -99,7 +99,7 @@ export default function SalonCard({
             <div className="mt-3 flex items-end justify-between gap-2 border-t border-cream-200 pt-3 text-sm">
               <SalonAvailability salonId={salon.id} />
               <span className="shrink-0 text-ink-muted">
-                기본 <span className="font-extrabold text-ink">{formatWon(salon.priceFrom)}</span>
+                기본 <span className="font-bold text-ink">{formatWon(salon.priceFrom)}</span>
               </span>
             </div>
           </div>

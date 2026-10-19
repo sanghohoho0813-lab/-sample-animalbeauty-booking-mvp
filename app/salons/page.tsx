@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, SearchX } from "lucide-react";
 import { useMemo, useState } from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import SalonCard from "@/components/ui/SalonCard";
@@ -60,62 +60,76 @@ export default function SalonsPage() {
   }, [query, sort, todayOnly, earliest, todayKey]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">미용실 찾기</h1>
-
-      {/* 검색 */}
-      <div className="relative mt-4">
-        <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="매장 이름, 동네, 견종으로 검색"
-          className="w-full rounded-2xl border border-cream-300 bg-white py-3.5 pl-12 pr-4 text-sm text-ink shadow-card outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100"
-          aria-label="미용실 검색"
-        />
+    <div className="mx-auto max-w-6xl px-4 pb-6 pt-6 md:px-6 md:pb-10 md:pt-10">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-ink md:text-2xl">미용실 찾기</h1>
+          <p className="mt-0.5 text-sm text-ink-muted">내 주변 반려동물 미용실</p>
+        </div>
       </div>
 
-      {/* 필터 */}
-      <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        {SORT_OPTIONS.map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setSort(key)}
-            aria-pressed={sort === key}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors tap ${
-              sort === key
-                ? "bg-ink text-white"
-                : "border border-cream-300 bg-white text-ink-muted hover:border-ink-faint"
+      {/* 검색·필터 — 스크롤해도 위에 붙어 있다 */}
+      <div className="sticky top-14 z-30 -mx-4 mt-4 bg-cream-50/95 px-4 pb-2 pt-2 backdrop-blur-xl md:top-16 md:mx-0 md:px-0">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="매장 이름, 동네, 견종으로 검색"
+            className="w-full rounded-full border border-cream-300 bg-white py-3 pl-12 pr-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100"
+            aria-label="미용실 검색"
+          />
+        </div>
+
+        <div className="-mx-4 mt-2.5 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
+          {/* 거르기 */}
+          <label
+            className={`flex shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
+              todayOnly
+                ? "border-mint-500 bg-mint-50 text-mint-800"
+                : "border-cream-300 bg-white text-ink-soft hover:border-ink-faint"
             }`}
           >
-            {label}
-          </button>
-        ))}
+            <input
+              type="checkbox"
+              checked={todayOnly}
+              onChange={(e) => setTodayOnly(e.target.checked)}
+              className="h-4 w-4 accent-mint-500"
+            />
+            오늘 예약 가능
+          </label>
+          <span className="h-5 w-px shrink-0 bg-cream-300" aria-hidden />
+          {/* 정렬 */}
+          {SORT_OPTIONS.map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSort(key)}
+              aria-pressed={sort === key}
+              className={`shrink-0 rounded-full px-3.5 py-2 text-sm font-semibold transition-colors tap ${
+                sort === key
+                  ? "bg-ink text-white"
+                  : "border border-cream-300 bg-white text-ink-muted hover:border-ink-faint"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 결과 수 + 오늘 예약 가능 필터 */}
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-sm text-ink-muted" aria-live="polite">
-          <span className="font-bold text-ink">{salons.length}곳</span>
-          {query.trim() && ` · '${query.trim()}' 검색 결과`}
-        </p>
-        <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 text-sm font-bold text-ink-soft">
-          <input
-            type="checkbox"
-            checked={todayOnly}
-            onChange={(e) => setTodayOnly(e.target.checked)}
-            className="h-5 w-5 accent-mint-500"
-          />
-          오늘 예약 가능
-        </label>
-      </div>
+      {/* 결과 수 */}
+      <p className="mt-2 text-sm text-ink-muted" aria-live="polite">
+        <span className="font-bold text-ink">{salons.length}곳</span>
+        {query.trim() && ` · '${query.trim()}' 검색 결과`}
+        {todayOnly && " · 오늘 예약 가능한 곳만"}
+      </p>
 
       {/* 목록 */}
       {salons.length === 0 ? (
         <div className="mt-6">
           <EmptyState
-            emoji="🔍"
+            icon={SearchX}
             title="조건에 맞는 미용실이 없어요"
             desc="검색어나 필터를 바꿔서 다시 찾아보세요."
           >
@@ -132,7 +146,7 @@ export default function SalonsPage() {
           </EmptyState>
         </div>
       ) : (
-        <div className="mt-1 grid grid-cols-1 divide-y divide-cream-200 sm:mt-3 sm:grid-cols-2 sm:gap-4 sm:divide-y-0 lg:grid-cols-3">
+        <div className="mt-1 grid grid-cols-1 divide-y divide-cream-200 sm:mt-4 sm:grid-cols-2 sm:gap-5 sm:divide-y-0 lg:grid-cols-3">
           {salons.map((salon) => (
             <SalonCard key={salon.id} salon={salon} compactOnMobile />
           ))}

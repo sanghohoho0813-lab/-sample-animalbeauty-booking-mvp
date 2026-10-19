@@ -1,11 +1,21 @@
 "use client";
 
-import { Bell, CalendarDays, ChevronRight, Crown, Dog, Heart, Plus, Ticket } from "lucide-react";
+import {
+  Bell,
+  ChevronRight,
+  Crown,
+  HelpCircle,
+  MessageCircle,
+  PawPrint,
+  Plus,
+  Ticket,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PetAvatar from "@/components/ui/PetAvatar";
 import { isCouponUsed } from "@/lib/coupons";
 import { COUPONS, DEMO_USER } from "@/lib/data";
+import { MIRAE_LINKS } from "@/lib/mirae";
 import { formatDateShortKo } from "@/lib/format";
 import { useDb } from "@/lib/db";
 import { useToast } from "@/lib/toast";
@@ -49,53 +59,71 @@ export default function MyPage() {
     (b) => b.status === "confirmed" || b.status === "pending"
   ).length;
 
+  const visits = bookings.filter((b) => b.status === "completed").length;
+  const usableCoupons = COUPONS.filter((c) => !isCouponUsed(c, { bookings })).length;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">마이페이지</h1>
+      <h1 className="sr-only">마이페이지</h1>
 
       {/* 넓은 화면: 왼쪽 내 정보 · 오른쪽 쿠폰/설정 */}
-      <div className="mt-5 grid grid-cols-1 items-start gap-4 lg:grid-cols-2 lg:gap-6">
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2 lg:gap-6">
+        <div className="space-y-5">
           {/* 프로필 */}
-          <div className="overflow-hidden rounded-3xl border border-cream-200 bg-white shadow-card">
-            <div className="flex items-center gap-4 p-5">
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-mint-100 to-mint-200 text-3xl">
-                {DEMO_USER.emoji}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-mirae-teal">{DEMO_USER.org}</p>
-                <p className="mt-0.5 flex items-center gap-2 text-lg font-extrabold leading-tight text-ink">
-                  {DEMO_USER.name}님
-                  <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700">
-                    <Crown className="h-3.5 w-3.5" />
-                    멤버
-                  </span>
-                </p>
-                <p className="mt-0.5 truncate text-sm text-ink-muted">{DEMO_USER.email}</p>
-              </div>
+          <div className="flex items-center gap-4 px-1">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-ink text-2xl font-bold text-white">
+              {DEMO_USER.name.slice(0, 1)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-mirae-teal">{DEMO_USER.org}</p>
+              <p className="mt-0.5 text-xl font-bold leading-tight tracking-tight text-ink">
+                {DEMO_USER.name}님
+              </p>
+              <p className="mt-0.5 truncate text-sm text-ink-muted">{DEMO_USER.email}</p>
             </div>
           </div>
 
-          {/* 요약 통계 */}
-          <div className="grid grid-cols-3 gap-3">
-            <StatCard
-              href="/pets"
-              icon={<Dog className="h-5 w-5" />}
-              label="내 반려동물"
-              value={hydrated ? `${pets.length}` : "-"}
+          {/* 멤버십 카드 — 등급 혜택과 내 이용 현황 */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-mint-600 via-mint-700 to-mint-900 p-5 text-white shadow-cta">
+            <PawPrint
+              className="pointer-events-none absolute -right-6 -top-6 h-36 w-36 rotate-12 text-white/[0.07]"
+              aria-hidden
             />
-            <StatCard
-              href="/bookings"
-              icon={<CalendarDays className="h-5 w-5" />}
-              label="예정된 예약"
-              value={hydrated ? `${upcomingCount}` : "-"}
-            />
-            <StatCard
-              href="/favorites"
-              icon={<Heart className="h-5 w-5" />}
-              label="찜한 미용실"
-              value={hydrated ? `${favorites.length}` : "-"}
-            />
+            <div className="relative flex items-start justify-between gap-3">
+              <div>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-mint-100">
+                  <Crown className="h-4 w-4" aria-hidden />
+                  {DEMO_USER.membership}
+                </p>
+                <p className="mt-1 text-xl font-bold tracking-tight">모든 미용 10% 할인</p>
+              </div>
+              <Link
+                href="#coupons"
+                className="shrink-0 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/25"
+              >
+                쿠폰 {hydrated ? usableCoupons : "-"}장
+              </Link>
+            </div>
+            <div className="relative mt-6 grid grid-cols-3 divide-x divide-white/15 rounded-2xl bg-white/10 py-3 text-center backdrop-blur">
+              <StatLink
+                href="/pets"
+                label="내 반려동물"
+                value={hydrated ? `${pets.length}` : "-"}
+              />
+              <StatLink
+                href="/bookings"
+                label="예정된 예약"
+                value={hydrated ? `${upcomingCount}` : "-"}
+              />
+              <StatLink
+                href="/favorites"
+                label="찜한 미용실"
+                value={hydrated ? `${favorites.length}` : "-"}
+              />
+            </div>
+            <p className="relative mt-3 text-xs text-mint-100">
+              지금까지 {hydrated ? visits : "-"}번 이용했어요
+            </p>
           </div>
 
           {/* 내 반려동물 미리보기 */}
@@ -133,6 +161,7 @@ export default function MyPage() {
         <div className="space-y-4">
           {/* 쿠폰 — 사용 예정·사용 완료까지 실제 예약과 연결해 보여준다 */}
           <SectionCard
+            id="coupons"
             title={`쓸 수 있는 쿠폰 ${hydrated ? COUPONS.filter((c) => !isCouponUsed(c, { bookings })).length : COUPONS.length}장`}
           >
             <ul className="divide-y divide-cream-200">
@@ -152,7 +181,7 @@ export default function MyPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p
-                        className={`text-base font-extrabold ${usedBy ? "text-ink-muted line-through decoration-1" : "text-ink"}`}
+                        className={`text-base font-bold ${usedBy ? "text-ink-muted line-through decoration-1" : "text-ink"}`}
                       >
                         {coupon.name}
                       </p>
@@ -200,48 +229,85 @@ export default function MyPage() {
               />
             </div>
           </SectionCard>
+
+          {/* 도움말 */}
+          <nav
+            aria-label="도움말"
+            className="divide-y divide-cream-200 overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200"
+          >
+            <MenuLink href="/help" icon={<HelpCircle className="h-4 w-4" />}>
+              이용 안내 · 자주 묻는 질문
+            </MenuLink>
+            <MenuLink
+              href={MIRAE_LINKS.consult}
+              icon={<MessageCircle className="h-4 w-4" />}
+              external
+            >
+              서비스 도입 문의
+            </MenuLink>
+          </nav>
         </div>
       </div>
     </div>
   );
 }
 
-function StatCard({
+function MenuLink({
   href,
   icon,
-  label,
-  value,
+  external = false,
+  children,
 }: {
   href: string;
   icon: React.ReactNode;
-  label: string;
-  value: string;
+  external?: boolean;
+  children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className="flex flex-col items-center rounded-3xl border border-cream-200 bg-white p-4 text-center shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover tap"
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      className="flex items-center gap-3 px-5 py-4 text-sm font-semibold text-ink transition-colors hover:bg-cream-50"
     >
-      <span className="text-mint-600">{icon}</span>
-      <span className="mt-1.5 text-xl font-extrabold text-ink">{value}</span>
-      <span className="text-xs font-semibold text-ink-muted">{label}</span>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cream-100 text-ink-soft">
+        {icon}
+      </span>
+      <span className="flex-1">
+        {children}
+        {external && <span className="sr-only"> (새 창)</span>}
+      </span>
+      <ChevronRight className="h-5 w-5 text-ink-faint" aria-hidden />
+    </Link>
+  );
+}
+
+function StatLink({ href, label, value }: { href: string; label: string; value: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex flex-col items-center px-1 transition-opacity hover:opacity-80"
+    >
+      <span className="text-xl font-bold">{value}</span>
+      <span className="text-xs text-mint-100">{label}</span>
     </Link>
   );
 }
 
 function SectionCard({
+  id,
   title,
   moreHref,
   children,
 }: {
+  id?: string;
   title: string;
   moreHref?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-cream-200 bg-white p-5 shadow-card">
+    <section id={id} className="scroll-mt-24 rounded-3xl bg-white p-5 ring-1 ring-cream-200">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-extrabold text-ink">{title}</h2>
+        <h2 className="text-base font-bold text-ink">{title}</h2>
         {moreHref && (
           <Link
             href={moreHref}

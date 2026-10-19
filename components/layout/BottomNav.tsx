@@ -21,7 +21,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200 bg-white/95 backdrop-blur-md safe-bottom lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-200/80 bg-white/90 backdrop-blur-xl backdrop-saturate-150 safe-bottom lg:hidden"
       aria-label="하단 메뉴"
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around">
@@ -32,14 +32,14 @@ export default function BottomNav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`flex min-w-[56px] flex-col items-center gap-0.5 px-3 pb-2 pt-2.5 text-xs font-semibold transition-colors ${
-                active ? "text-mint-600" : "text-ink-faint hover:text-ink-muted"
+              className={`relative flex min-w-[56px] flex-1 flex-col items-center gap-0.5 px-2 pb-2 pt-2.5 text-xs transition-colors ${
+                active ? "font-bold text-ink" : "font-medium text-ink-faint hover:text-ink-muted"
               }`}
             >
               <Icon
                 aria-hidden
-                className="h-6 w-6"
-                strokeWidth={active ? 2.4 : 1.8}
+                className={`h-6 w-6 ${active ? "text-mint-600" : ""}`}
+                strokeWidth={active ? 2.3 : 1.7}
                 fill={active && href === "/favorites" ? "currentColor" : "none"}
               />
               <span>{label}</span>

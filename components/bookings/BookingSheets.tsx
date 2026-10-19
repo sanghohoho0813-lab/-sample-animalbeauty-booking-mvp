@@ -26,7 +26,7 @@ export function CancelSheet({ booking, onClose }: { booking: Booking; onClose: (
 
   return (
     <Sheet onClose={onClose} label="예약 취소 확인">
-      <h2 className="text-lg font-extrabold text-ink">예약을 취소할까요?</h2>
+      <h2 className="text-lg font-bold text-ink">예약을 취소할까요?</h2>
       <p className="mt-2 rounded-2xl bg-white px-4 py-3 text-sm leading-relaxed text-ink-soft ring-1 ring-cream-200">
         <span className="font-semibold text-ink">
           {formatDateKo(booking.date)} {booking.time}
@@ -101,7 +101,7 @@ export function RescheduleSheet({ booking, onClose }: { booking: Booking; onClos
 
   return (
     <Sheet onClose={onClose} label="예약 일정 변경" wide>
-      <h2 className="text-lg font-extrabold text-ink">일정 변경</h2>
+      <h2 className="text-lg font-bold text-ink">일정 변경</h2>
       <p className="mt-1 text-sm text-ink-muted">
         지금 예약 · {formatDateKo(booking.date)} {booking.time} · {groomer?.name} 미용사
       </p>
@@ -168,7 +168,7 @@ export function ReviewSheet({
 
   return (
     <Sheet onClose={onClose} label="후기 작성" keepOnBackdrop={ready}>
-      <h2 className="text-lg font-extrabold text-ink">{petName}의 미용은 어땠나요?</h2>
+      <h2 className="text-lg font-bold text-ink">{petName}의 미용은 어땠나요?</h2>
       <p className="mt-1 text-sm text-ink-muted">
         {salon?.name} · {groomer?.name} 미용사 · {getServiceById(booking.serviceId)?.name}
       </p>

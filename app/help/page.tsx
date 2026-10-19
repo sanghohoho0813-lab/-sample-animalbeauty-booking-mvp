@@ -35,7 +35,7 @@ const FAQ = [
 export default function HelpPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 md:px-6 md:py-10">
-      <h1 className="text-xl font-extrabold tracking-tight text-ink md:text-2xl">이용 안내</h1>
+      <h1 className="text-xl font-bold tracking-tight text-ink md:text-2xl">이용 안내</h1>
 
       <Section id="policy" title="예약 변경·취소 규정">
         <ul className="space-y-2">
@@ -111,7 +111,7 @@ function Section({
 }) {
   return (
     <section id={id} className="mt-8 scroll-mt-24">
-      <h2 className="text-lg font-extrabold text-ink">{title}</h2>
+      <h2 className="text-lg font-bold text-ink">{title}</h2>
       <div className="mt-3">{children}</div>
     </section>
   );
