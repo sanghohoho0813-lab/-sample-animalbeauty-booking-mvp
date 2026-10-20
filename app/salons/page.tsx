@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, SearchX } from "lucide-react";
+import { Search, SearchX, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import SalonCard from "@/components/ui/SalonCard";
@@ -11,6 +11,9 @@ import { earliestSlotAtSalon } from "@/lib/slots";
 import { useNow } from "@/lib/use-now";
 
 type Sort = "distance" | "soonest" | "rating" | "reviews";
+
+/** 자주 찾는 검색어 — 매장 정보(견종·특징·동네)에서 실제로 걸리는 것만 */
+const SUGGESTIONS = ["푸들", "대형견", "노령견", "스파", "주차", "고양이", "청담동"];
 
 const SORT_OPTIONS: [Sort, string][] = [
   ["distance", "가까운 순"],
@@ -73,13 +76,42 @@ export default function SalonsPage() {
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-faint" />
           <input
+            type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="매장 이름, 동네, 견종으로 검색"
-            className="w-full rounded-full border border-cream-300 bg-white py-3 pl-12 pr-4 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100"
+            className="w-full rounded-full border border-cream-300 bg-white py-3 pl-12 pr-12 text-sm text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-mint-500 focus:ring-4 focus:ring-mint-100 [&::-webkit-search-cancel-button]:hidden"
             aria-label="미용실 검색"
+            enterKeyHint="search"
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-cream-100"
+              aria-label="검색어 지우기"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
+
+        {/* 검색어가 없을 때 — 자주 찾는 검색어 */}
+        {!query && (
+          <div className="-mx-4 mt-2 flex items-center gap-1.5 overflow-x-auto px-4 scrollbar-hide md:mx-0 md:px-0">
+            <span className="shrink-0 text-xs font-semibold text-ink-muted">자주 찾는</span>
+            {SUGGESTIONS.map((word) => (
+              <button
+                key={word}
+                type="button"
+                onClick={() => setQuery(word)}
+                className="shrink-0 rounded-full px-2.5 py-1 text-sm text-ink-soft transition-colors hover:bg-cream-200 hover:text-ink"
+              >
+                #{word}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="-mx-4 mt-2.5 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0">
           {/* 거르기 */}

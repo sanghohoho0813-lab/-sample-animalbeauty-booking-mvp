@@ -19,6 +19,7 @@ export default function Calendar({
   maxDays = 60,
   isFullyBooked,
   isClosed,
+  isFewLeft,
 }: {
   selected: string | null;
   onSelect: (dateKey: string) => void;
@@ -28,6 +29,8 @@ export default function Calendar({
   isFullyBooked?: (dateKey: string) => boolean;
   /** 매장 정기 휴무일 */
   isClosed?: (dateKey: string) => boolean;
+  /** 남은 시간이 얼마 없는 날 — 날짜 아래 작은 점으로 알린다 */
+  isFewLeft?: (dateKey: string) => boolean;
 }) {
   const [viewYear, setViewYear] = useState(
     selected ? Number(selected.slice(0, 4)) : today.getFullYear()
@@ -180,6 +183,7 @@ export default function Calendar({
           const closed = !outOfRange && Boolean(isClosed?.(key));
           const soldOut = !outOfRange && !closed && Boolean(isFullyBooked?.(key));
           const disabled = outOfRange || closed || soldOut;
+          const fewLeft = !disabled && Boolean(isFewLeft?.(key));
           const isSelected = key === selected;
           const isToday = key === todayKey;
           const weekday = (startWeekday + day - 1) % 7;
@@ -196,8 +200,8 @@ export default function Calendar({
               }}
               aria-label={`${viewMonth + 1}월 ${day}일 ${WEEKDAYS[weekday]}요일${
                 isToday ? ", 오늘" : ""
-              }${closed ? ", 정기 휴무" : ""}${soldOut ? ", 예약 마감" : ""}`}
-              className={`mx-auto flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 tap ${
+              }${closed ? ", 정기 휴무" : ""}${soldOut ? ", 예약 마감" : ""}${fewLeft ? ", 마감 임박" : ""}`}
+              className={`relative mx-auto flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold transition-all duration-200 tap ${
                 isSelected
                   ? "bg-mint-500 text-white shadow-cta"
                   : soldOut
@@ -215,6 +219,14 @@ export default function Calendar({
               aria-pressed={isSelected}
             >
               {day}
+              {fewLeft && (
+                <span
+                  className={`absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${
+                    isSelected ? "bg-white" : "bg-coral-500"
+                  }`}
+                  aria-hidden
+                />
+              )}
             </button>
           );
         })}

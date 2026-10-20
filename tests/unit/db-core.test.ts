@@ -3,6 +3,7 @@ import { discountOf } from "@/lib/coupons";
 import { COUPONS, getSalonById, getServiceById, SEED_PETS } from "@/lib/data";
 import { isClosedDay, startTimesFor } from "@/lib/slots";
 import {
+  isSafeImage,
   loadDb,
   mergeSeedPets,
   newId,
@@ -174,8 +175,47 @@ describe("mergeSeedPets / newId", () => {
     expect(mergeSeedPets([customPet]).map((p) => p.id)).toEqual(["pet-custom"]);
   });
 
+  it("데모 아이에 보호자가 올린 사진은 원래 사진으로 덮어쓰지 않는다", () => {
+    const uploaded = "data:image/jpeg;base64,AAAA";
+    const kongi = { ...SEED_PETS[0], image: uploaded };
+    expect(mergeSeedPets([kongi])[0].image).toBe(uploaded);
+    // 사진이 없거나 앱 사진이면 최신 데모 사진으로
+    expect(mergeSeedPets([{ ...SEED_PETS[0], image: undefined }])[0].image).toBe(
+      SEED_PETS[0].image
+    );
+  });
+
   it("연속으로 만들어도 id가 겹치지 않는다", () => {
     const ids = new Set(Array.from({ length: 500 }, () => newId("bk")));
     expect(ids.size).toBe(500);
+  });
+});
+
+describe("사진 주소 검증", () => {
+  it("앱의 사진 경로와 앱이 만든 이미지 data URL만 받는다", () => {
+    expect(isSafeImage("/images/pets/pet-01-kongi-v2.png")).toBe(true);
+    expect(isSafeImage("data:image/jpeg;base64,/9j/4AAQSkZJRg==")).toBe(true);
+    expect(isSafeImage("data:image/webp;base64,UklGRg==")).toBe(true);
+    for (const bad of [
+      "javascript:alert(1)",
+      "https://evil.example/a.png",
+      "/images/../secret",
+      "data:image/svg+xml;base64,PHN2Zz4=",
+      "data:text/html;base64,PGgxPg==",
+      `data:image/jpeg;base64,${"A".repeat(400_001)}`,
+      42,
+    ]) {
+      expect(isSafeImage(bad)).toBe(false);
+    }
+  });
+
+  it("저장된 사진 주소가 이상하면 그 사진만 버리고 아이 정보는 살린다", () => {
+    const parsed = parseStoredDb({
+      pets: [{ ...customPet, image: "javascript:alert(1)" }],
+      bookings: [],
+    });
+    expect(parsed?.pets).toHaveLength(1);
+    expect(parsed?.pets[0].image).toBeUndefined();
+    expect(parsed?.pets[0].name).toBe(customPet.name);
   });
 });

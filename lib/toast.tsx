@@ -23,9 +23,9 @@ export function useToast() {
 }
 
 const ICONS: Record<ToastKind, ReactNode> = {
-  success: <CheckCircle2 className="h-5 w-5 text-mint-500" />,
-  info: <Info className="h-5 w-5 text-mint-500" />,
-  error: <XCircle className="h-5 w-5 text-coral-500" />,
+  success: <CheckCircle2 className="h-5 w-5 shrink-0 text-mint-300" />,
+  info: <Info className="h-5 w-5 shrink-0 text-mint-300" />,
+  error: <XCircle className="h-5 w-5 shrink-0 text-coral-300" />,
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -47,17 +47,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      {/* 항상 존재하는 live region — 새 알림을 스크린리더가 읽어준다 */}
+      {/* 항상 존재하는 live region — 새 알림을 스크린리더가 읽어준다.
+          앱처럼 화면 아래(하단 탭·고정 버튼 바로 위)에 잠깐 떴다 사라진다. */}
       <div
-        className="pointer-events-none fixed inset-x-0 top-4 z-[100] flex flex-col items-center gap-2 px-4"
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+6rem)] z-[100] flex flex-col items-center gap-2 px-4 lg:bottom-8"
         role="status"
         aria-live="polite"
       >
         {items.map((t) => (
           <div
             key={t.id}
-            className={`flex items-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-white shadow-card-hover transition-all duration-300 ${
-              t.leaving ? "-translate-y-2 opacity-0" : "animate-fade-in-up"
+            className={`flex max-w-md items-center gap-2.5 rounded-2xl bg-ink/95 px-4 py-3 text-sm font-medium text-white shadow-card-hover backdrop-blur transition-all duration-300 ${
+              t.leaving ? "translate-y-2 opacity-0" : "animate-toast-in"
             }`}
           >
             {ICONS[t.kind]}

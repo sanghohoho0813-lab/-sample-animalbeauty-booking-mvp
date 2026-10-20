@@ -139,6 +139,14 @@ function BookingFlow() {
     maxStep
   );
 
+  // 단계가 바뀐 방향 — 앞으로 가면 오른쪽에서, 뒤로 가면 왼쪽에서 들어온다
+  const [shownStep, setShownStep] = useState(step);
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
+  if (step !== shownStep) {
+    setShownStep(step);
+    setDirection(step > shownStep ? "forward" : "back");
+  }
+
   const goTo = (next: number) => {
     if (advanceTimer.current) clearTimeout(advanceTimer.current);
     router.push(`/booking?step=${next}`, { scroll: true });
@@ -248,7 +256,10 @@ function BookingFlow() {
       <StepIndicator current={step} onJump={goTo} />
 
       <div className="mt-5 grid gap-6 md:mt-7 lg:grid-cols-[1fr_21rem] lg:items-start">
-        <section key={step} className="min-w-0 animate-fade-in-up">
+        <section
+          key={step}
+          className={`min-w-0 ${direction === "forward" ? "animate-step-forward" : "animate-step-back"}`}
+        >
           <h1 className="text-xl font-bold tracking-tight text-ink md:text-2xl">
             {STEP_TITLES[step]}
           </h1>

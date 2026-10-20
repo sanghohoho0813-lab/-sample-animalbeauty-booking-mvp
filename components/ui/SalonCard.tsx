@@ -3,6 +3,7 @@
 import { Heart, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import SalonAvailability from "@/components/salon/SalonAvailability";
 import { countReviews, toggleFavorite, useDb } from "@/lib/db";
 import { formatWon } from "@/lib/format";
@@ -26,11 +27,14 @@ export default function SalonCard({
   const liked = hydrated && favorites.includes(salon.id);
   const reviewCount = salon.reviewCount + countReviews(reviews, "salonId", salon.id);
   const href = `/salons/${salon.id}`;
+  // 누를 때마다 하트가 톡 튀도록 아이콘을 다시 그린다 (처음 화면에 그릴 때는 움직이지 않는다)
+  const [pop, setPop] = useState(0);
 
   const heart = (className: string) => (
     <button
       type="button"
       onClick={() => {
+        setPop((n) => n + 1);
         toggleFavorite(salon.id);
         toast(liked ? "찜 목록에서 삭제했어요" : "찜 목록에 추가했어요", "info");
       }}
@@ -39,9 +43,10 @@ export default function SalonCard({
       aria-pressed={liked}
     >
       <Heart
+        key={pop}
         className={`h-5 w-5 transition-colors ${
           liked ? "fill-coral-500 text-coral-500" : "text-ink-faint"
-        }`}
+        } ${pop > 0 && liked ? "animate-heart-pop" : ""}`}
       />
     </button>
   );

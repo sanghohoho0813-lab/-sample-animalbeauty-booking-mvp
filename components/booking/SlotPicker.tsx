@@ -1,12 +1,13 @@
 "use client";
 
-import { CalendarDays, Info } from "lucide-react";
+import { Check, CalendarDays, Info, Zap } from "lucide-react";
 import { forwardRef } from "react";
 import Calendar from "@/components/booking/Calendar";
 import { getGroomerById, getSalonById } from "@/lib/data";
 import { formatDateShortKo } from "@/lib/format";
-import { closedDaysLabel } from "@/lib/salon-info";
+import { closedDaysLabel, slotLabel } from "@/lib/salon-info";
 import {
+  earliestSlot,
   getSlots,
   isClosedDay,
   isDayFullyBooked,
@@ -37,9 +38,11 @@ const SlotPicker = forwardRef<
     onTime: (time: string) => void;
     /** 넓은 화면에서 달력과 시간을 나란히 둘지 */
     twoColumn?: boolean;
+    /** 일정 변경 중인 예약의 지금 시간 — 이 시간이 가장 빠르면 '가장 빠른 예약'을 권하지 않는다 */
+    current?: { date: string; time: string };
   }
 >(function SlotPicker(
-  { groomerId, bookings, now, pet, petName, date, time, onDate, onTime, twoColumn = true },
+  { groomerId, bookings, now, pet, petName, date, time, onDate, onTime, twoColumn = true, current },
   timesRef
 ) {
   const groomer = getGroomerById(groomerId);
@@ -50,9 +53,60 @@ const SlotPicker = forwardRef<
   const open = countOpen(slots);
   const morning = slots.filter((s) => Number(s.time.slice(0, 2)) < 12);
   const afternoon = slots.filter((s) => Number(s.time.slice(0, 2)) >= 12);
+  // 고민 없이 바로 잡을 수 있는 가장 빠른 시간
+  const found = earliestSlot([groomerId], bookings, now, pet);
+  const earliest =
+    found && !(current && current.date === found.date && current.time === found.time)
+      ? found
+      : null;
+  const earliestChosen = Boolean(earliest && earliest.date === date && earliest.time === time);
+  const fewLeft = (key: string) => {
+    const n = countOpen(getSlots(key, groomerId, bookings, now, pet));
+    return n > 0 && n <= FEW_LEFT;
+  };
 
   return (
     <div className={`grid gap-4 ${twoColumn ? "lg:grid-cols-2" : ""}`}>
+      {earliest && (
+        <div
+          className={`flex items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition-colors ${twoColumn ? "lg:col-span-2" : ""} ${
+            earliestChosen ? "bg-mint-50 ring-mint-300" : "bg-white ring-cream-200"
+          }`}
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-mint-50 text-mint-700">
+            <Zap className="h-5 w-5" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-semibold text-ink-muted">가장 빠른 예약</span>
+            <span className="block truncate text-base font-bold text-ink">
+              {slotLabel(earliest, now)}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              onDate(earliest.date);
+              onTime(earliest.time);
+            }}
+            disabled={earliestChosen}
+            className={`flex shrink-0 items-center gap-1 rounded-full px-4 py-2 text-sm font-bold transition-colors tap ${
+              earliestChosen
+                ? "bg-transparent text-mint-700"
+                : "bg-mint-500 text-white hover:bg-mint-600"
+            }`}
+          >
+            {earliestChosen ? (
+              <>
+                <Check className="h-4 w-4" strokeWidth={3} aria-hidden />
+                선택됨
+              </>
+            ) : (
+              "이 시간으로"
+            )}
+          </button>
+        </div>
+      )}
+
       <div className="rounded-3xl bg-white p-4 ring-1 ring-cream-200 md:p-5">
         <Calendar
           selected={date}
@@ -60,10 +114,17 @@ const SlotPicker = forwardRef<
           today={now}
           isClosed={(key) => Boolean(salon && isClosedDay(key, salon))}
           isFullyBooked={(key) => isDayFullyBooked(key, groomerId, bookings, now, pet)}
+          isFewLeft={fewLeft}
         />
         {salon && (
-          <p className="mt-2 px-1 text-sm text-ink-muted">
-            {salon.name} · {salon.openHours} · {closedDaysLabel(salon.closedWeekdays)}
+          <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-sm text-ink-muted">
+            <span>
+              {salon.openHours} · {closedDaysLabel(salon.closedWeekdays)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-coral-500" aria-hidden />
+              마감 임박
+            </span>
           </p>
         )}
       </div>

@@ -33,7 +33,9 @@ export function useModal<T extends HTMLElement = HTMLDivElement>(onClose: () => 
     // 키보드·마우스 환경에서는 첫 입력칸으로, 터치 환경에서는 화면 키보드가 갑자기 올라오지 않게
     // 대화상자 자체로 포커스를 옮긴다 (어느 쪽이든 닫기 버튼에 먼저 가지 않게)
     const firstField = window.matchMedia("(pointer: fine)").matches
-      ? root?.querySelector<HTMLElement>("input:not([type=checkbox]), textarea")
+      ? root?.querySelector<HTMLElement>(
+          "input:not([type=checkbox]):not([type=radio]):not([type=file]), textarea"
+        )
       : null;
     if (firstField) firstField.focus({ preventScroll: true });
     else root?.focus({ preventScroll: true });

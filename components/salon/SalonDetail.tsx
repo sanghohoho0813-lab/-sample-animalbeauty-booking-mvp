@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Clock, Clock3, Heart, MapPin, Navigation, Star } from "lucide-react";
+import { ChevronLeft, Clock, Clock3, Heart, MapPin, Navigation, Share2, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -54,10 +54,30 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
   const keywords = keywordSummary(salon, reviews).slice(0, 4);
   const maxKeyword = Math.max(1, ...keywords.map((k) => k.count));
 
+  // 휴대폰은 기본 공유 창, 그 밖에는 링크 복사
+  const share = async () => {
+    const url = window.location.href;
+    const data = { title: `${salon.name} | PawBeauty`, text: salon.headline, url };
+    try {
+      if (typeof navigator.share === "function" && navigator.canShare?.(data) !== false) {
+        await navigator.share(data);
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast("매장 링크를 복사했어요", "info");
+    } catch (err) {
+      // 공유 창을 닫은 경우는 조용히 넘어간다
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      toast("링크를 복사하지 못했어요. 주소창의 링크를 이용해주세요", "error");
+    }
+  };
+
   const book = (groomerId?: string) =>
     router.push(`/booking?salon=${salon.id}${groomerId ? `&groomer=${groomerId}` : ""}`);
 
+  const [pop, setPop] = useState(0);
   const toggleLike = () => {
+    setPop((n) => n + 1);
     toggleFavorite(salon.id);
     toast(liked ? "찜 목록에서 삭제했어요" : "찜 목록에 추가했어요", "info");
   };
@@ -89,6 +109,14 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
         >
           <ChevronLeft className="h-5 w-5" />
         </Link>
+        <button
+          type="button"
+          onClick={share}
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-ink shadow-card backdrop-blur transition-transform tap md:right-9 md:top-9"
+          aria-label={`${salon.name} 공유하기`}
+        >
+          <Share2 className="h-[1.1rem] w-[1.1rem]" />
+        </button>
       </div>
 
       <div className="relative mx-auto -mt-6 max-w-6xl rounded-t-[1.75rem] bg-white px-4 md:mt-0 md:rounded-none md:bg-transparent md:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-10">
@@ -345,7 +373,10 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
             className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-2xl py-3 text-sm font-bold text-ink-soft transition-colors hover:bg-cream-100"
           >
             <Heart
-              className={`h-4 w-4 ${liked ? "fill-coral-500 text-coral-500" : ""}`}
+              key={pop}
+              className={`h-4 w-4 ${liked ? "fill-coral-500 text-coral-500" : ""} ${
+                pop > 0 && liked ? "animate-heart-pop" : ""
+              }`}
               aria-hidden
             />
             {liked ? "찜한 미용실" : "찜하기"}
@@ -364,7 +395,10 @@ export default function SalonDetail({ salonId }: { salonId: string }) {
             className="flex h-[3.25rem] w-[3.25rem] shrink-0 items-center justify-center rounded-2xl border border-cream-300 bg-white tap"
           >
             <Heart
-              className={`h-5 w-5 ${liked ? "fill-coral-500 text-coral-500" : "text-ink-soft"}`}
+              key={pop}
+              className={`h-5 w-5 ${liked ? "fill-coral-500 text-coral-500" : "text-ink-soft"} ${
+                pop > 0 && liked ? "animate-heart-pop" : ""
+              }`}
             />
           </button>
           <button

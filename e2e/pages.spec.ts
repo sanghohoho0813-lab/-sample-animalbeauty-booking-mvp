@@ -21,9 +21,10 @@ test.describe("미용실 찾기", () => {
     // '오늘 예약 가능'은 실제 남은 시간으로 거른다 — 남은 매장은 모두 '오늘'로 표시된다
     await page.getByLabel("오늘 예약 가능").check();
     const empty = page.getByText("조건에 맞는 미용실이 없어요");
+    // 매장별 '… 09:00 예약 가능' 표시만 (필터 칩 '오늘 예약 가능' 자체는 제외)
     const labels = page
       .locator("main")
-      .getByText(/예약 가능$/)
+      .getByText(/\d{2}:\d{2} 예약 가능$/)
       .locator("visible=true");
     await expect(empty.or(labels.first())).toBeVisible();
     for (const label of await labels.allTextContents()) expect(label).toContain("오늘");

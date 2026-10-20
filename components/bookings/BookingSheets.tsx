@@ -120,6 +120,7 @@ export function RescheduleSheet({ booking, onClose }: { booking: Booking; onClos
               setTime(null);
             }}
             onTime={setTime}
+            current={{ date: booking.date, time: booking.time }}
           />
         ) : (
           <div className="skeleton h-80 rounded-3xl" />
@@ -140,6 +141,14 @@ export function RescheduleSheet({ booking, onClose }: { booking: Booking; onClos
 /* ----------------------------------- 후기 ----------------------------------- */
 
 const REVIEW_MAX = 300;
+
+const RATING_LABEL: Record<number, string> = {
+  1: "아쉬웠어요",
+  2: "조금 아쉬웠어요",
+  3: "괜찮았어요",
+  4: "좋았어요",
+  5: "최고예요",
+};
 
 export function ReviewSheet({
   booking,
@@ -185,13 +194,18 @@ export function ReviewSheet({
             aria-label={`별점 ${n}점`}
           >
             <Star
-              className={`h-9 w-9 transition-colors ${
-                n <= rating ? "fill-amber-400 text-amber-400" : "fill-cream-200 text-cream-200"
+              className={`h-9 w-9 transition-all duration-200 ${
+                n <= rating
+                  ? "scale-100 fill-amber-400 text-amber-400"
+                  : "scale-90 fill-cream-200 text-cream-200"
               }`}
             />
           </button>
         ))}
       </div>
+      <p className="mt-1 text-center text-sm font-semibold text-amber-700" aria-hidden>
+        {RATING_LABEL[rating]}
+      </p>
 
       <p className="mt-5 text-sm font-bold text-ink">어떤 점이 좋았나요?</p>
       <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="좋았던 점">

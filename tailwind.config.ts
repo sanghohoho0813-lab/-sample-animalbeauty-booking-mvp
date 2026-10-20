@@ -127,6 +127,26 @@ const config: Config = {
           "0%, 64%": { transform: "translateX(-140%)" },
           "100%": { transform: "translateX(240%)" },
         },
+        "toast-in": {
+          "0%": { opacity: "0", transform: "translateY(14px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        // 찜 하트가 눌릴 때 톡 튀어 오른다
+        "heart-pop": {
+          "0%": { transform: "scale(1)" },
+          "35%": { transform: "scale(1.32)" },
+          "70%": { transform: "scale(0.92)" },
+          "100%": { transform: "scale(1)" },
+        },
+        // 예약 단계 이동 — 앞으로는 오른쪽에서, 뒤로는 왼쪽에서
+        "step-in-forward": {
+          "0%": { opacity: "0", transform: "translateX(28px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "step-in-back": {
+          "0%": { opacity: "0", transform: "translateX(-28px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
         // 배지 점의 아주 약한 숨쉬기
         "badge-pulse": {
           "0%, 100%": { opacity: "0.3", transform: "scale(1)" },
@@ -142,6 +162,10 @@ const config: Config = {
         shimmer: "shimmer 1.4s linear infinite",
         "cta-sweep": "cta-sweep 6s cubic-bezier(0.4, 0, 0.2, 1) infinite",
         "badge-pulse": "badge-pulse 4s ease-in-out infinite",
+        "toast-in": "toast-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "heart-pop": "heart-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "step-forward": "step-in-forward 0.32s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "step-back": "step-in-back 0.32s cubic-bezier(0.16, 1, 0.3, 1) both",
       },
     },
   },

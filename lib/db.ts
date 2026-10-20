@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { DEMO_USER, getServiceById } from "./data";
+import { DEMO_USER, getServiceById, SEED_PETS } from "./data";
 import { loadDb, makeBookingNo, newId } from "./db-core";
 import { canModify, isActive } from "./lifecycle";
 import { isSlotBookable } from "./slots";
@@ -109,8 +109,15 @@ export function addPet(pet: Omit<Pet, "id">): Pet {
   return newPet;
 }
 
-export function updatePet(id: string, patch: Partial<Omit<Pet, "id" | "image">>): void {
-  update({ pets: state.pets.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+/**
+ * 반려동물 정보 수정. 사진을 지우면(image: undefined) 데모 아이는 원래 사진으로 돌아간다.
+ */
+export function updatePet(id: string, patch: Partial<Omit<Pet, "id">>): void {
+  const next = { ...patch };
+  if ("image" in next && !next.image) {
+    next.image = SEED_PETS.find((s) => s.id === id)?.image;
+  }
+  update({ pets: state.pets.map((p) => (p.id === id ? { ...p, ...next } : p)) });
 }
 
 /**

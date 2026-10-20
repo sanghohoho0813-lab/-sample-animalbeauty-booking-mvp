@@ -125,8 +125,27 @@ export function seedDb(now: Date): StoredDb {
 export function mergeSeedPets(storedPets: Pet[]): Pet[] {
   return storedPets.map((p) => {
     const seed = SEED_PETS.find((s) => s.id === p.id);
-    return seed ? { ...p, image: seed.image, emoji: seed.emoji } : p;
+    if (!seed) return p;
+    // 보호자가 직접 올린 사진은 그대로 둔다
+    return { ...p, image: isUploadedImage(p.image) ? p.image : seed.image, emoji: seed.emoji };
   });
+}
+
+/** 보호자가 올린 사진(앱에서 줄여 저장한 data URL)인지 */
+export const isUploadedImage = (v: unknown): v is string =>
+  typeof v === "string" && v.startsWith("data:image/");
+
+const UPLOADED_IMAGE_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
+/** 사진 주소로 받아들이는 값 — 앱에 들어 있는 사진 경로, 또는 앱이 만든 이미지 data URL (400KB 이하) */
+export function isSafeImage(v: unknown): v is string {
+  if (typeof v !== "string") return false;
+  if (/^\/images\/[\w./-]+$/.test(v) && !v.includes("..")) return true;
+  return v.length <= 400_000 && UPLOADED_IMAGE_RE.test(v);
+}
+
+/** 반려동물의 선택 필드 — 사진 주소가 이상하면 사진만 버린다 */
+function sanitizePet(p: Pet): Pet {
+  return p.image === undefined || isSafeImage(p.image) ? p : { ...p, image: undefined };
 }
 
 /**
@@ -266,7 +285,7 @@ export function parseStoredDb(raw: unknown): StoredDb | null {
     ? raw.favorites.filter((id): id is string => isStr(id) && salonIds.has(id))
     : [];
   return {
-    pets: uniqueBy(raw.pets.filter(isPet), (p) => p.id),
+    pets: uniqueBy(raw.pets.filter(isPet), (p) => p.id).map(sanitizePet),
     bookings: uniqueBy(raw.bookings.filter(isBooking), (b) => b.id).map(sanitizeBooking),
     favorites: [...new Set(favorites)],
     // 후기 저장 이전 버전에서 넘어온 데이터에는 reviews가 없다
