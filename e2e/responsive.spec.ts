@@ -9,6 +9,8 @@ const PAGES = [
   "/bookings/bk-seed-2",
   "/favorites",
   "/pets",
+  "/pets/pet-2",
+  "/notifications",
   "/my",
   "/help",
 ];

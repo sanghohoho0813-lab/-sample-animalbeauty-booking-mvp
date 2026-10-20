@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Pet } from "@/lib/types";
 
 const SIZES = {
+  xs: { cls: "h-7 w-7 text-base", px: 28 },
   sm: { cls: "h-10 w-10 text-xl", px: 40 },
   md: { cls: "h-14 w-14 text-3xl", px: 56 },
   lg: { cls: "h-20 w-20 text-4xl", px: 80 },

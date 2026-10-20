@@ -21,6 +21,8 @@ const PAGES = [
   "/bookings/bk-seed-4",
   "/favorites",
   "/pets",
+  "/pets/pet-1",
+  "/notifications",
   "/my",
   "/help",
   "/no-such-page",
@@ -57,7 +59,9 @@ test.describe("접근성 (axe · WCAG 2.1 AA)", () => {
     await scan(page);
   });
 
-  test("대화상자 (반려동물 등록 · 예약 취소 · 일정 변경 · 후기)", async ({ page }) => {
+  test("대화상자 (반려동물 등록 · 예약 취소 · 일정 변경 · 후기 · 미용실 필터)", async ({
+    page,
+  }) => {
     await page.goto("/pets?add=1");
     await expect(page.getByRole("dialog")).toBeVisible();
     await scan(page);
@@ -76,6 +80,11 @@ test.describe("접근성 (axe · WCAG 2.1 AA)", () => {
     await page.goto("/bookings/bk-seed-4");
     await page.getByRole("button", { name: "후기 작성" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    await scan(page);
+
+    await page.goto("/salons");
+    await page.getByRole("button", { name: "필터" }).click();
+    await expect(page.getByRole("dialog", { name: "미용실 필터" })).toBeVisible();
     await scan(page);
   });
 });

@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PetAvatar from "@/components/ui/PetAvatar";
-import { isCouponUsed } from "@/lib/coupons";
+import { couponExpiresOn, isCouponUsed } from "@/lib/coupons";
 import { COUPONS, DEMO_USER } from "@/lib/data";
 import { MIRAE_LINKS } from "@/lib/mirae";
 import { formatDateShortKo } from "@/lib/format";
@@ -25,7 +25,7 @@ const SETTINGS_KEY = "pawbeauty-settings-v1";
 
 /** 쿠폰 만료일 표시 — '10월 31일까지' */
 function couponDeadline(coupon: Coupon, now: Date): string {
-  const end = new Date(now.getFullYear(), now.getMonth() + coupon.expiresInMonths + 1, 0);
+  const end = couponExpiresOn(coupon, now);
   return `${end.getMonth() + 1}월 ${end.getDate()}일까지`;
 }
 
@@ -203,7 +203,7 @@ export default function MyPage() {
           </SectionCard>
 
           {/* 알림 설정 */}
-          <SectionCard title="알림 설정">
+          <SectionCard id="settings" title="알림 설정">
             <div className="space-y-1">
               <ToggleRow
                 icon={<Bell className="h-4 w-4" />}
@@ -235,6 +235,9 @@ export default function MyPage() {
             aria-label="도움말"
             className="divide-y divide-cream-200 overflow-hidden rounded-3xl bg-white ring-1 ring-cream-200"
           >
+            <MenuLink href="/notifications" icon={<Bell className="h-4 w-4" />}>
+              알림함
+            </MenuLink>
             <MenuLink href="/help" icon={<HelpCircle className="h-4 w-4" />}>
               이용 안내 · 자주 묻는 질문
             </MenuLink>

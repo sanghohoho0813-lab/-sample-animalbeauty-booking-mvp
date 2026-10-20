@@ -49,3 +49,9 @@ export function hashString(str: string): number {
   }
   return Math.abs(h);
 }
+
+/** 'YYYY-MM-DD' → '9월 30일' (요일 없이, 좁은 칸용) */
+export function formatMonthDay(dateKey: string): string {
+  const [, m, d] = dateKey.split("-").map(Number);
+  return `${m}월 ${d}일`;
+}

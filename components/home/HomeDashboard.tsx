@@ -1,6 +1,14 @@
 "use client";
 
-import { CalendarCheck, CalendarPlus, ChevronRight, Plus, Ticket } from "lucide-react";
+import {
+  CalendarCheck,
+  CalendarPlus,
+  ChevronRight,
+  MessageSquareHeart,
+  Plus,
+  Ticket,
+} from "lucide-react";
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { STAGE_LABEL } from "@/components/bookings/BookingDetail";
@@ -62,7 +70,7 @@ function petStatus(pet: Pet, bookings: Booking[], now: Date) {
  * 날짜 계산이 필요해 마운트 후에 그리고, 그 전에는 같은 크기의 자리만 잡는다.
  */
 export default function HomeDashboard() {
-  const { hydrated, pets, bookings } = useDb();
+  const { hydrated, pets, bookings, reviews } = useDb();
   const now = useNow();
 
   if (!hydrated || !now) {
@@ -86,6 +94,12 @@ export default function HomeDashboard() {
   const statuses = pets.map((pet) => ({ pet, ...petStatus(pet, bookings, now) }));
   const duePet = statuses.find((s) => s.due)?.pet;
   const usableCoupons = COUPONS.filter((c) => !isCouponUsed(c, { bookings }));
+  // 가장 최근에 받고 아직 후기를 안 쓴 미용
+  const pendingReview = bookings
+    .filter(
+      (b) => b.status === "completed" && !b.reviewed && !reviews.some((r) => r.bookingId === b.id)
+    )
+    .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`))[0];
 
   // 오늘의 한 줄 — 가장 먼저 챙길 일을 제목으로
   let headline = "우리 아이 미용, 1분이면 예약해요";
@@ -121,24 +135,33 @@ export default function HomeDashboard() {
           ) : (
             <NoUpcoming duePet={duePet} />
           )}
-          {usableCoupons.length > 0 && (
-            <Link
-              href="/my#coupons"
-              className="mt-3 flex items-center gap-3 rounded-2xl bg-white/70 px-4 py-3 ring-1 ring-cream-200 transition-colors hover:bg-white"
+          {/* 챙길 일 — 후기를 기다리는 예약, 쓸 수 있는 쿠폰 */}
+          {(pendingReview || usableCoupons.length > 0) && (
+            <ul
+              className="mt-3 divide-y divide-cream-200 overflow-hidden rounded-2xl bg-white/80 ring-1 ring-cream-200"
+              aria-label="챙길 일"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral-50 text-coral-600">
-                <Ticket className="h-[1.1rem] w-[1.1rem]" aria-hidden />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold text-ink">
-                  쓸 수 있는 쿠폰 {usableCoupons.length}장
-                </span>
-                <span className="block truncate text-xs text-ink-muted">
-                  예약할 때 가장 큰 할인이 자동으로 적용돼요
-                </span>
-              </span>
-              <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint" aria-hidden />
-            </Link>
+              {pendingReview && (
+                <li>
+                  <TodoRow
+                    href={`/bookings/${pendingReview.id}`}
+                    icon={<MessageSquareHeart className="h-[1.1rem] w-[1.1rem]" aria-hidden />}
+                    title={`${pets.find((p) => p.id === pendingReview.petId)?.name ?? "우리 아이"} 미용 후기를 남겨주세요`}
+                    desc={`${formatDateShortKo(pendingReview.date)} · ${getSalonById(pendingReview.salonId)?.name ?? ""}`}
+                  />
+                </li>
+              )}
+              {usableCoupons.length > 0 && (
+                <li>
+                  <TodoRow
+                    href="/my#coupons"
+                    icon={<Ticket className="h-[1.1rem] w-[1.1rem]" aria-hidden />}
+                    title={`쓸 수 있는 쿠폰 ${usableCoupons.length}장`}
+                    desc="예약할 때 가장 큰 할인이 자동으로 적용돼요"
+                  />
+                </li>
+              )}
+            </ul>
           )}
         </div>
 
@@ -410,5 +433,33 @@ function NoUpcoming({ duePet }: { duePet?: Pet }) {
         예약하기
       </Link>
     </div>
+  );
+}
+
+function TodoRow({
+  href,
+  icon,
+  title,
+  desc,
+}: {
+  href: string;
+  icon: ReactNode;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-white"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-coral-50 text-coral-600">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-bold text-ink">{title}</span>
+        <span className="block truncate text-xs text-ink-muted">{desc}</span>
+      </span>
+      <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint" aria-hidden />
+    </Link>
   );
 }

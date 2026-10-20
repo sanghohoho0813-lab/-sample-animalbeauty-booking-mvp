@@ -78,3 +78,8 @@ export function resolveCoupon(
   }
   return usable[0] ?? null;
 }
+
+/** 쿠폰을 쓸 수 있는 마지막 날 — 발급 달부터 expiresInMonths 개월 뒤 달의 말일 (데모는 오늘 기준) */
+export function couponExpiresOn(coupon: Coupon, now: Date): Date {
+  return new Date(now.getFullYear(), now.getMonth() + coupon.expiresInMonths + 1, 0);
+}

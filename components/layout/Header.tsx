@@ -1,9 +1,10 @@
 "use client";
 
-import { PawPrint } from "lucide-react";
+import { Bell, PawPrint, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DEMO_USER } from "@/lib/data";
+import { useNotifications } from "@/lib/inbox";
 
 const NAV_ITEMS = [
   { href: "/booking", label: "예약하기" },
@@ -15,6 +16,8 @@ const NAV_ITEMS = [
 
 export default function Header() {
   const pathname = usePathname();
+  const { unread } = useNotifications();
+  const onInbox = pathname === "/notifications";
 
   return (
     <header className="sticky top-0 z-40 border-b border-cream-200/80 bg-cream-50/85 backdrop-blur-xl backdrop-saturate-150">
@@ -52,10 +55,39 @@ export default function Header() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <Link
+            href="/salons?focus=1"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-cream-100 hover:text-ink"
+            aria-label="검색하기"
+          >
+            <Search className="h-[1.3rem] w-[1.3rem]" strokeWidth={2} />
+          </Link>
+          <Link
+            href="/notifications"
+            aria-current={onInbox ? "page" : undefined}
+            className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-cream-100 hover:text-ink ${
+              onInbox ? "text-ink" : "text-ink-soft"
+            }`}
+            aria-label={unread > 0 ? `알림, 새 알림 ${unread}개` : "알림"}
+          >
+            <Bell
+              className="h-[1.3rem] w-[1.3rem]"
+              strokeWidth={2}
+              fill={onInbox ? "currentColor" : "none"}
+            />
+            {unread > 0 && !onInbox && (
+              <span
+                className="absolute right-1 top-1 flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-coral-600 px-1 text-[0.7rem] font-bold leading-none text-white ring-2 ring-cream-50 animate-scale-in"
+                aria-hidden
+              >
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </Link>
           <Link
             href="/my"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-bold text-white ring-2 ring-white transition-transform tap"
+            className="ml-1 flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-bold text-white ring-2 ring-white transition-transform tap"
             aria-label="마이페이지"
           >
             {DEMO_USER.name.slice(0, 1)}

@@ -3,7 +3,7 @@
 import { CalendarDays, ChevronRight, History, PenLine, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { ReviewSheet } from "@/components/bookings/BookingSheets";
 import { STAGE_LABEL, STAGE_STYLE, useMyReview } from "@/components/bookings/BookingDetail";
 import EmptyState from "@/components/ui/EmptyState";
@@ -20,11 +20,13 @@ import { useNow } from "@/lib/use-now";
 type Tab = "upcoming" | "past";
 
 export default function BookingsPage() {
-  const { bookings, pets, hydrated } = useDb();
+  const { bookings, pets, reviews, hydrated } = useDb();
   const { setDraft } = useBookingDraft();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("upcoming");
   const [reviewTarget, setReviewTarget] = useState<Booking | null>(null);
+  // 아이별로 보기 ('all' 또는 반려동물 id)
+  const [petFilter, setPetFilter] = useState<string>("all");
 
   const rebook = (booking: Booking) => {
     setDraft(rebookDraft(booking));
@@ -34,13 +36,31 @@ export default function BookingsPage() {
   const { upcoming, past } = useMemo(() => {
     const byDate = (a: Booking, b: Booking) =>
       `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`);
+    const mine = bookings.filter((b) => petFilter === "all" || b.petId === petFilter);
     return {
-      upcoming: bookings.filter(isActive).sort(byDate),
-      past: bookings.filter((b) => !isActive(b)).sort((a, b) => byDate(b, a)),
+      upcoming: mine.filter(isActive).sort(byDate),
+      past: mine.filter((b) => !isActive(b)).sort((a, b) => byDate(b, a)),
     };
-  }, [bookings]);
+  }, [bookings, petFilter]);
+
+  // 후기를 아직 안 쓴 이용 완료 예약 수 — 지난 내역 탭에 표시
+  const pendingReviews = past.filter(
+    (b) => b.status === "completed" && !b.reviewed && !reviews.some((r) => r.bookingId === b.id)
+  ).length;
 
   const list = tab === "upcoming" ? upcoming : past;
+  // 지난 내역은 달별로 묶는다
+  const groups: { key: string; label: string | null; items: Booking[] }[] =
+    tab === "past"
+      ? [...new Set(list.map((b) => b.date.slice(0, 7)))].map((ym) => ({
+          key: ym,
+          label: `${Number(ym.slice(0, 4))}년 ${Number(ym.slice(5, 7))}월`,
+          items: list.filter((b) => b.date.startsWith(ym)),
+        }))
+      : [{ key: "all", label: null, items: list }];
+  const filteredPet = pets.find((p) => p.id === petFilter);
+  // 기록이 있는 아이만 칩으로 (둘 이상일 때)
+  const petsWithBookings = pets.filter((p) => bookings.some((b) => b.petId === p.id));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-10">
@@ -60,14 +80,42 @@ export default function BookingsPage() {
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all duration-200 ${
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-bold transition-all duration-200 ${
               tab === key ? "bg-white text-ink shadow-card" : "text-ink-muted hover:text-ink"
             }`}
           >
             {label}
+            {key === "past" && hydrated && pendingReviews > 0 && (
+              <span className="rounded-full bg-coral-600 px-1.5 py-0.5 text-xs font-bold leading-none text-white">
+                <span className="sr-only">, </span>후기 {pendingReviews}
+              </span>
+            )}
           </button>
         ))}
       </div>
+
+      {/* 아이별로 보기 */}
+      {hydrated && petsWithBookings.length >= 2 && (
+        <div
+          className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide md:mx-0 md:px-0"
+          role="group"
+          aria-label="아이별로 보기"
+        >
+          <PetChip on={petFilter === "all"} onClick={() => setPetFilter("all")}>
+            전체
+          </PetChip>
+          {petsWithBookings.map((pet) => (
+            <PetChip
+              key={pet.id}
+              on={petFilter === pet.id}
+              onClick={() => setPetFilter(pet.id)}
+              pet={pet}
+            >
+              {pet.name}
+            </PetChip>
+          ))}
+        </div>
+      )}
 
       <div
         className="mt-5 grid grid-cols-1 items-start gap-3 lg:grid-cols-2 lg:gap-4"
@@ -80,7 +128,9 @@ export default function BookingsPage() {
           <div className="lg:col-span-2">
             <EmptyState
               icon={tab === "upcoming" ? CalendarDays : History}
-              title={tab === "upcoming" ? "예정된 예약이 없어요" : "지난 이용 내역이 없어요"}
+              title={`${filteredPet ? `${filteredPet.name}의 ` : ""}${
+                tab === "upcoming" ? "예정된 예약이 없어요" : "지난 이용 내역이 없어요"
+              }`}
               desc={
                 tab === "upcoming"
                   ? past.length > 0
@@ -88,21 +138,31 @@ export default function BookingsPage() {
                     : "우리 아이를 위한 첫 미용을 예약해보세요."
                   : "미용을 받고 나면 이곳에서 후기를 남길 수 있어요."
               }
-              actionHref="/booking"
-              actionLabel="예약하러 가기"
+              actionHref={filteredPet ? `/booking?pet=${filteredPet.id}&step=1` : "/booking"}
+              actionLabel={filteredPet ? `${filteredPet.name} 예약하기` : "예약하러 가기"}
             />
           </div>
         )}
 
         {hydrated &&
-          list.map((booking) => (
-            <BookingCard
-              key={booking.id}
-              booking={booking}
-              pet={pets.find((p) => p.id === booking.petId)}
-              onReview={() => setReviewTarget(booking)}
-              onRebook={() => rebook(booking)}
-            />
+          groups.map((group) => (
+            <Fragment key={group.key}>
+              {group.label && (
+                <h2 className="mt-3 px-1 text-sm font-bold text-ink-muted first:mt-0 lg:col-span-2">
+                  {group.label}
+                  <span className="ml-1.5 font-medium text-ink-faint">{group.items.length}건</span>
+                </h2>
+              )}
+              {group.items.map((booking) => (
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  pet={pets.find((p) => p.id === booking.petId)}
+                  onReview={() => setReviewTarget(booking)}
+                  onRebook={() => rebook(booking)}
+                />
+              ))}
+            </Fragment>
           ))}
       </div>
 
@@ -216,5 +276,35 @@ function BookingCard({
         </div>
       )}
     </article>
+  );
+}
+
+function PetChip({
+  on,
+  onClick,
+  pet,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  pet?: Pet;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full py-1.5 text-sm font-semibold transition-colors tap ${
+        pet ? "pl-1.5 pr-3.5" : "px-4"
+      } ${
+        on
+          ? "bg-ink text-white"
+          : "bg-white text-ink-soft ring-1 ring-cream-300 hover:ring-ink-faint"
+      }`}
+    >
+      {pet && <PetAvatar pet={pet} size="xs" />}
+      {children}
+    </button>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bell,
   CalendarClock,
   CalendarPlus,
   Check,
@@ -283,7 +284,10 @@ export default function BookingDetail({
               </div>
             </div>
             {pet && (
-              <div className="flex items-center gap-3.5 border-t border-cream-200 p-4">
+              <Link
+                href={`/pets/${pet.id}`}
+                className="flex items-center gap-3.5 border-t border-cream-200 p-4 transition-colors hover:bg-cream-50"
+              >
                 <PetAvatar pet={pet} size="md" />
                 <div className="min-w-0 flex-1">
                   <p className="text-base font-bold text-ink">{pet.name}</p>
@@ -291,7 +295,8 @@ export default function BookingDetail({
                     {pet.breed} · {pet.age}살 · {pet.weight}kg
                   </p>
                 </div>
-              </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-ink-faint" aria-hidden />
+              </Link>
             )}
           </section>
         </div>
@@ -429,6 +434,12 @@ function NextAction({
           ))}
         </ul>
         <p className="mt-3 text-sm font-semibold text-mint-800">픽업은 {endTime}쯤 오시면 돼요</p>
+        {stage === "upcoming" && (
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-mint-800/90">
+            <Bell className="h-4 w-4 shrink-0" aria-hidden />
+            방문 전날 저녁 6시에 알림함으로 한 번 더 알려드려요
+          </p>
+        )}
       </section>
     );
   }
